@@ -1,0 +1,38 @@
+# NOVR Events monorepo. Allow-list at the top level: only the two applications and the root files
+# below are published. Everything else in this folder (backups, archives, internal progress notes,
+# local agent state) stays local. Each application has its own .gitignore for its contents.
+
+/*
+!/.gitignore
+!/README.md
+!/novrevents-frontend/
+!/novrevents-backend/
+
+# ── Safety net, applied inside both applications ────────────────────────────
+node_modules/
+.next/
+dist/
+coverage/
+*.tsbuildinfo
+
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+
+*.dump
+*.sql.gz
+*.log
+backups/
+archive/
+
+.claude/
+CLAUDE.md
+AGENTS.md
+
+.DS_Store
+Thumbs.db
+desktop.ini

@@ -1,0 +1,44 @@
+# Local development services for the NOVR Events API.
+# Usage: `npm run services:up` (PostgreSQL only) or `docker compose --profile s3 up -d` (adds MinIO).
+# These credentials are for local development only — never reuse them in production.
+name: novrevents
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: novrevents-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: novr
+      POSTGRES_PASSWORD: novr_dev_password
+      POSTGRES_DB: novrevents
+    ports:
+      - '5432:5432'
+    volumes:
+      - novrevents_pgdata:/var/lib/postgresql/data
+      - ./docker/initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U novr -d novrevents']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  # Optional S3-compatible object storage for exercising STORAGE_DRIVER=s3 locally.
+  minio:
+    image: minio/minio:latest
+    container_name: novrevents-minio
+    profiles: ['s3']
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: novr_minio
+      MINIO_ROOT_PASSWORD: novr_minio_password
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    volumes:
+      - novrevents_minio:/data
+
+volumes:
+  novrevents_pgdata:
+  novrevents_minio:

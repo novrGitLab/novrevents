@@ -1,0 +1,59 @@
+# ── Dependencies ────────────────────────────────────────────────────────────
+node_modules/
+
+# ── Build output ────────────────────────────────────────────────────────────
+dist/
+build/
+coverage/
+*.tsbuildinfo
+
+# Generated Prisma client (regenerate with `npm run db:generate`)
+src/generated/
+
+# ── Environment and secrets (never commit) ──────────────────────────────────
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+
+# ── Runtime data: uploads, local databases and dumps ────────────────────────
+.storage/
+.storage-test/
+uploads/
+data/
+*.dump
+*.sql.gz
+*.sqlite
+*.db
+backups/
+archive/
+*.bak
+
+# ── Tests ───────────────────────────────────────────────────────────────────
+.vitest/
+test-results/
+
+# ── Logs and temporary output ───────────────────────────────────────────────
+*.log
+npm-debug.log*
+logs/
+tmp/
+temp/
+
+# ── Local AI-agent instructions and state ───────────────────────────────────
+.claude/
+CLAUDE.md
+AGENTS.md
+*.local.md
+
+# ── Editors and operating systems ───────────────────────────────────────────
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini

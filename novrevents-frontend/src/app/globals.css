@@ -1,0 +1,235 @@
+@import 'tailwindcss';
+
+/*
+ * NOVR Events design tokens. See docs/DESIGN_SYSTEM.md.
+ *
+ * One theme only: pure white surfaces, graphite text, thin neutral borders, and Cybernovr purple
+ * as the primary action and selection colour. Brand colours are the official Cybernovr values
+ * (purple #662F8E, blue #4451A2, red #EB2027). Change colours here only; components use the
+ * semantic names below.
+ */
+
+/*
+ * NOVR Events has no dark theme. Nothing sets a `.dark` class, so binding the variant to that class
+ * keeps any stray `dark:` utility inert instead of following the operating system.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  color-scheme: light;
+  --radius: 0.375rem;
+
+  /* Official Cybernovr colours (verified from cybernovr.com source). */
+  --cn-purple: #662f8e;
+  --cn-blue: #4451a2;
+  --cn-red: #eb2027;
+
+  /* Surfaces: white canvas, sidebar, header and cards. */
+  --background: #ffffff;
+  --foreground: #18181b;
+  --card: #ffffff;
+  --card-foreground: #18181b;
+  --popover: #ffffff;
+  --popover-foreground: #18181b;
+  --muted: #f5f5f7; /* subtle secondary surface: table headers, wells, placeholders */
+  --muted-foreground: #5f5f68; /* 6.3:1 on white */
+  --subtle-foreground: #7a7a83; /* placeholders and tertiary text, 4.5:1 on white */
+
+  /* Actions: purple primary, white secondary with a neutral border. */
+  --primary: var(--cn-purple);
+  --primary-hover: #572879;
+  --primary-foreground: #ffffff;
+  --secondary: #f5f5f7;
+  --secondary-foreground: #18181b;
+
+  /* Brand accent for active navigation, links and focus. */
+  --brand: var(--cn-purple);
+  --brand-foreground: #ffffff;
+  --brand-soft: #f4eef8; /* selected navigation background */
+  --brand-text: #5b2a80; /* purple text on white (8.6:1) */
+
+  --accent: #f5f5f7;
+  --accent-foreground: #18181b;
+
+  /* Status */
+  --destructive: #c8161d; /* darker than brand red so text passes contrast */
+  --destructive-foreground: #ffffff;
+  --success: #17803d;
+  --success-foreground: #ffffff;
+  --warning: #a35c00;
+  --warning-foreground: #ffffff;
+  --info: var(--cn-blue);
+
+  --border: #e4e4e7;
+  --input: #d9d9de;
+  --ring: #7d4aa3;
+
+  /* Charts: purple first, blue second, neutrals after. Red is reserved for negatives. */
+  --chart-1: #662f8e;
+  --chart-2: #4451a2;
+  --chart-3: #9c9ca6;
+  --chart-4: #b48fd0;
+  --chart-5: #eb2027;
+}
+
+@theme inline {
+  --font-sans:
+    var(--font-inter), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, 'Cascadia Mono', Menlo, Consolas, monospace;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-text: var(--brand-text);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-subtle-foreground: var(--subtle-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 8px;
+  --radius-2xl: 8px;
+
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1rem;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.25rem;
+  --text-base: 0.9375rem;
+  --text-base--line-height: 1.5rem;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+    /* In-page anchors land below the 64px sticky public header. */
+    scroll-padding-top: 4.5rem;
+    font-feature-settings: 'cv11', 'ss01';
+    background: var(--background);
+  }
+  body {
+    @apply bg-background text-foreground text-sm antialiased;
+  }
+  :focus-visible {
+    @apply outline-ring outline-2 outline-offset-2;
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--brand) 18%, transparent);
+  }
+  a {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Typography helpers so headings stay consistent across the product. Inter throughout. */
+@utility page-title {
+  font-size: 1.5rem;
+  line-height: 2rem;
+  font-weight: 600;
+  letter-spacing: -0.018em;
+}
+@utility display-title {
+  font-size: 2rem;
+  line-height: 2.5rem;
+  font-weight: 600;
+  letter-spacing: -0.022em;
+}
+@utility section-title {
+  font-size: 1rem;
+  line-height: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+@utility eyebrow {
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+
+/* Marketing site only: hero 40–60px, section headings 28–36px. */
+@utility marketing-hero {
+  font-size: clamp(2.5rem, 1.75rem + 2.6vw, 3.75rem);
+  line-height: 1.06;
+  font-weight: 600;
+  letter-spacing: -0.032em;
+}
+@utility marketing-heading {
+  font-size: clamp(1.75rem, 1.45rem + 1vw, 2.25rem);
+  line-height: 1.15;
+  font-weight: 600;
+  letter-spacing: -0.024em;
+}
+
+/* Data tables: one look everywhere. Apply `data-table` to a <table> inside a bordered wrapper. */
+@utility data-table {
+  width: 100%;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+  & thead th {
+    background: var(--muted);
+    color: var(--muted-foreground);
+    font-weight: 500;
+    font-size: 0.75rem;
+    text-align: start;
+    white-space: nowrap;
+    padding: 0.5rem 0.875rem;
+    border-bottom: 1px solid var(--border);
+  }
+  & tbody td {
+    padding: 0.625rem 0.875rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  & tbody tr:last-child td {
+    border-bottom: 0;
+  }
+  & th.text-right,
+  & td.text-right {
+    text-align: end;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

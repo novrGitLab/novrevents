@@ -1,0 +1,14 @@
+node_modules
+dist
+coverage
+.git
+.github
+.env
+.env.*
+!.env.example
+.storage
+.storage-test
+src/generated
+src/tests
+docs
+*.log
