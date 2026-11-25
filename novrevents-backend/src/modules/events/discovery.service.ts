@@ -8,6 +8,7 @@ import { badRequest, conflict, notFound } from '../../lib/errors.js'
 import { publicFileUrl } from '../../lib/storage/index.js'
 import { getSettings } from '../admin/settings.service.js'
 import { findVisibleProfile } from '../profiles/profile.service.js'
+import { categoryGroup, CYBERSECURITY_CATEGORY_SLUGS } from './categories.js'
 import { resolveEventRole, roleCan } from './event-access.js'
 import { effectiveStatus, eventCardInclude, toEventSummary } from './event.dto.js'
 import type { discoveryQuery } from './event.schemas.js'
@@ -69,6 +70,14 @@ export function buildDiscoveryWhere(query: DiscoveryQuery, now: Date): Prisma.Ev
     })
   }
   if (query.category) filters.push({ category: { slug: query.category } })
+  // Part of the same WHERE as everything else, so totals and pages reflect the mode.
+  if (query.scope === 'cybersecurity') {
+    filters.push({ category: { slug: { in: [...CYBERSECURITY_CATEGORY_SLUGS] } } })
+  } else if (query.scope === 'general') {
+    filters.push({
+      OR: [{ categoryId: null }, { category: { slug: { notIn: [...CYBERSECURITY_CATEGORY_SLUGS] } } }],
+    })
+  }
   if (query.type) filters.push({ eventType: query.type })
   if (query.mode) filters.push({ mode: query.mode })
   if (query.price) filters.push({ isPaid: query.price === 'paid' })
@@ -118,11 +127,12 @@ export async function searchEvents(query: DiscoveryQuery) {
 }
 
 export async function listCategories() {
-  return prisma.eventCategory.findMany({
+  const categories = await prisma.eventCategory.findMany({
     where: { isActive: true },
     orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
     select: { id: true, slug: true, name: true, description: true },
   })
+  return categories.map((category) => ({ ...category, group: categoryGroup(category.slug) }))
 }
 
 // ─── Event page ──────────────────────────────────────────────────────────────

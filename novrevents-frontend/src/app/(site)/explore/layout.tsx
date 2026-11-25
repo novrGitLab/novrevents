@@ -1,9 +1,9 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Explore cybersecurity events',
+  title: 'Explore events',
   description:
-    'Search upcoming cybersecurity conferences, workshops, CTF competitions, trainings and meetups. Filter by topic, type, format, price, location and date.',
+    'Search upcoming conferences, workshops, webinars, hackathons and meetups, or switch to cybersecurity events. Filter by category, type, format, price, location and date.',
   alternates: { canonical: '/explore' },
 }
 

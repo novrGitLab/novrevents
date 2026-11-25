@@ -5,14 +5,14 @@ test.describe('public site', () => {
   test('home and explore load real data and filters work @mobile', async ({ page }) => {
     await page.goto('/', { waitUntil: 'networkidle' })
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(
-      'Discover and manage cybersecurity events.',
+      'Discover events. Bring communities together.',
     )
     await page.getByRole('main').getByRole('link', { name: 'Discover events' }).first().click()
     await expect(page).toHaveURL(/\/explore/)
     await page.getByLabel('Search', { exact: true }).fill('summit')
     await page.getByRole('button', { name: 'Search' }).first().click()
     await expect(page).toHaveURL(/\/explore\?q=summit/)
-    await expect(page.getByRole('heading', { name: 'Explore cybersecurity events' })).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1, name: 'Discover events', exact: true })).toBeVisible()
     // The result count comes from the API and is always rendered.
     await expect(page.getByText(/\d+ events?/)).toBeVisible()
   })

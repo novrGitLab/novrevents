@@ -7,7 +7,7 @@ export function Closing() {
       <div className="mx-auto max-w-[1280px] px-4 py-16 sm:px-6 lg:px-10 lg:py-20">
         <div className="bg-brand-soft/60 border-brand-soft rounded-xl border px-6 py-12 text-center sm:px-10 lg:py-16">
           <h2 id="closing-title" className="marketing-heading mx-auto max-w-[24ch] text-balance">
-            List your next security event.
+            List your next event.
           </h2>
           <p className="text-muted-foreground mx-auto mt-4 max-w-[52ch] text-base leading-7">
             Create an account, set up your event as a draft and publish it when the details are ready. Attendees

@@ -9,6 +9,7 @@ import {
   requiredText,
   timezoneField,
 } from '../../lib/http.js'
+import { CATEGORY_GROUPS } from './categories.js'
 
 export const EVENT_TYPES = [
   'CONFERENCE',
@@ -103,6 +104,10 @@ export const myEventsQuery = paginationQuery.extend({
 export const discoveryQuery = paginationQuery.extend({
   q: z.string().trim().max(100).optional(),
   category: z.string().trim().max(80).optional().describe('Category slug.'),
+  scope: z
+    .enum(CATEGORY_GROUPS)
+    .optional()
+    .describe('Discovery mode. "cybersecurity" lists only events in a cybersecurity category.'),
   type: eventTypeSchema.optional(),
   mode: eventModeSchema.optional().describe('Event format.'),
   price: z.enum(['free', 'paid']).optional(),
@@ -136,7 +141,13 @@ export const eventViewBody = z.object({ referrer: z.string().max(500).optional()
 // ─── Output ──────────────────────────────────────────────────────────────────
 
 export const categorySchema = z
-  .object({ id: z.uuid(), slug: z.string(), name: z.string(), description: z.string().nullable() })
+  .object({
+    id: z.uuid(),
+    slug: z.string(),
+    name: z.string(),
+    description: z.string().nullable(),
+    group: z.enum(CATEGORY_GROUPS).describe('Discovery group the category belongs to.'),
+  })
   .meta({ id: 'EventCategory' })
 
 const organizerSchema = z.object({

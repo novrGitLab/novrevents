@@ -15,7 +15,7 @@ const choices: Array<{ href: string; title: string; text: string; icon: LucideIc
   {
     href: '/explore',
     title: 'Explore events',
-    text: 'Find cybersecurity conferences, workshops, CTFs and meetups.',
+    text: 'Find conferences, workshops, meetups and cybersecurity events.',
     icon: Compass,
   },
   {

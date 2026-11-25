@@ -7,9 +7,9 @@ import { Trust } from '@/components/marketing/trust'
 import { Upcoming } from '@/components/marketing/upcoming'
 
 export const metadata: Metadata = {
-  title: { absolute: 'NOVR Events — Discover and manage cybersecurity events' },
+  title: { absolute: 'NOVR Events — Discover events. Bring communities together.' },
   description:
-    'The event platform for the security community. Find cybersecurity conferences, workshops, CTF competitions and meetups, and run registration, QR tickets and check-in for your own events. By Cybernovr.',
+    'Discover, organise and manage events, with a dedicated cybersecurity experience. Find conferences, workshops, webinars and meetups, and run registration, QR tickets and check-in for your own events. By Cybernovr.',
   alternates: { canonical: '/' },
 }
 

@@ -108,6 +108,42 @@ describe('event directory', () => {
     expect(await titles({ price: 'free' })).toEqual(['Lagos AppSec Day', 'Cloud Security Webinar'])
   })
 
+  it('filters by discovery mode before paginating', async () => {
+    const scoped = `${marker}scope`
+    await createPublishedEvent(organiser, {
+      title: `Founders Breakfast ${scoped}`,
+      categoryId: await categoryId('business-entrepreneurship'),
+      startsAt: inDays(5),
+      endsAt: inDays(5, 2),
+    })
+    await createPublishedEvent(organiser, {
+      title: `Threat Intel Forum ${scoped}`,
+      categoryId: await categoryId('threat-intelligence'),
+      startsAt: inDays(6),
+      endsAt: inDays(6, 2),
+    })
+    const list = async (scope?: string) => {
+      const response = await anonymous.get<Page>('/api/v1/public/events', {
+        query: { q: scoped, pageSize: 1, ...(scope ? { scope } : {}) },
+      })
+      expect(response.status).toBe(200)
+      return response.body
+    }
+    expect((await list()).total).toBe(2)
+    const cyber = await list('cybersecurity')
+    expect(cyber.total).toBe(1)
+    expect(cyber.totalPages).toBe(1)
+    expect(cyber.items[0]?.title).toBe(`Threat Intel Forum ${scoped}`)
+    expect((await list('general')).items[0]?.title).toBe(`Founders Breakfast ${scoped}`)
+
+    const categories = await anonymous.get<{ items: Array<{ slug: string; group: string }> }>(
+      '/api/v1/public/categories',
+    )
+    const group = (slug: string) => categories.body.items.find((item) => item.slug === slug)?.group
+    expect(group('cloud-security')).toBe('cybersecurity')
+    expect(group('technology-ai')).toBe('general')
+  })
+
   it('filters by location and by date range', async () => {
     expect(await titles({ location: 'kenya' })).toEqual(['Nairobi Red Team Training'])
     expect(await titles({ location: 'lagos' })).toEqual(['Lagos AppSec Day'])

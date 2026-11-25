@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   MapPin,
   Settings,
+  ShieldCheck,
   Ticket,
   Users,
 } from 'lucide-react'
@@ -28,14 +29,15 @@ export function Hero() {
         <div>
           <p className="bg-brand-soft text-brand-text inline-flex items-center gap-2 rounded-sm px-2 py-1 text-xs font-medium">
             <span aria-hidden className="bg-primary size-1.5 rounded-full" />
-            The event platform for the security community
+            Event discovery and management by Cybernovr
           </p>
           <h1 id="hero-title" className="marketing-hero mt-5 max-w-[16ch] text-balance">
-            Where the cybersecurity community meets.
+            Discover events. Bring communities together.
           </h1>
           <p className="text-muted-foreground mt-5 max-w-[56ch] text-base leading-7 sm:text-[17px]">
-            Find conferences, workshops, CTF competitions and meetups. Organisers run registration, approvals,
-            QR tickets and check-in for every stage of an event in one place.
+            Find conferences, workshops, webinars and meetups across technology, business, education and more,
+            with a dedicated space for cybersecurity. Organisers run registration, approvals, QR tickets and
+            check-in in one place.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Button asChild size="lg">
@@ -47,6 +49,13 @@ export function Hero() {
               <Link href="/dashboard/events/new">Host an event</Link>
             </Button>
           </div>
+          <Link
+            href="/explore?mode=cybersecurity"
+            className="text-brand-text hover:text-primary mt-4 inline-flex items-center gap-1.5 text-sm font-medium underline-offset-4 hover:underline"
+          >
+            <ShieldCheck className="size-4" aria-hidden /> Explore cybersecurity events
+            <ChevronRight className="size-4" aria-hidden />
+          </Link>
           <ul className="mt-8 flex flex-col gap-2 border-t pt-5 text-[13px] sm:flex-row sm:flex-wrap sm:gap-x-6">
             {HERO_POINTS.map((point) => (
               <li key={point} className="text-muted-foreground inline-flex items-center gap-2">

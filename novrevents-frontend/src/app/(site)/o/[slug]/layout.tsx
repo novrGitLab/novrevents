@@ -10,7 +10,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     })
     if (!response.ok) return { title: 'Organizer', robots: { index: false, follow: false } }
     const org = (await response.json()) as { name: string; description?: string | null }
-    const description = org.description?.slice(0, 200) || `Cybersecurity events organised by ${org.name}.`
+    const description = org.description?.slice(0, 200) || `Events organised by ${org.name}.`
     return {
       title: org.name,
       description,

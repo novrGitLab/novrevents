@@ -1806,13 +1806,22 @@
           "description": {
             "nullable": true,
             "type": "string"
+          },
+          "group": {
+            "type": "string",
+            "enum": [
+              "cybersecurity",
+              "general"
+            ],
+            "description": "Discovery group the category belongs to."
           }
         },
         "required": [
           "id",
           "slug",
           "name",
-          "description"
+          "description",
+          "group"
         ]
       },
       "RegistrationStateInput": {
@@ -6837,13 +6846,22 @@
           "description": {
             "nullable": true,
             "type": "string"
+          },
+          "group": {
+            "type": "string",
+            "enum": [
+              "cybersecurity",
+              "general"
+            ],
+            "description": "Discovery group the category belongs to."
           }
         },
         "required": [
           "id",
           "slug",
           "name",
-          "description"
+          "description",
+          "group"
         ],
         "additionalProperties": false
       },
@@ -14472,7 +14490,7 @@
         "tags": [
           "Discovery"
         ],
-        "description": "Lists public, published events. Filter by date, location, category, format (mode), price, organiser, registration availability and event type; sort and paginate.",
+        "description": "Lists public, published events. Filter by discovery mode (scope), date, location, category, format (mode), price, organiser, registration availability and event type; sort and paginate.",
         "parameters": [
           {
             "schema": {
@@ -14514,6 +14532,19 @@
             "name": "category",
             "required": false,
             "description": "Category slug."
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "cybersecurity",
+                "general"
+              ]
+            },
+            "in": "query",
+            "name": "scope",
+            "required": false,
+            "description": "Discovery mode. \"cybersecurity\" lists only events in a cybersecurity category."
           },
           {
             "schema": {
@@ -14836,6 +14867,42 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/public/events/{slug}/calendar.ics": {
+      "get": {
+        "summary": "Calendar file (.ics) for an event",
+        "tags": [
+          "Discovery"
+        ],
+        "description": "Times are UTC, so every calendar shows the right moment. Same visibility rules as the event page; the join link and organiser email are never included.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "in": "query",
+            "name": "key",
+            "required": false,
+            "description": "Share key, required for PRIVATE events."
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 120
+            },
+            "in": "path",
+            "name": "slug",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
           }
         }
       }

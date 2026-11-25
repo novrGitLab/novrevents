@@ -5,7 +5,7 @@ import { SAMPLE_LISTINGS } from './sample'
 import { Section, SectionIntro } from './section-intro'
 
 /** The directory's real filters, in the order /explore shows them. */
-const FILTERS = ['Topic', 'Type', 'Format', 'Price', 'Location', 'Registration open', 'Date'] as const
+const FILTERS = ['Category', 'Type', 'Format', 'Price', 'Location', 'Registration open', 'Date'] as const
 
 const TYPES = ['Conference', 'Workshop', 'CTF', 'Meetup', 'Training', 'Hackathon', 'Webinar'] as const
 
@@ -14,10 +14,11 @@ export function Discover() {
     <Section id="discover" labelledBy="discover-title" className="border-b">
       <div className="grid grid-cols-[minmax(0,1fr)] gap-12 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-20">
         <div>
-          <SectionIntro id="discover-title" title="Find security events worth your time.">
+          <SectionIntro id="discover-title" title="Find events worth your time.">
             <p>
-              The directory lists public events from security communities, companies and training providers.
-              Search by keyword, then narrow the list by topic, type, format, price, location and date.
+              The directory lists public events from communities, companies, universities and training
+              providers. Search by keyword, then narrow the list by category, type, format, price, location and
+              date. Switch to Cybersecurity to see only security events.
             </p>
             <p>
               Save events to come back to, and follow organisers to see what they publish next. Each listing
@@ -34,9 +35,14 @@ export function Discover() {
               <dd className="text-muted-foreground text-[14px]">In person, online and hybrid.</dd>
             </div>
           </dl>
-          <Button asChild variant="outline" className="mt-8">
-            <Link href="/explore">Browse the directory</Link>
-          </Button>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <Button asChild variant="outline">
+              <Link href="/explore">Browse the directory</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href="/explore?mode=cybersecurity">Explore cybersecurity events</Link>
+            </Button>
+          </div>
         </div>
 
         <figure>

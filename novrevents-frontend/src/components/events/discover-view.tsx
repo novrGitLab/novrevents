@@ -1,11 +1,18 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { LayoutGrid, List, Search, SlidersHorizontal, X } from 'lucide-react'
+import { LayoutGrid, List, Search, ShieldCheck, SlidersHorizontal, X } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import * as React from 'react'
 import { PageHeader, Pagination } from '@/components/common'
+import {
+  CYBERSECURITY_MODE,
+  type DiscoveryMode,
+  readStoredMode,
+  splitCategories,
+  storeMode,
+} from '@/components/events/categories'
 import { EventCard, EventRow, useSavedEventIds } from '@/components/events/event-card'
 import { EVENT_MODE_LABELS, EVENT_TYPE_LABELS } from '@/components/events/labels'
 import { EmptyState, ErrorState, LoadingState } from '@/components/states'
@@ -20,7 +27,7 @@ const FILTER_KEYS = [
   'q',
   'category',
   'type',
-  'mode',
+  'format',
   'price',
   'location',
   'organizer',
@@ -32,6 +39,62 @@ const FILTER_KEYS = [
   'view',
 ] as const
 type FilterKey = (typeof FILTER_KEYS)[number]
+type ParamKey = FilterKey | 'mode' | 'page'
+
+const FORMATS = new Set(Object.keys(EVENT_MODE_LABELS))
+
+// The stored mode only changes through this page, which re-renders when it writes it.
+const subscribeToNothing = () => () => {}
+
+const COPY: Record<DiscoveryMode, { title: string; description: string; empty: string }> = {
+  all: {
+    title: 'Discover events',
+    description:
+      'Conferences, workshops, webinars and meetups across technology, business, education, cybersecurity and more.',
+    empty: 'No events match these filters',
+  },
+  cybersecurity: {
+    title: 'Discover cybersecurity events',
+    description: 'Conferences, workshops, CTFs and meetups from organisers across the security community.',
+    empty: 'No cybersecurity events match these filters',
+  },
+}
+
+/** The All events / Cybersecurity switch. Shared by the public and in-app pages. */
+function ModeToggle({ mode, onChange }: { mode: DiscoveryMode; onChange: (mode: DiscoveryMode) => void }) {
+  const options = [
+    { value: 'all', label: 'All events' },
+    { value: 'cybersecurity', label: 'Cybersecurity' },
+  ] as const
+  return (
+    <div
+      role="group"
+      aria-label="Discovery mode"
+      className="bg-muted grid w-full grid-cols-2 gap-1 rounded-md p-1 sm:inline-grid sm:w-auto"
+    >
+      {options.map((option) => {
+        const active = mode === option.value
+        return (
+          <button
+            key={option.value}
+            type="button"
+            aria-pressed={active}
+            onClick={() => onChange(option.value)}
+            className={cn(
+              'inline-flex h-9 items-center justify-center gap-2 rounded-sm px-4 text-sm font-medium transition-colors sm:min-w-36',
+              active
+                ? 'bg-primary text-primary-foreground shadow-xs'
+                : 'text-muted-foreground hover:text-foreground',
+            )}
+          >
+            {option.value === 'cybersecurity' && <ShieldCheck className="size-4" aria-hidden />}
+            {option.label}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
 
 /**
  * The event directory: search, filters, type chips, sorting, grid/list, pagination and bookmarks.
@@ -46,16 +109,24 @@ export function DiscoverView({ variant = 'public' }: { variant?: 'public' | 'app
   const searchParams = useSearchParams()
   const [showFilters, setShowFilters] = React.useState(false)
 
-  const value = (key: FilterKey) => searchParams.get(key) ?? ''
+  const rawMode = searchParams.get('mode') ?? ''
+  // Links from before the mode switch used ?mode= for the event format (IN_PERSON, VIRTUAL, HYBRID).
+  const legacyFormat = FORMATS.has(rawMode) ? rawMode : ''
+  const mode: DiscoveryMode = rawMode === CYBERSECURITY_MODE ? 'cybersecurity' : 'all'
+  const value = (key: FilterKey) => searchParams.get(key) ?? (key === 'format' ? legacyFormat : '')
   const page = Number(searchParams.get('page') ?? '1') || 1
 
-  const setParams = (changes: Partial<Record<FilterKey | 'page', string>>) => {
+  const setParams = (changes: Partial<Record<ParamKey, string>>) => {
     const next = new URLSearchParams(searchParams.toString())
     for (const [key, change] of Object.entries(changes)) {
       if (change) next.set(key, change)
       else next.delete(key)
     }
     if (!('page' in changes)) next.delete('page')
+    if (legacyFormat && !('mode' in changes)) {
+      next.delete('mode')
+      if (!next.has('format') && !('format' in changes)) next.set('format', legacyFormat)
+    }
     router.replace(`${pathname}${next.size ? `?${next.toString()}` : ''}`, { scroll: false })
   }
 
@@ -63,9 +134,10 @@ export function DiscoverView({ variant = 'public' }: { variant?: 'public' | 'app
     page,
     pageSize: 12,
     q: value('q') || undefined,
+    scope: mode === 'cybersecurity' ? ('cybersecurity' as const) : undefined,
     category: value('category') || undefined,
     type: (value('type') || undefined) as keyof typeof EVENT_TYPE_LABELS | undefined,
-    mode: (value('mode') || undefined) as keyof typeof EVENT_MODE_LABELS | undefined,
+    mode: (value('format') || undefined) as keyof typeof EVENT_MODE_LABELS | undefined,
     price: (value('price') || undefined) as 'free' | 'paid' | undefined,
     location: value('location') || undefined,
     organizer: value('organizer') || undefined,
@@ -76,16 +148,72 @@ export function DiscoverView({ variant = 'public' }: { variant?: 'public' | 'app
     sort: (value('sort') || 'soonest') as 'soonest' | 'latest' | 'newest' | 'popular',
   }
 
+  // A URL without ?mode= falls back to the mode this browser used last. The stored mode is undefined
+  // until hydration (the server has no storage); results wait for it so the first request matches.
+  const storedMode = React.useSyncExternalStore(subscribeToNothing, readStoredMode, () => undefined)
+  // A link with a category decides the mode itself (see the category check below), so the stored
+  // mode never combines with a category from the other group.
+  const restoreCyberMode = rawMode === '' && storedMode === 'cybersecurity' && !searchParams.has('category')
+  const modeResolved = rawMode !== '' || (storedMode !== undefined && !restoreCyberMode)
+  React.useEffect(() => {
+    if (!restoreCyberMode) return
+    const next = new URLSearchParams(window.location.search)
+    next.set('mode', CYBERSECURITY_MODE)
+    next.delete('page')
+    router.replace(`${pathname}?${next.toString()}`, { scroll: false })
+  }, [restoreCyberMode, pathname, router])
+
+  const changeMode = (nextMode: DiscoveryMode) => {
+    storeMode(nextMode)
+    if (nextMode === mode) return
+    // Topics differ between modes, so the category filter starts again.
+    setParams({
+      mode: nextMode === 'cybersecurity' ? CYBERSECURITY_MODE : '',
+      category: '',
+      ...(legacyFormat ? { format: legacyFormat } : {}),
+    })
+  }
+
   const events = useQuery({
     queryKey: keys.publicEvents(query),
     queryFn: () => unwrap(api.GET('/api/v1/public/events', { params: { query } })),
     placeholderData: (previous) => previous,
+    enabled: modeResolved,
   })
   const categories = useQuery({
     queryKey: keys.categories,
     queryFn: () => unwrap(api.GET('/api/v1/public/categories')),
     staleTime: 10 * 60_000,
   })
+  const groups = splitCategories(categories.data?.items)
+  const selectedCategory = categories.data?.items.find((category) => category.slug === value('category'))
+
+  // Keep category and mode compatible. A cybersecurity topic in All events (for example the topic link
+  // on an event page) opens cybersecurity mode with the same results; a general category in
+  // cybersecurity mode is dropped, and the page starts again because the results change.
+  const categoryConflict =
+    selectedCategory !== undefined &&
+    (selectedCategory.group === 'cybersecurity') !== (mode === 'cybersecurity')
+  React.useEffect(() => {
+    if (!categoryConflict) return
+    const next = new URLSearchParams(window.location.search)
+    if (mode === 'all') {
+      next.set('mode', CYBERSECURITY_MODE)
+      if (legacyFormat && !next.has('format')) next.set('format', legacyFormat)
+    } else {
+      next.delete('category')
+      next.delete('page')
+    }
+    router.replace(`${pathname}?${next.toString()}`, { scroll: false })
+  }, [categoryConflict, mode, legacyFormat, pathname, router])
+
+  const copy = COPY[mode]
+  // "Clear all" removes filters but keeps the discovery mode.
+  const clearAll = () =>
+    router.replace(
+      rawMode === CYBERSECURITY_MODE || rawMode === 'all' ? `${pathname}?mode=${rawMode}` : pathname,
+      { scroll: false },
+    )
 
   const saved = useSavedEventIds()
   const [search, setSearch] = React.useState(value('q'))
@@ -109,7 +237,7 @@ export function DiscoverView({ variant = 'public' }: { variant?: 'public' | 'app
   )
   const filtered = activeFilters.length > 0 || Boolean(value('q'))
   const chips = [
-    { key: '', label: 'All events' },
+    { key: '', label: 'All types' },
     ...Object.entries(EVENT_TYPE_LABELS).map(([key, label]) => ({ key, label })),
   ]
   const selectClass = 'h-10 w-full sm:w-auto sm:min-w-40'
@@ -118,20 +246,22 @@ export function DiscoverView({ variant = 'public' }: { variant?: 'public' | 'app
     <div className={inApp ? undefined : 'mx-auto max-w-[1280px] px-4 py-8 sm:px-6 sm:py-10 lg:px-10'}>
       {inApp ? (
         <PageHeader
-          title="Discover"
-          description="Conferences, workshops, CTFs and meetups from organisers across the security community."
+          title={mode === 'cybersecurity' ? 'Discover cybersecurity' : 'Discover'}
+          description={copy.description}
           className="mb-5 pb-5"
         />
       ) : (
         <header className="border-b pb-6">
-          <h1 className="page-title">Discover cybersecurity events</h1>
-          <p className="text-muted-foreground mt-1.5 max-w-2xl text-sm sm:text-base">
-            Conferences, workshops, CTFs and meetups published by organisers across the security community.
-          </p>
+          <h1 className="page-title">{copy.title}</h1>
+          <p className="text-muted-foreground mt-1.5 max-w-2xl text-sm sm:text-base">{copy.description}</p>
         </header>
       )}
 
-      <div className={cn('flex flex-col gap-3 xl:flex-row xl:items-center', !inApp && 'mt-6 lg:flex-row lg:items-center')}>
+      <div className={inApp ? undefined : 'mt-6'}>
+        <ModeToggle mode={mode} onChange={changeMode} />
+      </div>
+
+      <div className={cn('mt-4 flex flex-col gap-3 xl:flex-row xl:items-center', !inApp && 'lg:flex-row lg:items-center')}>
         <form
           role="search"
           className="relative min-w-0 flex-1"
@@ -161,29 +291,47 @@ export function DiscoverView({ variant = 'public' }: { variant?: 'public' | 'app
         </form>
         <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
           <label htmlFor="f-category" className="sr-only">
-            Topic
+            {mode === 'cybersecurity' ? 'Topic' : 'Category'}
           </label>
           <NativeSelect
             id="f-category"
             className={selectClass}
             value={value('category')}
-            onChange={(event) => setParams({ category: event.target.value })}
+            onChange={(event) => {
+              if (event.target.value === CYBERSECURITY_MODE) changeMode('cybersecurity')
+              else setParams({ category: event.target.value })
+            }}
           >
-            <option value="">All topics</option>
-            {categories.data?.items.map((category) => (
-              <option key={category.id} value={category.slug}>
-                {category.name}
-              </option>
-            ))}
+            {mode === 'cybersecurity' ? (
+              <>
+                <option value="">All cybersecurity topics</option>
+                {groups.cybersecurity.map((category) => (
+                  <option key={category.id} value={category.slug}>
+                    {category.name}
+                  </option>
+                ))}
+              </>
+            ) : (
+              <>
+                <option value="">All categories</option>
+                {/* Cybersecurity is one category in All events; choosing it switches mode. */}
+                <option value={CYBERSECURITY_MODE}>Cybersecurity</option>
+                {groups.general.map((category) => (
+                  <option key={category.id} value={category.slug}>
+                    {category.name}
+                  </option>
+                ))}
+              </>
+            )}
           </NativeSelect>
-          <label htmlFor="f-mode" className="sr-only">
+          <label htmlFor="f-format" className="sr-only">
             Format
           </label>
           <NativeSelect
-            id="f-mode"
+            id="f-format"
             className={selectClass}
-            value={value('mode')}
-            onChange={(event) => setParams({ mode: event.target.value })}
+            value={value('format')}
+            onChange={(event) => setParams({ format: event.target.value })}
           >
             <option value="">Any format</option>
             {Object.entries(EVENT_MODE_LABELS).map(([key, label]) => (
@@ -355,7 +503,7 @@ export function DiscoverView({ variant = 'public' }: { variant?: 'public' | 'app
               {events.data ? `${events.data.total} event${events.data.total === 1 ? '' : 's'}` : 'Searching…'}
             </span>
             {filtered && (
-              <Button variant="ghost" size="sm" onClick={() => router.replace(pathname)}>
+              <Button variant="ghost" size="sm" onClick={clearAll}>
                 <X /> Clear all
               </Button>
             )}
@@ -408,11 +556,11 @@ export function DiscoverView({ variant = 'public' }: { variant?: 'public' | 'app
           <ErrorState error={events.error} retry={() => void events.refetch()} />
         ) : events.data.items.length === 0 ? (
           <EmptyState
-            title="No events match these filters"
+            title={copy.empty}
             description="Try widening the dates or removing a filter."
             action={
               filtered ? (
-                <Button variant="outline" size="sm" onClick={() => router.replace(pathname)}>
+                <Button variant="outline" size="sm" onClick={clearAll}>
                   Clear all filters
                 </Button>
               ) : undefined
@@ -456,10 +604,11 @@ export function DiscoverView({ variant = 'public' }: { variant?: 'public' | 'app
         >
           <div className="max-w-xl">
             <h2 id="host-heading" className="text-headline-md">
-              Organising a conference, workshop or CTF?
+              Organising an event?
             </h2>
             <p className="text-muted-foreground mt-1.5 text-sm">
-              Publish it on NOVR Events with registration forms, approvals, QR tickets and check-in.
+              Publish conferences, workshops, meetups and CTFs on NOVR Events with registration forms,
+              approvals, QR tickets and check-in.
             </p>
           </div>
           <div className="flex shrink-0 gap-2">

@@ -43,8 +43,8 @@ export function SiteFooter() {
               </span>
             </Link>
             <p className="text-muted-foreground mt-3 text-[14px] leading-6">
-              The cybersecurity event platform. Discover conferences, workshops, CTF competitions and meetups,
-              or host your own with registration forms, QR tickets and check-in.
+              Discover, organise and manage events, with a dedicated cybersecurity experience. Host your own
+              with registration forms, QR tickets and check-in.
             </p>
             <a
               href="https://cybernovr.com"

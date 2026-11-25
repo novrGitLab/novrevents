@@ -3340,7 +3340,7 @@ export interface paths {
         };
         /**
          * Search the public event directory
-         * @description Lists public, published events. Filter by date, location, category, format (mode), price, organiser, registration availability and event type; sort and paginate.
+         * @description Lists public, published events. Filter by discovery mode (scope), date, location, category, format (mode), price, organiser, registration availability and event type; sort and paginate.
          */
         get: {
             parameters: {
@@ -3350,6 +3350,8 @@ export interface paths {
                     q?: string;
                     /** @description Category slug. */
                     category?: string;
+                    /** @description Discovery mode. "cybersecurity" lists only events in a cybersecurity category. */
+                    scope?: "cybersecurity" | "general";
                     type?: "CONFERENCE" | "WORKSHOP" | "CTF" | "MEETUP" | "WEBINAR" | "TRAINING" | "HACKATHON" | "SUMMIT" | "PANEL" | "OTHER";
                     /** @description Event format. */
                     mode?: "IN_PERSON" | "VIRTUAL" | "HYBRID";
@@ -3525,6 +3527,48 @@ export interface paths {
                     content: {
                         "application/json": components["schemas"]["ErrorResponse"];
                     };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/events/{slug}/calendar.ics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Calendar file (.ics) for an event
+         * @description Times are UTC, so every calendar shows the right moment. Same visibility rules as the event page; the join link and organiser email are never included.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Share key, required for PRIVATE events. */
+                    key?: string;
+                };
+                header?: never;
+                path: {
+                    slug: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
                 };
             };
         };
@@ -10260,6 +10304,11 @@ export interface components {
             slug: string;
             name: string;
             description: string | null;
+            /**
+             * @description Discovery group the category belongs to.
+             * @enum {string}
+             */
+            group: "cybersecurity" | "general";
         };
         RegistrationStateInput: {
             open: boolean;
@@ -11408,6 +11457,11 @@ export interface components {
             slug: string;
             name: string;
             description: string | null;
+            /**
+             * @description Discovery group the category belongs to.
+             * @enum {string}
+             */
+            group: "cybersecurity" | "general";
         };
         RegistrationState: {
             open: boolean;

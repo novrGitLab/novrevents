@@ -14,6 +14,7 @@ import { api, unwrap, type Schema } from '@/lib/api/client'
 import { applyFieldErrors, errorMessage } from '@/lib/api/errors'
 import { keys } from '@/lib/api/keys'
 import { browserTimeZone, formatDateTime, fromLocalInput, TIMEZONES, toLocalInput } from '@/lib/format'
+import { splitCategories } from './categories'
 import { EVENT_MODE_LABELS, EVENT_TYPE_LABELS, VISIBILITY_LABELS } from './labels'
 
 type ManagedEvent = Schema<'EventManage'>
@@ -213,6 +214,7 @@ export function EventForm({
     queryFn: () => unwrap(api.GET('/api/v1/public/categories')),
     staleTime: 600_000,
   })
+  const categoryGroups = splitCategories(categories.data?.items)
   const organizations = useQuery({
     queryKey: keys.organizations,
     queryFn: () => unwrap(api.GET('/api/v1/organizations')),
@@ -281,14 +283,32 @@ export function EventForm({
               <Textarea {...reg('description', true)} className="min-h-40" />
             </Field>
             <div className="grid gap-4 sm:grid-cols-3">
-              <Field label="Category" htmlFor="categoryId" error={err('categoryId')}>
+              <Field
+                label="Category"
+                htmlFor="categoryId"
+                description="Cybersecurity topics also list the event in cybersecurity discovery."
+                error={err('categoryId')}
+              >
                 <NativeSelect key={categories.data ? 'loaded' : 'loading'} {...reg('categoryId')}>
                   <option value="">Choose…</option>
-                  {categories.data?.items.map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
-                    </option>
-                  ))}
+                  {categoryGroups.general.length > 0 && (
+                    <optgroup label="General">
+                      {categoryGroups.general.map((category) => (
+                        <option key={category.id} value={category.id}>
+                          {category.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                  {categoryGroups.cybersecurity.length > 0 && (
+                    <optgroup label="Cybersecurity">
+                      {categoryGroups.cybersecurity.map((category) => (
+                        <option key={category.id} value={category.id}>
+                          {category.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
                 </NativeSelect>
               </Field>
               <Field label="Event type" htmlFor="eventType">

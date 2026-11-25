@@ -35,7 +35,7 @@ export const discoveryRoutes: FastifyPluginAsyncZod = async (app) => {
         tags: ['Discovery'],
         summary: 'Search the public event directory',
         description:
-          'Lists public, published events. Filter by date, location, category, format (mode), price, ' +
+          'Lists public, published events. Filter by discovery mode (scope), date, location, category, format (mode), price, ' +
           'organiser, registration availability and event type; sort and paginate.',
         querystring: discoveryQuery,
         response: responses({ 200: paginated(eventSummarySchema) }),

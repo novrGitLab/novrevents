@@ -8,11 +8,11 @@ import { Providers } from './providers'
 const inter = Inter({ subsets: ['latin'], display: 'swap', variable: '--font-inter' })
 
 const description =
-  'Discover cybersecurity conferences, workshops, CTF competitions and community meetups. Organisers create events, build registration forms, issue QR tickets and check attendees in. NOVR Events by Cybernovr.'
+  'Discover conferences, workshops, webinars and meetups across technology, business, education and more, with a dedicated cybersecurity experience. Organisers create events, build registration forms, issue QR tickets and check attendees in. NOVR Events by Cybernovr.'
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: { default: 'NOVR Events — Cybersecurity events', template: '%s · NOVR Events' },
+  title: { default: 'NOVR Events — Discover and organise events', template: '%s · NOVR Events' },
   description,
   applicationName: 'NOVR Events',
   creator: 'Cybernovr',
@@ -21,10 +21,10 @@ export const metadata: Metadata = {
     siteName: 'NOVR Events',
     type: 'website',
     locale: 'en_GB',
-    title: 'NOVR Events — Cybersecurity events',
+    title: 'NOVR Events — Discover and organise events',
     description,
   },
-  twitter: { card: 'summary', title: 'NOVR Events — Cybersecurity events', description },
+  twitter: { card: 'summary', title: 'NOVR Events — Discover and organise events', description },
 }
 
 export const viewport: Viewport = {
