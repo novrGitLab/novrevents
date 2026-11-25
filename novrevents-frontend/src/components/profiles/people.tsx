@@ -14,7 +14,15 @@ import { api, unwrap } from '@/lib/api/client'
 import { errorMessage } from '@/lib/api/errors'
 import { keys } from '@/lib/api/keys'
 
-export function FollowButton({ username, following }: { username: string; following: boolean }) {
+export function FollowButton({
+  username,
+  following,
+  size,
+}: {
+  username: string
+  following: boolean
+  size?: 'sm' | 'default'
+}) {
   const { isAuthenticated } = useSession()
   const router = useRouter()
   const queryClient = useQueryClient()
@@ -33,7 +41,8 @@ export function FollowButton({ username, following }: { username: string; follow
   })
   return (
     <Button
-      variant={following ? 'outline' : 'default'}
+      variant={following ? 'outline' : 'primary'}
+      size={size}
       loading={mutation.isPending}
       onClick={() => (isAuthenticated ? mutation.mutate() : router.push(`/login?next=/u/${username}`))}
     >
@@ -69,22 +78,37 @@ export function PeopleList({
   if (query.isPending) return <LoadingState rows={2} />
   if (query.isError) return <ErrorState error={query.error} retry={() => void query.refetch()} />
   if (query.data.items.length === 0)
-    return <EmptyState title={list === 'followers' ? 'No followers yet' : 'Not following anyone yet'} />
+    return (
+      <EmptyState
+        compact
+        title={list === 'followers' ? 'No followers yet' : 'Not following anyone yet'}
+        description={
+          list === 'followers'
+            ? 'People who follow your public profile appear here.'
+            : 'Follow people from their profile to see their new events.'
+        }
+      />
+    )
   return (
     <>
-      <ul className={limit ? 'grid gap-3' : 'grid gap-3 sm:grid-cols-2 lg:grid-cols-3'}>
+      <ul className="bg-card divide-y rounded-lg border">
         {query.data.items.map((person) => (
-          <li key={person.username} className="bg-card flex items-center gap-3 rounded-lg border p-3">
-            <Avatar src={person.avatarUrl} name={person.displayName} />
+          <li key={person.username} className="flex items-center gap-3 px-4 py-3">
+            <Avatar src={person.avatarUrl} name={person.displayName} className="size-9" />
             <div className="min-w-0 flex-1">
-              <Link href={`/u/${person.username}`} className="block truncate font-medium hover:underline">
+              <Link
+                href={`/u/${person.username}`}
+                className="hover:text-brand-text block truncate text-sm font-medium"
+              >
                 {person.displayName}
               </Link>
-              <p className="text-muted-foreground truncate text-xs">
+              <p className="text-muted-foreground truncate text-[13px]">
                 {person.headline ?? `@${person.username}`}
               </p>
             </div>
-            {!person.isSelf && <FollowButton username={person.username} following={person.isFollowing} />}
+            {!person.isSelf && (
+              <FollowButton username={person.username} following={person.isFollowing} size="sm" />
+            )}
           </li>
         ))}
       </ul>

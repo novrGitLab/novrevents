@@ -53,10 +53,10 @@ function LoginForm() {
   })
 
   return (
-    <Card className="border-0 bg-transparent">
+    <Card className="border-0 bg-transparent shadow-none">
       <CardHeader className="px-0 pt-0 pb-6">
-        <h1 className="text-[28px] leading-[34px] font-semibold tracking-[-0.02em]">Sign in</h1>
-        <CardDescription>Welcome back to NOVR Events.</CardDescription>
+        <h1 className="text-headline-lg">Sign in</h1>
+        <CardDescription className="text-body-lg mt-2">Welcome back to NOVR Events.</CardDescription>
       </CardHeader>
       <CardContent className="px-0">
         <form onSubmit={onSubmit} noValidate className="space-y-4">

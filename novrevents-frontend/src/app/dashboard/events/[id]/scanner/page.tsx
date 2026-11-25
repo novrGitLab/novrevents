@@ -114,14 +114,39 @@ export default function ScannerPage() {
         {event.status === 'CANCELLED' && (
           <Notice tone="error">This event is cancelled; every ticket is void.</Notice>
         )}
+        {summary.data && (
+          <section aria-label="Check-in progress" className="bg-card rounded-lg border p-5 shadow-xs">
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <p aria-live="polite">
+                <span className="text-headline-md tabular-nums">{summary.data.checkedIn}</span>
+                <span className="text-muted-foreground text-sm tabular-nums">
+                  {' '}
+                  / {summary.data.expected} checked in
+                </span>
+              </p>
+              {summary.data.expected > 0 && (
+                <span className="bg-brand-soft text-brand-text rounded-sm px-2 py-0.5 text-xs font-medium tabular-nums">
+                  {Math.round((summary.data.checkedIn / summary.data.expected) * 100)}% admitted
+                </span>
+              )}
+            </div>
+            <div className="bg-muted mt-3 h-1.5 rounded-full" aria-hidden>
+              <div
+                className="bg-primary h-1.5 rounded-full transition-[width]"
+                style={{
+                  width: `${summary.data.expected > 0 ? Math.max(1, (summary.data.checkedIn / summary.data.expected) * 100) : 0}%`,
+                }}
+              />
+            </div>
+            <p className="text-muted-foreground mt-2 text-xs tabular-nums">
+              {Math.max(0, summary.data.expected - summary.data.checkedIn)} still expected
+            </p>
+          </section>
+        )}
         <Card>
-          <CardHeader className="flex-row items-center justify-between">
+          <CardHeader>
             <CardTitle>Scan tickets</CardTitle>
-            {summary.data && (
-              <span className="text-muted-foreground text-sm tabular-nums" aria-live="polite">
-                {summary.data.checkedIn} / {summary.data.expected} checked in
-              </span>
-            )}
+            <CardDescription>Point the camera at the QR code on the attendee’s ticket.</CardDescription>
           </CardHeader>
           <CardContent>
             <QrScanner paused={scan.isPending} onScan={(payload) => scan.mutate(payload)} />
@@ -133,25 +158,25 @@ export default function ScannerPage() {
       <div className="space-y-4">
         <div aria-live="assertive" aria-atomic="true">
           {outcome && style ? (
-            <div className={cn('rounded-lg border-2 p-5', style.tone)}>
+            <div className={cn('rounded-lg border-2 p-5 shadow-xs', style.tone)}>
               <div className="flex items-center gap-3">
                 <style.icon className={cn('size-10 shrink-0', style.iconClass)} aria-hidden />
                 <div>
-                  <p className="text-xl font-semibold">{style.title}</p>
+                  <p className="text-headline-sm">{style.title}</p>
                   <p className="text-sm">{outcome.message}</p>
                 </div>
               </div>
               {outcome.attendee && (
                 <dl className="mt-4 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
-                  <dt className="text-muted-foreground">Name</dt>
+                  <dt className="eyebrow self-center">Name</dt>
                   <dd className="text-base font-semibold">{outcome.attendee.name}</dd>
-                  <dt className="text-muted-foreground">Ticket</dt>
+                  <dt className="eyebrow self-center">Ticket</dt>
                   <dd>{outcome.attendee.ticketType}</dd>
-                  <dt className="text-muted-foreground">Code</dt>
+                  <dt className="eyebrow self-center">Code</dt>
                   <dd className="font-mono">{outcome.attendee.ticketCode}</dd>
                   {outcome.result === 'DUPLICATE' && outcome.checkedInAt && (
                     <>
-                      <dt className="text-muted-foreground">First used</dt>
+                      <dt className="eyebrow self-center">First used</dt>
                       <dd>
                         {formatTime(outcome.checkedInAt, event.timezone)} (
                         {outcome.previousMethod === 'MANUAL' ? 'manual' : 'QR'})
@@ -162,7 +187,7 @@ export default function ScannerPage() {
               )}
             </div>
           ) : (
-            <div className="text-muted-foreground bg-card rounded-lg border p-6 text-center text-sm">
+            <div className="text-muted-foreground bg-card rounded-lg border border-dashed p-8 text-center text-sm">
               Scan results appear here.
             </div>
           )}

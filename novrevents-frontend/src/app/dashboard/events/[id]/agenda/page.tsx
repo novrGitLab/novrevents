@@ -8,6 +8,7 @@ import { Field } from '@/components/common'
 import { useManagedEvent, type ManagedEvent } from '@/components/events/event-context'
 import { ImageUpload } from '@/components/image-upload'
 import { EmptyState, ErrorState, LoadingState } from '@/components/states'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -38,6 +39,16 @@ function useSpeakers(eventId: string) {
   })
 }
 
+/** Sessions grouped by calendar day in the event's timezone, in order. */
+function groupByDay(items: Session[], timeZone: string) {
+  const groups = new Map<string, Session[]>()
+  for (const session of items) {
+    const day = formatDate(session.startsAt, timeZone)
+    groups.set(day, [...(groups.get(day) ?? []), session])
+  }
+  return [...groups.entries()]
+}
+
 function Sessions({ event }: { event: ManagedEvent }) {
   const queryClient = useQueryClient()
   const [editing, setEditing] = React.useState<Session | 'new' | null>(null)
@@ -60,15 +71,22 @@ function Sessions({ event }: { event: ManagedEvent }) {
   })
 
   return (
-    <Card>
-      <CardHeader className="flex-row items-start justify-between gap-2">
+    <Card className="h-fit">
+      <CardHeader className="flex-row items-start justify-between gap-3">
         <div>
-          <CardTitle>Agenda</CardTitle>
+          <CardTitle>
+            Agenda{' '}
+            {sessions.data && sessions.data.items.length > 0 && (
+              <span className="text-muted-foreground text-sm font-normal tabular-nums">
+                ({sessions.data.items.length} sessions)
+              </span>
+            )}
+          </CardTitle>
           <CardDescription>
             Times are in the event’s timezone ({event.timezone}) and must fall within the event.
           </CardDescription>
         </div>
-        <Button size="sm" onClick={() => setEditing('new')}>
+        <Button size="sm" className="shrink-0" onClick={() => setEditing('new')}>
           <Plus /> Session
         </Button>
       </CardHeader>
@@ -79,54 +97,70 @@ function Sessions({ event }: { event: ManagedEvent }) {
           <ErrorState error={sessions.error} />
         ) : sessions.data.items.length === 0 ? (
           <EmptyState
+            compact
             title="No sessions yet"
             description="Add talks, workshops and breaks to build the agenda shown on the event page."
+            action={
+              <Button size="sm" variant="outline" onClick={() => setEditing('new')}>
+                <Plus /> Add the first session
+              </Button>
+            }
           />
         ) : (
-          <ol className="divide-y rounded-lg border">
-            {sessions.data.items.map((session) => (
-              <li key={session.id} className="flex gap-3 p-3">
-                <div className="w-28 shrink-0 text-sm">
-                  <p className="font-medium tabular-nums">
-                    {formatTime(session.startsAt, event.timezone)}–
-                    {formatTime(session.endsAt, event.timezone)}
-                  </p>
-                  <p className="text-muted-foreground text-xs">
-                    {formatDate(session.startsAt, event.timezone)}
-                  </p>
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="font-medium">{session.title}</p>
-                  <p className="text-muted-foreground text-xs">
-                    {[session.track, session.location].filter(Boolean).join(' · ')}
-                  </p>
-                  {session.speakerIds.length > 0 && (
-                    <p className="text-sm">
-                      {session.speakerIds.map(speakerName).filter(Boolean).join(', ')}
-                    </p>
-                  )}
-                </div>
-                <div className="flex gap-1">
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    aria-label={`Edit ${session.title}`}
-                    onClick={() => setEditing(session)}
-                  >
-                    <Pencil />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    aria-label={`Delete ${session.title}`}
-                    onClick={() => remove.mutate(session.id)}
-                  >
-                    <Trash2 />
-                  </Button>
-                </div>
-              </li>
+          <div className="-mx-5 -mb-5 border-t">
+            {groupByDay(sessions.data.items, event.timezone).map(([day, items]) => (
+              <section key={day} aria-label={day}>
+                <h3 className="bg-muted/60 eyebrow border-b px-5 py-2">{day}</h3>
+                <ol className="divide-y">
+                  {items.map((session) => (
+                    <li
+                      key={session.id}
+                      className="hover:bg-brand-soft/40 grid grid-cols-[88px_minmax(0,1fr)_auto] items-start gap-3 px-5 py-3.5 sm:grid-cols-[112px_minmax(0,1fr)_auto]"
+                    >
+                      <p className="text-primary pt-0.5 text-[13px] font-medium tabular-nums">
+                        {formatTime(session.startsAt, event.timezone)}
+                        <span className="text-muted-foreground block text-xs font-normal">
+                          to {formatTime(session.endsAt, event.timezone)}
+                        </span>
+                      </p>
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="text-sm font-semibold">{session.title}</p>
+                          {session.track && <Badge variant="secondary">{session.track}</Badge>}
+                        </div>
+                        {session.location && (
+                          <p className="text-muted-foreground mt-0.5 text-xs">{session.location}</p>
+                        )}
+                        {session.speakerIds.length > 0 && (
+                          <p className="mt-1 text-[13px]">
+                            {session.speakerIds.map(speakerName).filter(Boolean).join(', ')}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          aria-label={`Edit ${session.title}`}
+                          onClick={() => setEditing(session)}
+                        >
+                          <Pencil />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          aria-label={`Delete ${session.title}`}
+                          onClick={() => remove.mutate(session.id)}
+                        >
+                          <Trash2 />
+                        </Button>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              </section>
             ))}
-          </ol>
+          </div>
         )}
       </CardContent>
       {editing && (
@@ -312,15 +346,22 @@ function Speakers({ event }: { event: ManagedEvent }) {
     onError: (error) => toast.error(errorMessage(error)),
   })
   return (
-    <Card>
-      <CardHeader className="flex-row items-start justify-between gap-2">
+    <Card className="h-fit">
+      <CardHeader className="flex-row items-start justify-between gap-3">
         <div>
-          <CardTitle>Speakers</CardTitle>
+          <CardTitle>
+            Speakers{' '}
+            {speakers.data && speakers.data.items.length > 0 && (
+              <span className="text-muted-foreground text-sm font-normal tabular-nums">
+                ({speakers.data.items.length})
+              </span>
+            )}
+          </CardTitle>
           <CardDescription>
             Collect applications with a speaker form; list confirmed speakers here.
           </CardDescription>
         </div>
-        <Button size="sm" variant="outline" onClick={() => setEditing('new')}>
+        <Button size="sm" variant="outline" className="shrink-0" onClick={() => setEditing('new')}>
           <Plus /> Speaker
         </Button>
       </CardHeader>
@@ -330,12 +371,16 @@ function Speakers({ event }: { event: ManagedEvent }) {
         ) : speakers.isError ? (
           <ErrorState error={speakers.error} />
         ) : speakers.data.items.length === 0 ? (
-          <EmptyState title="No speakers yet" />
+          <EmptyState
+            compact
+            title="No speakers yet"
+            description="Speakers you add can be linked to sessions and appear on the event page."
+          />
         ) : (
-          <ul className="divide-y">
+          <ul className="-mx-5 -mb-5 divide-y border-t">
             {speakers.data.items.map((speaker) => (
-              <li key={speaker.id} className="flex items-center gap-3 py-2">
-                <Avatar src={speaker.photoUrl} name={speaker.name} />
+              <li key={speaker.id} className="flex items-center gap-3 px-5 py-3">
+                <Avatar src={speaker.photoUrl} name={speaker.name} className="size-9 rounded-sm" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">{speaker.name}</p>
                   <p className="text-muted-foreground truncate text-xs">

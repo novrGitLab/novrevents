@@ -129,7 +129,7 @@ function MyEvents() {
               </thead>
               <tbody>
                 {query.data.items.map((event) => (
-                  <tr key={event.id} className="hover:bg-muted/50">
+                  <tr key={event.id} className="hover:bg-brand-soft/50">
                     <td className="max-w-[320px]">
                       <Link
                         href={`/dashboard/events/${event.id}`}

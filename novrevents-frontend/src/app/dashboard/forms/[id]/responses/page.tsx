@@ -1,13 +1,13 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, Download, FileDown, Trash2 } from 'lucide-react'
+import { ArrowLeft, Download, FileDown, Search, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import * as React from 'react'
 import { toast } from 'sonner'
 import { BarsChart, TrendChart } from '@/components/charts'
-import { Pagination, StatCard, useConfirm } from '@/components/common'
+import { Pagination, useConfirm } from '@/components/common'
 import { EmptyState, ErrorState, LoadingState, Notice } from '@/components/states'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -132,10 +132,10 @@ export default function ResponsesPage() {
       >
         <ArrowLeft className="size-4" /> Form builder
       </Link>
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Responses</h1>
-          {form.data && <p className="text-muted-foreground text-sm">{form.data.title}</p>}
+      <div className="mb-6 flex flex-col gap-3 border-b pb-6 sm:flex-row sm:items-end sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="page-title">Responses</h1>
+          {form.data && <p className="text-muted-foreground mt-1 truncate text-sm">{form.data.title}</p>}
         </div>
         <Button asChild variant="outline">
           <a href={exportUrl}>
@@ -146,25 +146,29 @@ export default function ResponsesPage() {
 
       {stats.data && (
         <>
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
-            <StatCard label="Received" value={stats.data.received} />
-            <StatCard label="Qualifying" value={stats.data.qualifying} hint="Matched no exclusion rule" />
-            <StatCard label="Excluded" value={stats.data.excluded} hint="Stored, not counted" />
-            <StatCard
-              label="Accepted"
-              value={stats.data.accepted}
-              hint={`${stats.data.pending} awaiting a decision`}
-            />
-            <StatCard
-              label="Places left"
-              value={stats.data.remaining ?? '∞'}
-              hint={stats.data.responseLimit ? `Limit ${stats.data.responseLimit}` : 'No limit'}
-            />
-          </div>
-          <div className="mt-6 grid gap-6 lg:grid-cols-2">
+          <dl className="bg-border grid grid-cols-2 gap-px overflow-hidden rounded-lg border shadow-xs sm:grid-cols-3 lg:grid-cols-5">
+            {[
+              { label: 'Received', value: stats.data.received, hint: 'All submissions' },
+              { label: 'Qualifying', value: stats.data.qualifying, hint: 'Matched no exclusion rule' },
+              { label: 'Excluded', value: stats.data.excluded, hint: 'Stored, not counted' },
+              { label: 'Accepted', value: stats.data.accepted, hint: `${stats.data.pending} awaiting a decision` },
+              {
+                label: 'Places left',
+                value: stats.data.remaining ?? '∞',
+                hint: stats.data.responseLimit ? `Limit ${stats.data.responseLimit}` : 'No limit',
+              },
+            ].map((stat) => (
+              <div key={stat.label} className="bg-card px-5 py-4">
+                <dt className="eyebrow">{stat.label}</dt>
+                <dd className="text-headline-md mt-1 tabular-nums">{stat.value}</dd>
+                <dd className="text-subtle-foreground mt-0.5 text-xs">{stat.hint}</dd>
+              </div>
+            ))}
+          </dl>
+          <div className="mt-6 grid items-start gap-6 lg:grid-cols-2">
             <Card>
               <CardHeader>
-                <CardTitle>Responses per day (UTC)</CardTitle>
+                <CardTitle className="text-sm">Responses per day (UTC)</CardTitle>
               </CardHeader>
               <CardContent>
                 <TrendChart
@@ -190,7 +194,7 @@ export default function ResponsesPage() {
         </>
       )}
 
-      <div className="mt-8 space-y-3">
+      <div className="mt-10 space-y-4">
         <Tabs
           value={qualification}
           onValueChange={(value) => {
@@ -204,9 +208,9 @@ export default function ResponsesPage() {
             <TabsTrigger value="EXCLUDED">Excluded</TabsTrigger>
           </TabsList>
         </Tabs>
-        <div className="flex flex-col gap-2 lg:flex-row">
+        <div className="flex flex-col gap-2 xl:flex-row">
           <form
-            className="flex flex-1 gap-2"
+            className="flex min-w-0 flex-1 gap-2"
             onSubmit={(event) => {
               event.preventDefault()
               setSearch(q.trim())
@@ -216,20 +220,28 @@ export default function ResponsesPage() {
             <label htmlFor="response-search" className="sr-only">
               Search responses
             </label>
-            <Input
-              id="response-search"
-              placeholder="Search names, emails and answers"
-              value={q}
-              onChange={(event) => setQ(event.target.value)}
-            />
+            <div className="relative min-w-0 flex-1">
+              <Search
+                className="text-subtle-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+                aria-hidden
+              />
+              <Input
+                id="response-search"
+                type="search"
+                placeholder="Search names, emails and answers"
+                className="pl-9"
+                value={q}
+                onChange={(event) => setQ(event.target.value)}
+              />
+            </div>
             <Button type="submit" variant="outline">
               Search
             </Button>
           </form>
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
             <NativeSelect
               aria-label="Decision"
-              className="w-40"
+              className="sm:w-40"
               value={decision}
               onChange={(event) => {
                 setDecision(event.target.value as typeof decision)
@@ -244,7 +256,7 @@ export default function ResponsesPage() {
             <Input
               aria-label="Submitted from"
               type="date"
-              className="w-40"
+              className="sm:w-40"
               value={from}
               onChange={(event) => {
                 setFrom(event.target.value)
@@ -254,7 +266,7 @@ export default function ResponsesPage() {
             <Input
               aria-label="Submitted to"
               type="date"
-              className="w-40"
+              className="sm:w-40"
               value={to}
               onChange={(event) => {
                 setTo(event.target.value)
@@ -263,7 +275,7 @@ export default function ResponsesPage() {
             />
             <NativeSelect
               aria-label="Sort"
-              className="w-36"
+              className="sm:w-36"
               value={sort}
               onChange={(event) => setSort(event.target.value as typeof sort)}
             >
@@ -275,7 +287,8 @@ export default function ResponsesPage() {
         </div>
         {answerFilter && (
           <div className="flex items-center gap-2 text-sm">
-            <Badge variant="outline">
+            <span className="text-muted-foreground text-[13px]">Filtered by answer</span>
+            <Badge variant="default">
               {fields.find((field) => field.key === answerFilter.fieldKey)?.label}:{' '}
               {fields
                 .find((field) => field.key === answerFilter.fieldKey)
@@ -288,7 +301,7 @@ export default function ResponsesPage() {
           </div>
         )}
         {selected.size > 0 && (
-          <div className="bg-muted flex items-center gap-3 rounded-lg border px-3 py-2 text-sm">
+          <div className="bg-brand-soft/60 border-brand-soft flex items-center justify-between gap-3 rounded-sm border px-4 py-2 text-sm font-medium tabular-nums">
             {selected.size} selected
             <Button
               variant="outline"
@@ -309,6 +322,7 @@ export default function ResponsesPage() {
           <ErrorState error={list.error} retry={() => void list.refetch()} />
         ) : list.data.items.length === 0 ? (
           <EmptyState
+            compact
             title="No responses match"
             description={
               qualification === 'EXCLUDED' ? 'Responses that match an exclusion rule appear here.' : undefined
@@ -316,9 +330,9 @@ export default function ResponsesPage() {
           />
         ) : (
           <>
-            <div className="bg-card overflow-x-auto rounded-lg border">
+            <div className="bg-card overflow-x-auto rounded-lg border shadow-xs">
               <table className="w-full min-w-[720px] text-sm">
-                <thead className="bg-muted text-muted-foreground border-b text-left text-xs">
+                <thead className="text-muted-foreground border-b text-left text-[11px] font-semibold tracking-[0.04em] uppercase">
                   <tr>
                     <th className="w-10 p-3">
                       <input
@@ -347,7 +361,7 @@ export default function ResponsesPage() {
                 </thead>
                 <tbody className="divide-y">
                   {list.data.items.map((item) => (
-                    <tr key={item.id} className="hover:bg-muted/40">
+                    <tr key={item.id} className="hover:bg-brand-soft/50">
                       <td className="p-3">
                         <input
                           type="checkbox"

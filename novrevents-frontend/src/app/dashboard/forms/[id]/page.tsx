@@ -202,7 +202,7 @@ function Builder({ form }: { form: FormDetail }) {
             )}
           </nav>
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-xl font-semibold tracking-[-0.015em]">{form.title}</h1>
+            <h1 className="text-headline-md">{form.title}</h1>
             <Badge variant={form.status === 'PUBLISHED' ? 'success' : 'secondary'}>{statusText}</Badge>
             {dirty && <span className="text-warning text-xs font-medium">Unsaved changes</span>}
           </div>

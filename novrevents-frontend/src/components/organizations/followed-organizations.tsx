@@ -40,6 +40,7 @@ export function FollowedOrganizations({ limit }: { limit?: number } = {}) {
   if (query.data.items.length === 0) {
     return (
       <EmptyState
+        compact
         title="You aren’t following any organisations"
         description="Open an organisation’s page and choose Follow to see its new events in your feed."
       />
@@ -50,9 +51,9 @@ export function FollowedOrganizations({ limit }: { limit?: number } = {}) {
       <ul className="bg-card divide-y rounded-lg border">
         {query.data.items.map((org) => (
           <li key={org.slug} className="flex items-center gap-3 px-4 py-3">
-            <Avatar src={org.logoUrl} name={org.name} className="size-10 rounded-lg" />
+            <Avatar src={org.logoUrl} name={org.name} className="size-9 rounded-sm" />
             <div className="min-w-0 flex-1">
-              <Link href={`/o/${org.slug}`} className="block truncate text-sm font-medium hover:underline">
+              <Link href={`/o/${org.slug}`} className="hover:text-brand-text block truncate text-sm font-medium">
                 {org.name}
               </Link>
               <p className="text-muted-foreground text-[13px] tabular-nums">

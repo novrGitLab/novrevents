@@ -34,7 +34,7 @@ const columns: { label: string; links: FooterLink[] }[] = [
 export function SiteFooter() {
   return (
     <footer className="bg-card mt-16 border-t">
-      <div className="mx-auto max-w-[1200px] px-4 pt-14 pb-10 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1280px] px-4 pt-14 pb-10 sm:px-6 lg:px-10">
         <div className="grid gap-12 lg:grid-cols-[1.4fr_2fr]">
           <div className="max-w-sm">
             <Link href="/" className="inline-block rounded-sm" aria-label="NOVR Events home">
@@ -60,7 +60,7 @@ export function SiteFooter() {
           <div className="grid grid-cols-2 gap-8 sm:grid-cols-3">
             {columns.map((column) => (
               <nav key={column.label} aria-label={column.label}>
-                <p className="text-[13px] font-semibold">{column.label}</p>
+                <p className="eyebrow">{column.label}</p>
                 <ul className="mt-3 space-y-2.5">
                   {column.links.map((link) => (
                     <li key={link.href}>

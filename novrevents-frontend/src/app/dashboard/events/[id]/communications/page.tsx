@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Send } from 'lucide-react'
+import { Search, Send } from 'lucide-react'
 import * as React from 'react'
 import { toast } from 'sonner'
 import { Field, Pagination } from '@/components/common'
@@ -55,9 +55,9 @@ export default function CommunicationsPage() {
         <TabsTrigger value="sent">Sent and scheduled</TabsTrigger>
         <TabsTrigger value="log">Message log</TabsTrigger>
       </TabsList>
-      <TabsContent value="compose">
+      <TabsContent value="compose" className="mt-6">
         {live ? (
-          <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
+          <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
             <Composer event={event} />
             <ReminderSettings event={event} />
           </div>
@@ -65,10 +65,10 @@ export default function CommunicationsPage() {
           <Notice tone="warning">Messages can be sent once the event is published.</Notice>
         )}
       </TabsContent>
-      <TabsContent value="sent">
+      <TabsContent value="sent" className="mt-6">
         <CampaignList eventId={event.id} />
       </TabsContent>
-      <TabsContent value="log">
+      <TabsContent value="log" className="mt-6">
         <MessageLog eventId={event.id} />
       </TabsContent>
     </Tabs>
@@ -144,10 +144,10 @@ function Composer({ event }: { event: ManagedEvent }) {
         <CardTitle>New message</CardTitle>
         <CardDescription>
           Announcements go only to people registered for this event. Invitations go to the addresses you list
-          and link to an application form. Recipients who opted out are skipped.
+          and link to an application form.
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="border-t pt-5">
         {!user?.emailVerified && (
           <Notice tone="warning" className="mb-4">
             Verify your email address before sending messages.
@@ -265,13 +265,20 @@ function Composer({ event }: { event: ManagedEvent }) {
               onChange={(changeEvent) => setSchedule(changeEvent.target.value)}
             />
           </Field>
-          <Button
-            type="submit"
-            loading={send.isPending}
-            disabled={!user?.emailVerified || (invitation && (!selectedFormId || emails.length === 0))}
-          >
-            <Send /> {schedule ? 'Schedule message' : 'Send now'}
-          </Button>
+          <div className="-mx-5 -mb-5 flex flex-col-reverse gap-3 border-t px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-muted-foreground text-[13px]">
+              {invitation
+                ? `${emails.length} recipient${emails.length === 1 ? '' : 's'}`
+                : 'Recipients who opted out are skipped.'}
+            </p>
+            <Button
+              type="submit"
+              loading={send.isPending}
+              disabled={!user?.emailVerified || (invitation && (!selectedFormId || emails.length === 0))}
+            >
+              <Send /> {schedule ? 'Schedule message' : 'Send now'}
+            </Button>
+          </div>
         </form>
       </CardContent>
     </Card>
@@ -384,11 +391,18 @@ function CampaignList({ eventId }: { eventId: string }) {
   })
   if (query.isPending) return <LoadingState rows={3} />
   if (query.isError) return <ErrorState error={query.error} retry={() => void query.refetch()} />
-  if (query.data.items.length === 0) return <EmptyState title="No messages yet" />
+  if (query.data.items.length === 0)
+    return (
+      <EmptyState
+        compact
+        title="No messages yet"
+        description="Messages you send or schedule from Compose are listed here."
+      />
+    )
   return (
-    <ul className="space-y-3">
+    <ul className="bg-card divide-y rounded-lg border shadow-xs">
       {query.data.items.map((campaign) => (
-        <li key={campaign.id} className="bg-card rounded-lg border p-4">
+        <li key={campaign.id} className="px-5 py-4">
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="outline">{TYPE_LABEL[campaign.type]}</Badge>
             <Badge variant={STATUS_VARIANT[campaign.status]}>{enumLabel(campaign.status)}</Badge>
@@ -401,17 +415,28 @@ function CampaignList({ eventId }: { eventId: string }) {
                   : ''}
             </span>
           </div>
-          <p className="mt-2 font-medium">{campaign.subject}</p>
+          <p className="mt-2 text-sm font-semibold">{campaign.subject}</p>
           {campaign.form && <p className="text-muted-foreground text-xs">Links to {campaign.form.title}</p>}
           {campaign.status === 'SENT' && (
-            <p className="text-muted-foreground mt-2 text-sm">
-              {campaign.recipientCount} recipients · {campaign.delivery.sent} sent ·{' '}
-              {campaign.delivery.delivered} delivered · {campaign.delivery.opened} opened
-              {campaign.delivery.bounced > 0 && ` · ${campaign.delivery.bounced} bounced`}
-              {campaign.delivery.failed > 0 && ` · ${campaign.delivery.failed} failed`}
-              {campaign.delivery.suppressed > 0 && ` · ${campaign.delivery.suppressed} opted out`}
-              {campaign.delivery.queued > 0 && ` · ${campaign.delivery.queued} queued`}
-            </p>
+            <dl className="mt-3 flex flex-wrap gap-x-6 gap-y-2">
+              {[
+                { label: 'Recipients', value: campaign.recipientCount },
+                { label: 'Sent', value: campaign.delivery.sent },
+                { label: 'Delivered', value: campaign.delivery.delivered },
+                { label: 'Opened', value: campaign.delivery.opened },
+                ...(campaign.delivery.bounced > 0 ? [{ label: 'Bounced', value: campaign.delivery.bounced }] : []),
+                ...(campaign.delivery.failed > 0 ? [{ label: 'Failed', value: campaign.delivery.failed }] : []),
+                ...(campaign.delivery.suppressed > 0
+                  ? [{ label: 'Opted out', value: campaign.delivery.suppressed }]
+                  : []),
+                ...(campaign.delivery.queued > 0 ? [{ label: 'Queued', value: campaign.delivery.queued }] : []),
+              ].map((stat) => (
+                <div key={stat.label}>
+                  <dt className="eyebrow">{stat.label}</dt>
+                  <dd className="text-sm font-semibold tabular-nums">{stat.value}</dd>
+                </div>
+              ))}
+            </dl>
           )}
           {campaign.status === 'SCHEDULED' && (
             <Button
@@ -444,23 +469,43 @@ function MessageLog({ eventId }: { eventId: string }) {
   return (
     <div className="space-y-3">
       {query.data && (
-        <p className="text-muted-foreground text-sm">
-          All email for this event: {query.data.summary.sent} sent, {query.data.summary.delivered} delivered,{' '}
-          {query.data.summary.opened} opened, {query.data.summary.bounced} bounced,{' '}
-          {query.data.summary.failed} failed, {query.data.summary.queued} queued. Delivery and opens are
-          reported by Brevo when its webhook is configured.
-        </p>
+        <dl className="bg-border grid grid-cols-3 gap-px overflow-hidden rounded-lg border shadow-xs sm:grid-cols-6">
+          {[
+            { label: 'Queued', value: query.data.summary.queued },
+            { label: 'Sent', value: query.data.summary.sent },
+            { label: 'Delivered', value: query.data.summary.delivered },
+            { label: 'Opened', value: query.data.summary.opened },
+            { label: 'Bounced', value: query.data.summary.bounced },
+            { label: 'Failed', value: query.data.summary.failed },
+          ].map((stat) => (
+            <div key={stat.label} className="bg-card px-4 py-3">
+              <dt className="eyebrow">{stat.label}</dt>
+              <dd className="text-headline-sm mt-0.5 tabular-nums">{stat.value}</dd>
+            </div>
+          ))}
+        </dl>
       )}
+      <p className="text-muted-foreground text-[13px]">
+        Every email for this event. Delivery and open counts appear when the email provider reports them.
+      </p>
       <div className="flex flex-col gap-2 sm:flex-row">
-        <Input
-          aria-label="Filter by recipient"
-          placeholder="Recipient email"
-          value={q}
-          onChange={(changeEvent) => {
-            setQ(changeEvent.target.value)
-            setPage(1)
-          }}
-        />
+        <div className="relative min-w-0 flex-1">
+          <Search
+            className="text-subtle-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+            aria-hidden
+          />
+          <Input
+            type="search"
+            aria-label="Filter by recipient"
+            placeholder="Recipient email"
+            className="pl-9"
+            value={q}
+            onChange={(changeEvent) => {
+              setQ(changeEvent.target.value)
+              setPage(1)
+            }}
+          />
+        </div>
         <NativeSelect
           aria-label="Status"
           className="sm:w-44"
@@ -474,7 +519,7 @@ function MessageLog({ eventId }: { eventId: string }) {
           {['QUEUED', 'SENT', 'DELIVERED', 'OPENED', 'CLICKED', 'BOUNCED', 'FAILED', 'SUPPRESSED'].map(
             (value) => (
               <option key={value} value={value}>
-                {value.toLowerCase()}
+                {enumLabel(value)}
               </option>
             ),
           )}
@@ -485,12 +530,12 @@ function MessageLog({ eventId }: { eventId: string }) {
       ) : query.isError ? (
         <ErrorState error={query.error} />
       ) : query.data.items.length === 0 ? (
-        <EmptyState title="No messages" />
+        <EmptyState compact title="No messages" description="Nothing matches these filters yet." />
       ) : (
         <>
-          <div className="bg-card overflow-x-auto rounded-lg border">
+          <div className="bg-card overflow-x-auto rounded-lg border shadow-xs">
             <table className="w-full min-w-[640px] text-sm">
-              <thead className="bg-muted text-muted-foreground border-b text-left text-xs">
+              <thead className="text-muted-foreground border-b text-left text-[11px] font-semibold tracking-[0.04em] uppercase">
                 <tr>
                   <th className="p-3 font-medium">Recipient</th>
                   <th className="p-3 font-medium">Subject</th>
@@ -500,8 +545,8 @@ function MessageLog({ eventId }: { eventId: string }) {
               </thead>
               <tbody className="divide-y">
                 {query.data.items.map((message) => (
-                  <tr key={message.id}>
-                    <td className="p-3">{message.toEmail}</td>
+                  <tr key={message.id} className="hover:bg-brand-soft/40">
+                    <td className="p-3 pl-4">{message.toEmail}</td>
                     <td className="max-w-72 truncate p-3">{message.subject}</td>
                     <td className="p-3">
                       <Badge

@@ -1,6 +1,7 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Plus } from 'lucide-react'
 import * as React from 'react'
 import { toast } from 'sonner'
 import { Field, PageHeader } from '@/components/common'
@@ -33,7 +34,7 @@ export default function AdminSettingsPage() {
         title="Configuration"
         description="Platform-wide settings. Changes apply within seconds and are recorded in the audit log."
       />
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
         {query.isPending ? (
           <LoadingState rows={4} />
         ) : query.isError ? (
@@ -78,17 +79,19 @@ function SettingsForm({ settings }: { settings: Settings }) {
   )
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="border-b pb-4">
         <CardTitle>Platform settings</CardTitle>
+        <CardDescription>Every change is recorded in the audit log.</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-0">
         <form
-          className="space-y-5"
           onSubmit={(event) => {
             event.preventDefault()
             save.mutate()
           }}
         >
+          <div className="space-y-5 p-5">
+          <h3 className="eyebrow">Access</h3>
           <div className="flex items-start justify-between gap-4">
             <div>
               <label htmlFor="allowSignups" className="text-sm font-medium">
@@ -119,6 +122,9 @@ function SettingsForm({ settings }: { settings: Settings }) {
               onCheckedChange={(checked) => set('requireVerifiedEmailToPublish', checked)}
             />
           </div>
+          </div>
+          <div className="space-y-5 border-t p-5">
+          <h3 className="eyebrow">Limits</h3>
           {number(
             'reportFlagThreshold',
             'Reports before an event is flagged',
@@ -134,6 +140,9 @@ function SettingsForm({ settings }: { settings: Settings }) {
             'Invitation emails per event per day',
             'Speaker and volunteer invitations.',
           )}
+          </div>
+          <div className="space-y-5 border-t p-5">
+          <h3 className="eyebrow">Support</h3>
           <Field
             label="Support email"
             htmlFor="supportEmail"
@@ -146,9 +155,12 @@ function SettingsForm({ settings }: { settings: Settings }) {
               onChange={(event) => set('supportEmail', event.target.value)}
             />
           </Field>
-          <Button type="submit" loading={save.isPending}>
-            Save configuration
-          </Button>
+          </div>
+          <div className="flex justify-end border-t px-5 py-4">
+            <Button type="submit" loading={save.isPending}>
+              Save configuration
+            </Button>
+          </div>
         </form>
       </CardContent>
     </Card>
@@ -176,7 +188,12 @@ function Categories() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Event categories</CardTitle>
+        <CardTitle>
+          Event categories{' '}
+          {query.data && (
+            <span className="text-muted-foreground text-sm font-normal tabular-nums">({query.data.items.length})</span>
+          )}
+        </CardTitle>
         <CardDescription>
           Inactive categories are hidden from organisers and filters; existing events keep them.
         </CardDescription>
@@ -198,8 +215,8 @@ function Categories() {
             minLength={2}
             maxLength={80}
           />
-          <Button type="submit" variant="outline" loading={create.isPending}>
-            Add
+          <Button type="submit" variant="outline" className="shrink-0" loading={create.isPending}>
+            <Plus /> Add
           </Button>
         </form>
         {query.isPending ? (
@@ -207,10 +224,13 @@ function Categories() {
         ) : query.isError ? (
           <ErrorState error={query.error} />
         ) : (
-          <ul className="divide-y rounded-lg border">
+          <ul className="-mx-5 -mb-5 divide-y border-t">
             {query.data.items.map((category) => (
-              <li key={category.id} className="flex items-center gap-3 p-3 text-sm">
-                <span className="flex-1">{category.name}</span>
+              <li key={category.id} className="flex items-center gap-3 px-5 py-3 text-sm">
+                <span className={category.isActive ? 'flex-1 font-medium' : 'text-muted-foreground flex-1'}>
+                  {category.name}
+                  {!category.isActive && <span className="text-subtle-foreground ml-2 text-xs">Hidden</span>}
+                </span>
                 <span className="text-muted-foreground text-xs">{category.eventCount} events</span>
                 <Switch
                   aria-label={`${category.name} active`}

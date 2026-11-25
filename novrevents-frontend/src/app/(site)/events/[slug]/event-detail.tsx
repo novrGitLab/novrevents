@@ -2,12 +2,14 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
+  ArrowRight,
   Bookmark,
   BookmarkCheck,
   Flag,
   Globe,
   Mail,
   MapPin,
+  QrCode,
   Settings,
   Share2,
   Ticket,
@@ -22,6 +24,7 @@ import { Field } from '@/components/common'
 import { EventCard, EventCover, eventPlace, RegistrationStatus } from '@/components/events/event-card'
 import { CLOSED_REASON_TEXT, EVENT_MODE_LABELS, EVENT_TYPE_LABELS } from '@/components/events/labels'
 import { ErrorState, LoadingState, Notice } from '@/components/states'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -37,12 +40,17 @@ import { useSession } from '@/hooks/use-session'
 import { api, unwrap, type Schema } from '@/lib/api/client'
 import { errorMessage, isApiError } from '@/lib/api/errors'
 import { keys } from '@/lib/api/keys'
-import { dateBadge, formatDate, formatEventRange, formatTime } from '@/lib/format'
+import { formatDate, formatEventRange, formatTime } from '@/lib/format'
 import { emailDeliveryEnabled } from '@/lib/site'
+import { cn } from '@/lib/utils'
 
 type EventDetailData = Schema<'EventDetail'>
 
-export function EventDetail({ slug }: { slug: string }) {
+/**
+ * Public event page. With `inApp` it renders inside the signed-in shell (from /dashboard/discover):
+ * no page frame of its own, and breadcrumbs and related events stay in the app.
+ */
+export function EventDetail({ slug, inApp = false }: { slug: string; inApp?: boolean }) {
   const searchParams = useSearchParams()
   const key = searchParams.get('key') ?? undefined
   const query = useQuery({
@@ -62,22 +70,22 @@ export function EventDetail({ slug }: { slug: string }) {
 
   if (query.isPending) {
     return (
-      <div className="mx-auto max-w-6xl px-4 py-10">
+      <div className={inApp ? undefined : 'mx-auto max-w-[1280px] px-4 py-10 sm:px-6 lg:px-10'}>
         <LoadingState rows={4} />
       </div>
     )
   }
   if (query.isError) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-16">
+      <div className={inApp ? 'py-10' : 'mx-auto max-w-3xl px-4 py-16'}>
         {isApiError(query.error) && query.error.status === 404 ? (
           <div className="text-center">
-            <h1 className="text-2xl font-semibold">Event not found</h1>
+            <h1 className="page-title">Event not found</h1>
             <p className="text-muted-foreground mt-2">
               It may be private, unpublished, or the link may be incomplete.
             </p>
             <Button asChild className="mt-6">
-              <Link href="/explore">Explore events</Link>
+              <Link href={inApp ? '/dashboard/discover' : '/explore'}>Explore events</Link>
             </Button>
           </div>
         ) : (
@@ -86,92 +94,132 @@ export function EventDetail({ slug }: { slug: string }) {
       </div>
     )
   }
-  return <EventView event={query.data} accessKey={key} />
+  return <EventView event={query.data} accessKey={key} inApp={inApp} />
 }
 
-function EventView({ event, accessKey }: { event: EventDetailData; accessKey?: string }) {
+/** Section heading with the Stitch purple rule. */
+function SectionHeading({ id, children, aside }: { id: string; children: React.ReactNode; aside?: React.ReactNode }) {
+  return (
+    <div className="flex items-baseline justify-between gap-3">
+      <h2 id={id} className="text-headline-sm border-primary border-l-[3px] pl-3 sm:text-headline-md">
+        {children}
+      </h2>
+      {aside}
+    </div>
+  )
+}
+
+function MetaItem({ icon: Icon, label, children }: { icon: typeof Globe; label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex min-w-0 gap-3">
+      <span className="bg-brand-soft text-primary flex size-9 shrink-0 items-center justify-center rounded-sm">
+        <Icon className="size-4" aria-hidden />
+      </span>
+      <div className="min-w-0">
+        <dt className="eyebrow">{label}</dt>
+        <dd className="mt-0.5 text-sm">{children}</dd>
+      </div>
+    </div>
+  )
+}
+
+function EventView({
+  event,
+  accessKey,
+  inApp,
+}: {
+  event: EventDetailData
+  accessKey?: string
+  inApp: boolean
+}) {
+  const discoverHref = inApp ? '/dashboard/discover' : '/explore'
   const speakersById = new Map(event.speakers.map((speaker) => [speaker.id, speaker]))
   const sessionsByDay = groupSessions(event)
-  const badge = dateBadge(event.startsAt, event.timezone)
   const venueLine = [event.venueName, event.address].filter(Boolean).join(', ')
   const placeLine = [event.city, event.region, event.country].filter(Boolean).join(', ')
   const range = formatEventRange(event.startsAt, event.endsAt, event.timezone)
   const sameDay = range.includes(' · ')
+  const organizerLabel = event.organizer.organization?.name ?? event.organizer.name
 
   return (
-    <article className="mx-auto max-w-[1080px] px-4 pt-6 sm:px-6 lg:pt-10">
-      <div className="grid gap-8 lg:grid-cols-[340px_minmax(0,1fr)] lg:gap-12">
-        <div className="space-y-6 lg:sticky lg:top-20 lg:self-start">
-          <EventCover
-            event={event}
-            sizes="(min-width: 1024px) 340px, 100vw"
-            className="aspect-[16/9] rounded-lg border"
-          />
-          <div className="hidden space-y-6 lg:block">
-            <OrganizerPanel event={event} />
-            <EventActions event={event} accessKey={accessKey} />
-          </div>
-        </div>
+    <article className={inApp ? undefined : 'mx-auto max-w-[1280px] px-4 pt-5 pb-4 sm:px-6 lg:px-10 lg:pt-6'}>
+      <nav aria-label="Breadcrumb" className="text-muted-foreground mb-6 text-[13px]">
+        <ol className="flex min-w-0 items-center gap-1.5">
+          <li>
+            <Link href={discoverHref} className="hover:text-foreground">
+              Discover
+            </Link>
+          </li>
+          {event.category && (
+            <>
+              <li aria-hidden>/</li>
+              <li>
+                <Link href={`${discoverHref}?category=${event.category.slug}`} className="hover:text-foreground">
+                  {event.category.name}
+                </Link>
+              </li>
+            </>
+          )}
+          <li aria-hidden>/</li>
+          <li aria-current="page" className="text-foreground truncate font-medium">
+            {event.title}
+          </li>
+        </ol>
+      </nav>
 
+      <div
+        className={
+          inApp
+            ? 'grid gap-10 xl:grid-cols-[minmax(0,1fr)_340px] xl:gap-10'
+            : 'grid gap-10 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-12'
+        }
+      >
         <div className="min-w-0">
-          <p className="text-muted-foreground text-[13px]">
-            {EVENT_TYPE_LABELS[event.eventType]}
-            {event.category && <> · {event.category.name}</>}
-          </p>
-          <h1 className="display-title mt-1.5 text-balance">{event.title}</h1>
+          <div className="flex flex-wrap gap-2">
+            <Badge variant="primary">{EVENT_TYPE_LABELS[event.eventType]}</Badge>
+            <Badge variant="secondary">{EVENT_MODE_LABELS[event.mode]}</Badge>
+            {event.category && <Badge variant="secondary">{event.category.name}</Badge>}
+          </div>
+          <h1 className="text-headline-lg sm:text-display mt-3 text-balance">{event.title}</h1>
           {event.summary && (
-            <p className="text-muted-foreground mt-2 text-[15px] leading-6">{event.summary}</p>
+            <p className="text-muted-foreground mt-3 max-w-[68ch] text-base leading-7">{event.summary}</p>
           )}
 
-          <dl className="mt-6 space-y-4">
-            <div className="flex items-center gap-3.5">
-              <div
-                aria-hidden
-                className="flex size-11 shrink-0 flex-col overflow-hidden rounded-lg border text-center"
-              >
-                <span className="bg-muted text-muted-foreground text-[10px] leading-4 font-semibold">
-                  {badge.month}
-                </span>
-                <span className="flex-1 text-base leading-6 font-semibold tabular-nums">{badge.day}</span>
-              </div>
-              <div>
-                <dt className="sr-only">When</dt>
-                <dd className="text-[15px] font-medium">
-                  {sameDay ? formatDate(event.startsAt, event.timezone) : range.split(' – ')[0]}
-                </dd>
-                <dd className="text-muted-foreground text-[13px]">
-                  {sameDay ? range.split(' · ')[1] : `until ${range.split(' – ')[1]}`}
-                </dd>
-              </div>
-            </div>
-            <div className="flex items-center gap-3.5">
-              <div
-                aria-hidden
-                className="flex size-11 shrink-0 items-center justify-center rounded-lg border"
-              >
-                {event.mode === 'VIRTUAL' ? (
-                  <Globe className="size-[18px]" />
-                ) : (
-                  <MapPin className="size-[18px]" />
-                )}
-              </div>
-              <div className="min-w-0">
-                <dt className="sr-only">Where</dt>
-                <dd className="text-[15px] font-medium">
-                  {event.mode === 'VIRTUAL' ? 'Online' : venueLine || eventPlace(event)}
-                </dd>
-                <dd className="text-muted-foreground text-[13px]">
-                  {event.mode === 'VIRTUAL'
-                    ? 'The joining link is shared with registered attendees'
-                    : [placeLine, event.mode === 'HYBRID' ? 'also online' : null].filter(Boolean).join(' · ')}
-                  <span className="sr-only"> ({EVENT_MODE_LABELS[event.mode]})</span>
-                </dd>
-              </div>
-            </div>
+          <dl className="mt-6 grid gap-5 border-y py-5 sm:grid-cols-3">
+            <MetaItem icon={CalendarPlus} label="Date and time">
+              <span className="block font-medium">
+                {sameDay ? formatDate(event.startsAt, event.timezone) : range.split(' – ')[0]}
+              </span>
+              <span className="text-muted-foreground block text-[13px]">
+                {sameDay ? range.split(' · ')[1] : `until ${range.split(' – ')[1]}`}
+              </span>
+            </MetaItem>
+            <MetaItem icon={event.mode === 'VIRTUAL' ? Globe : MapPin} label="Location">
+              <span className="block font-medium">
+                {event.mode === 'VIRTUAL' ? 'Online' : venueLine || eventPlace(event)}
+              </span>
+              <span className="text-muted-foreground block text-[13px]">
+                {event.mode === 'VIRTUAL'
+                  ? 'Link shared with registered attendees'
+                  : [placeLine, event.mode === 'HYBRID' ? 'also online' : null].filter(Boolean).join(' · ')}
+              </span>
+            </MetaItem>
+            <MetaItem icon={Users} label="Hosted by">
+              <span className="block truncate font-medium">{organizerLabel}</span>
+              {event.capacity && (
+                <span className="text-muted-foreground block text-[13px]">{event.capacity} places</span>
+              )}
+            </MetaItem>
           </dl>
 
-          <div className="mt-7">
-            <RegistrationPanel event={event} />
+          <EventCover
+            event={event}
+            sizes="(min-width: 1024px) 820px, 100vw"
+            className="mt-6 aspect-[16/9] rounded-xl border"
+          />
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+            <EventActions event={event} accessKey={accessKey} />
+            <RegistrationStatus registration={event.registration} status={event.status} />
           </div>
 
           {event.status === 'CANCELLED' && (
@@ -180,44 +228,48 @@ function EventView({ event, accessKey }: { event: EventDetailData; accessKey?: s
             </Notice>
           )}
 
-          <section aria-labelledby="about" className="mt-10">
-            <h2 id="about" className="section-title border-b pb-2">
-              About
-            </h2>
-            <div className="text-foreground/90 mt-4 max-w-[68ch] text-[15px] leading-7 whitespace-pre-line">
+          <div className={inApp ? "mt-8 xl:hidden" : "mt-8 lg:hidden"}>
+            <RegistrationPanel event={event} />
+          </div>
+
+          <section aria-labelledby="about" className="mt-12">
+            <SectionHeading id="about">About this event</SectionHeading>
+            <div className="text-foreground/90 mt-5 max-w-[68ch] text-[15px] leading-7 whitespace-pre-line">
               {event.description || 'No description yet.'}
             </div>
           </section>
 
           {sessionsByDay.length > 0 && (
-            <section aria-labelledby="agenda" className="mt-10">
-              <div className="flex items-baseline justify-between gap-3 border-b pb-2">
-                <h2 id="agenda" className="section-title">
-                  Agenda
-                </h2>
-                <p className="text-muted-foreground text-xs">Times in {event.timezone}</p>
-              </div>
-              <div className="mt-4 space-y-6">
+            <section aria-labelledby="agenda" className="mt-12">
+              <SectionHeading
+                id="agenda"
+                aside={<p className="eyebrow shrink-0">Times in {event.timezone}</p>}
+              >
+                Agenda
+              </SectionHeading>
+              <div className="mt-5 space-y-6">
                 {sessionsByDay.map(([day, sessions]) => (
                   <div key={day}>
                     <h3 className="text-[13px] font-semibold">{day}</h3>
-                    <ol className="mt-1 divide-y">
+                    <ol className="bg-card mt-2 divide-y rounded-lg border">
                       {sessions.map((session) => (
-                        <li key={session.id} className="grid gap-1 py-3 sm:grid-cols-[112px_1fr]">
-                          <span className="text-muted-foreground text-[13px] tabular-nums">
+                        <li key={session.id} className="grid gap-1 px-4 py-4 sm:grid-cols-[120px_1fr] sm:gap-4">
+                          <span className="text-primary text-[13px] font-medium tabular-nums">
                             {formatTime(session.startsAt, event.timezone)}–
                             {formatTime(session.endsAt, event.timezone)}
                           </span>
-                          <div>
-                            <p className="text-[15px] font-medium">{session.title}</p>
-                            {(session.speakerIds.length > 0 || session.track || session.location) && (
+                          <div className="min-w-0">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <p className="text-[15px] font-medium">{session.title}</p>
+                              {session.track && <Badge variant="secondary">{session.track}</Badge>}
+                            </div>
+                            {(session.speakerIds.length > 0 || session.location) && (
                               <p className="text-muted-foreground mt-0.5 text-[13px]">
                                 {[
                                   session.speakerIds
                                     .map((speakerId) => speakersById.get(speakerId)?.name)
                                     .filter(Boolean)
                                     .join(', '),
-                                  session.track,
                                   session.location,
                                 ]
                                   .filter(Boolean)
@@ -238,21 +290,19 @@ function EventView({ event, accessKey }: { event: EventDetailData; accessKey?: s
           )}
 
           {event.speakers.length > 0 && (
-            <section aria-labelledby="speakers" className="mt-10">
-              <h2 id="speakers" className="section-title border-b pb-2">
-                Speakers
-              </h2>
-              <ul className="mt-4 grid gap-x-6 gap-y-5 sm:grid-cols-2">
+            <section aria-labelledby="speakers" className="mt-12">
+              <SectionHeading id="speakers">Speakers</SectionHeading>
+              <ul className="mt-5 grid gap-4 sm:grid-cols-2">
                 {event.speakers.map((speaker) => (
-                  <li key={speaker.id} className="flex gap-3">
-                    <Avatar src={speaker.photoUrl} name={speaker.name} className="size-10" />
+                  <li key={speaker.id} className="bg-card flex gap-3 rounded-lg border p-4">
+                    <Avatar src={speaker.photoUrl} name={speaker.name} className="size-12 rounded-sm" />
                     <div className="min-w-0">
-                      <p className="text-sm font-medium">{speaker.name}</p>
-                      <p className="text-muted-foreground text-[13px]">
+                      <p className="text-sm font-semibold">{speaker.name}</p>
+                      <p className="text-primary text-[13px]">
                         {[speaker.title, speaker.organization].filter(Boolean).join(', ')}
                       </p>
                       {speaker.bio && (
-                        <p className="text-muted-foreground mt-1 line-clamp-3 text-[13px]">{speaker.bio}</p>
+                        <p className="text-muted-foreground mt-1.5 line-clamp-3 text-[13px]">{speaker.bio}</p>
                       )}
                     </div>
                   </li>
@@ -261,13 +311,18 @@ function EventView({ event, accessKey }: { event: EventDetailData; accessKey?: s
             </section>
           )}
 
-          <RelatedEvents event={event} />
-
-          <div className="mt-10 space-y-6 border-t pt-6 lg:hidden">
-            <OrganizerPanel event={event} />
-            <EventActions event={event} accessKey={accessKey} />
-          </div>
+          <RelatedEvents event={event} inApp={inApp} />
         </div>
+
+        <aside
+          className={inApp ? 'space-y-5 xl:sticky xl:top-20 xl:self-start' : 'space-y-5 lg:sticky lg:top-20 lg:self-start'}
+          aria-label="Registration and organiser"
+        >
+          <div className={inApp ? "hidden xl:block" : "hidden lg:block"}>
+            <RegistrationPanel event={event} />
+          </div>
+          <OrganizerPanel event={event} />
+        </aside>
       </div>
     </article>
   )
@@ -276,84 +331,100 @@ function EventView({ event, accessKey }: { event: EventDetailData; accessKey?: s
 function RegistrationPanel({ event }: { event: EventDetailData }) {
   const { registration, viewer } = event
   return (
-    <div className="bg-card rounded-lg border">
-      <div className="flex items-center justify-between gap-3 border-b px-4 py-2.5">
-        <h2 className="text-[13px] font-semibold">Registration</h2>
-        <span className="text-muted-foreground text-[13px]">
-          {event.isPaid ? (event.priceInfo ?? 'Paid event') : 'Free'}
+    <div className="bg-card rounded-lg border shadow-xs">
+      <div className="flex items-start justify-between gap-3 border-b px-5 py-4">
+        <div>
+          <h2 className="text-headline-sm">Registration</h2>
+          <p className="text-muted-foreground mt-0.5 text-[13px]">
+            {registration.requiresApproval ? 'Reviewed by the organiser' : 'Confirmed straight away'}
+          </p>
+        </div>
+        <span className="bg-brand-soft text-brand-text rounded-sm px-2 py-0.5 text-xs font-medium">
+          {event.isPaid ? (event.priceInfo ?? 'Paid') : 'Free'}
         </span>
       </div>
-      <div className="p-4">
+      <div className="space-y-4 p-5">
+        {event.ticketTypes.length > 0 && (
+          <ul className="space-y-2" aria-label="Ticket types">
+            {event.ticketTypes.map((ticketType) => (
+              <li
+                key={ticketType.id}
+                className={cn('rounded-sm border px-3 py-2.5', !ticketType.available && 'bg-muted')}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-sm font-medium">{ticketType.name}</p>
+                  {!ticketType.available && <span className="text-muted-foreground text-xs">Unavailable</span>}
+                </div>
+                {ticketType.description && (
+                  <p className="text-muted-foreground mt-0.5 text-[13px]">{ticketType.description}</p>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+
         {viewer.registrationStatus === 'CONFIRMED' ? (
           <div className="space-y-3">
-            <p className="text-sm">
-              <span className="font-medium">You’re registered.</span>{' '}
-              <span className="text-muted-foreground">
-                {emailDeliveryEnabled
-                  ? 'Your ticket is in your account and was emailed to you.'
-                  : 'Your ticket is in your account.'}
-              </span>
-            </p>
-            <div className="flex flex-wrap gap-2">
-              <Button asChild>
-                <Link href="/dashboard/tickets">
-                  <Ticket /> View my ticket
-                </Link>
-              </Button>
-              {viewer.onlineUrl && (
-                <Button asChild variant="outline">
-                  <a href={viewer.onlineUrl} target="_blank" rel="noopener noreferrer">
-                    <Globe /> Join online
-                  </a>
-                </Button>
-              )}
-            </div>
-          </div>
-        ) : viewer.registrationStatus === 'PENDING' ? (
-          <p className="text-sm">
-            <span className="font-medium">Registration received.</span>{' '}
-            <span className="text-muted-foreground">
+            <Notice tone="success" title="You’re registered">
               {emailDeliveryEnabled
-                ? 'The organiser is reviewing registrations. You’ll get an email with your ticket if approved.'
-                : 'The organiser is reviewing registrations. If approved, your ticket appears in My tickets.'}
-            </span>
-          </p>
-        ) : registration.open && registration.formSlug ? (
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="space-y-0.5">
-              <RegistrationStatus registration={registration} status={event.status} />
-              <p className="text-muted-foreground text-[13px]">
-                {[
-                  registration.requiresApproval
-                    ? 'Registrations are reviewed by the organiser'
-                    : 'No account needed',
-                  event.registrationDeadline
-                    ? `Closes ${formatDate(event.registrationDeadline, event.timezone)}`
-                    : null,
-                ]
-                  .filter(Boolean)
-                  .join(' · ')}
-              </p>
-            </div>
-            <Button asChild size="lg" className="sm:min-w-40">
-              <Link href={`/f/${registration.formSlug}`}>
-                {registration.requiresApproval ? 'Request a place' : 'Register'}
+                ? 'Your ticket is in your account and was emailed to you.'
+                : 'Your ticket is in your account.'}
+            </Notice>
+            <Button asChild className="w-full">
+              <Link href="/dashboard/tickets">
+                <Ticket /> View my ticket
               </Link>
             </Button>
+            {viewer.onlineUrl && (
+              <Button asChild variant="outline" className="w-full">
+                <a href={viewer.onlineUrl} target="_blank" rel="noopener noreferrer">
+                  <Globe /> Join online
+                </a>
+              </Button>
+            )}
+          </div>
+        ) : viewer.registrationStatus === 'PENDING' ? (
+          <Notice tone="info" title="Registration received">
+            {emailDeliveryEnabled
+              ? 'The organiser is reviewing registrations. You’ll get an email with your ticket if approved.'
+              : 'The organiser is reviewing registrations. If approved, your ticket appears in My tickets.'}
+          </Notice>
+        ) : registration.open && registration.formSlug ? (
+          <div className="space-y-3">
+            <Button asChild size="lg" className="w-full">
+              <Link href={`/f/${registration.formSlug}`}>
+                {registration.requiresApproval ? 'Request a place' : 'Register'} <ArrowRight />
+              </Link>
+            </Button>
+            <p className="text-muted-foreground text-center text-xs">
+              {[
+                'No account needed',
+                registration.spotsLeft !== null ? `${registration.spotsLeft} places left` : null,
+                event.registrationDeadline ? `Closes ${formatDate(event.registrationDeadline, event.timezone)}` : null,
+              ]
+                .filter(Boolean)
+                .join(' · ')}
+            </p>
           </div>
         ) : (
-          <p className="text-sm font-medium">
+          <p className="bg-muted rounded-sm px-3 py-2.5 text-sm font-medium">
             {CLOSED_REASON_TEXT[registration.reason] ?? 'Registration is closed.'}
           </p>
         )}
+
+        <div className="flex gap-3 border-t pt-4">
+          <QrCode className="text-primary size-5 shrink-0" aria-hidden />
+          <p className="text-muted-foreground text-[13px]">
+            Confirmed attendees get a signed QR ticket to show at check-in.
+          </p>
+        </div>
+
         {viewer.canManage && (
-          <div className="mt-3 border-t pt-3">
-            <Button asChild variant="outline" size="sm">
-              <Link href={`/dashboard/events/${event.id}`}>
-                <Settings /> Manage event
-              </Link>
-            </Button>
-          </div>
+          <Button asChild variant="outline" size="sm" className="w-full">
+            <Link href={`/dashboard/events/${event.id}`}>
+              <Settings /> Manage event
+            </Link>
+          </Button>
         )}
       </div>
     </div>
@@ -368,35 +439,30 @@ function OrganizerPanel({ event }: { event: EventDetailData }) {
       ? `/u/${organizer.username}`
       : null
   return (
-    <section aria-labelledby="hosted-by">
-      <h2 id="hosted-by" className="text-muted-foreground border-b pb-2 text-[13px] font-medium">
-        Hosted by
+    <section aria-labelledby="hosted-by" className="bg-card rounded-lg border p-5">
+      <h2 id="hosted-by" className="eyebrow">
+        Organiser
       </h2>
       <div className="mt-3 flex items-center gap-3">
-        <Avatar src={organizer.organization?.logoUrl ?? organizer.avatarUrl} name={organizer.name} />
+        <Avatar
+          src={organizer.organization?.logoUrl ?? organizer.avatarUrl}
+          name={organizer.name}
+          className="size-10 rounded-sm"
+        />
         <div className="min-w-0">
-          {profileHref ? (
-            <Link href={profileHref} className="block truncate text-sm font-medium hover:underline">
-              {organizer.organization?.name ?? organizer.name}
-            </Link>
-          ) : (
-            <p className="truncate text-sm font-medium">{organizer.name}</p>
-          )}
+          <p className="truncate text-sm font-semibold">{organizer.organization?.name ?? organizer.name}</p>
           {organizer.organization && organizer.username && (
-            <Link
-              href={`/u/${organizer.username}`}
-              className="text-muted-foreground text-[13px] hover:underline"
-            >
+            <Link href={`/u/${organizer.username}`} className="text-muted-foreground text-[13px] hover:underline">
               {organizer.name === organizer.organization.name ? `@${organizer.username}` : organizer.name}
             </Link>
           )}
         </div>
       </div>
-      <div className="mt-3 space-y-1.5 text-[13px]">
+      <div className="mt-4 space-y-2 text-[13px]">
         {event.organizerEmail && (
           <a
             href={`mailto:${event.organizerEmail}`}
-            className="text-muted-foreground hover:text-foreground flex items-center gap-2"
+            className="text-muted-foreground hover:text-primary flex items-center gap-2"
           >
             <Mail className="size-4" aria-hidden /> Contact the organiser
           </a>
@@ -406,17 +472,17 @@ function OrganizerPanel({ event }: { event: EventDetailData }) {
             href={event.organizerWebsite}
             target="_blank"
             rel="noopener noreferrer nofollow"
-            className="text-muted-foreground hover:text-foreground flex items-center gap-2"
+            className="text-muted-foreground hover:text-primary flex items-center gap-2"
           >
             <Globe className="size-4" aria-hidden /> Website
           </a>
         )}
-        {event.capacity && (
-          <p className="text-muted-foreground flex items-center gap-2">
-            <Users className="size-4" aria-hidden /> {event.capacity} places
-          </p>
-        )}
       </div>
+      {profileHref && (
+        <Button asChild variant="outline" size="sm" className="mt-4 w-full">
+          <Link href={profileHref}>View organiser</Link>
+        </Button>
+      )}
     </section>
   )
 }
@@ -454,7 +520,7 @@ function EventActions({ event, accessKey }: { event: EventDetailData; accessKey?
   })
 
   const share = async () => {
-    const url = window.location.href
+    const url = `${window.location.origin}/events/${event.slug}${accessKey ? `?key=${encodeURIComponent(accessKey)}` : ''}`
     if (navigator.share) {
       await navigator.share({ title: event.title, url }).catch(() => undefined)
     } else {
@@ -610,7 +676,7 @@ function ReportDialog({
  * Other upcoming public events in the same category. Real data only: the section is omitted when the event has
  * no category or no other upcoming event shares it.
  */
-function RelatedEvents({ event }: { event: EventDetailData }) {
+function RelatedEvents({ event, inApp }: { event: EventDetailData; inApp: boolean }) {
   const category = event.category
   const related = useQuery({
     queryKey: keys.publicEvents({ related: category?.slug, pageSize: 4 }),
@@ -627,13 +693,15 @@ function RelatedEvents({ event }: { event: EventDetailData }) {
   const items = (related.data?.items ?? []).filter((item) => item.id !== event.id).slice(0, 3)
   if (!category || items.length === 0) return null
   return (
-    <section aria-labelledby="related-events" className="mt-10">
-      <h2 id="related-events" className="section-title border-b pb-2">
-        More {category.name} events
-      </h2>
-      <div className="mt-4 grid gap-5 sm:grid-cols-3">
+    <section aria-labelledby="related-events" className="mt-12">
+      <SectionHeading id="related-events">More {category.name} events</SectionHeading>
+      <div className="mt-5 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
         {items.map((item) => (
-          <EventCard key={item.id} event={item} />
+          <EventCard
+            key={item.id}
+            event={item}
+            href={inApp ? `/dashboard/discover/events/${item.slug}` : undefined}
+          />
         ))}
       </div>
     </section>

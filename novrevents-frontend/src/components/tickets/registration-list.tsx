@@ -67,7 +67,7 @@ export function RegistrationList({ ticketsOnly }: { ticketsOnly: boolean }) {
             description="Registrations made while signed in appear here. Guest registrations are managed from the link in the confirmation email."
             action={
               <Button asChild variant="outline">
-                <Link href="/explore">Find an event</Link>
+                <Link href="/dashboard/discover">Find an event</Link>
               </Button>
             }
           />

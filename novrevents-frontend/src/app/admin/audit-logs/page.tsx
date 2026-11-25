@@ -34,7 +34,7 @@ export default function AuditLogsPage() {
     <>
       <PageHeader title="Audit log" description="Sensitive operations across the platform, newest first." />
       <form
-        className="mb-4 flex flex-col gap-2 sm:flex-row"
+        className="bg-card mb-4 flex flex-col gap-2 rounded-lg border p-3 shadow-xs lg:flex-row"
         onSubmit={(event) => {
           event.preventDefault()
           setApplied({ action: action.trim(), from, to })
@@ -61,21 +61,34 @@ export default function AuditLogsPage() {
           value={to}
           onChange={(event) => setTo(event.target.value)}
         />
-        <Button type="submit" variant="outline">
-          Filter
-        </Button>
+        <Button type="submit">Apply filters</Button>
+        {(applied.action || applied.from || applied.to) && (
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => {
+              setAction('')
+              setFrom('')
+              setTo('')
+              setApplied({ action: '', from: '', to: '' })
+              setPage(1)
+            }}
+          >
+            Reset
+          </Button>
+        )}
       </form>
       {query.isPending ? (
         <LoadingState rows={6} />
       ) : query.isError ? (
         <ErrorState error={query.error} retry={() => void query.refetch()} />
       ) : query.data.items.length === 0 ? (
-        <EmptyState title="No entries" />
+        <EmptyState compact title="No entries" description="Nothing matches these filters." />
       ) : (
         <>
-          <div className="bg-card overflow-x-auto rounded-lg border">
+          <div className="bg-card overflow-x-auto rounded-lg border shadow-xs">
             <table className="w-full min-w-[800px] text-sm">
-              <thead className="bg-muted text-muted-foreground border-b text-left text-xs">
+              <thead className="text-muted-foreground border-b text-left text-[11px] font-semibold tracking-[0.04em] uppercase">
                 <tr>
                   <th className="p-3 font-medium">Time (UTC)</th>
                   <th className="p-3 font-medium">Action</th>
@@ -86,13 +99,13 @@ export default function AuditLogsPage() {
               </thead>
               <tbody className="divide-y">
                 {query.data.items.map((entry) => (
-                  <tr key={entry.id} className="align-top">
+                  <tr key={entry.id} className="hover:bg-brand-soft/40 align-top">
                     <td className="text-muted-foreground p-3 whitespace-nowrap">
                       {formatDateTime(entry.createdAt, 'UTC')}
                     </td>
                     <td className="p-3">
                       <Badge
-                        variant={entry.action.startsWith('admin.') ? 'brand' : 'outline'}
+                        variant={entry.action.startsWith('admin.') ? 'default' : 'secondary'}
                         className="font-mono"
                       >
                         {entry.action}
@@ -110,10 +123,15 @@ export default function AuditLogsPage() {
                       {entry.targetId && <p className="text-muted-foreground">{entry.targetId}</p>}
                     </td>
                     <td className="max-w-80 p-3">
-                      {entry.metadata && (
-                        <pre className="bg-muted overflow-x-auto rounded p-2 text-xs whitespace-pre-wrap">
-                          {JSON.stringify(entry.metadata, null, 1)}
-                        </pre>
+                      {entry.metadata && Object.keys(entry.metadata).length > 0 ? (
+                        <details className="group">
+                          <summary className="text-primary cursor-pointer text-xs font-medium">Show details</summary>
+                          <pre className="bg-muted mt-2 overflow-x-auto rounded-sm border p-2 font-mono text-xs whitespace-pre-wrap">
+                            {JSON.stringify(entry.metadata, null, 2)}
+                          </pre>
+                        </details>
+                      ) : (
+                        <span className="text-subtle-foreground text-xs">None</span>
                       )}
                     </td>
                   </tr>

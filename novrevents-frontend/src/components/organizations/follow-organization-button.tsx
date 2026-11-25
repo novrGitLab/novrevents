@@ -47,7 +47,7 @@ export function FollowOrganizationButton({
   return (
     <Button
       size="sm"
-      variant={following ? 'outline' : 'default'}
+      variant={following ? 'outline' : 'primary'}
       className={className}
       loading={mutation.isPending}
       aria-pressed={following}

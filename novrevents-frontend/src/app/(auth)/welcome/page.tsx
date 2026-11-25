@@ -78,7 +78,7 @@ export default function WelcomePage() {
     <div className="space-y-8">
       <header className="space-y-2">
         <p className="text-muted-foreground text-[13px]">Account ready</p>
-        <h1 className="text-[28px] leading-[34px] font-semibold tracking-[-0.02em]">
+        <h1 className="text-headline-lg">
           Welcome to NOVR Events, {user.profile.displayName.split(' ')[0]}.
         </h1>
         <p className="text-muted-foreground text-[15px] leading-6">
@@ -102,7 +102,7 @@ export default function WelcomePage() {
               type="button"
               onClick={() => void go(choice.href)}
               disabled={pending !== null}
-              className="hover:bg-secondary flex w-full items-center gap-3.5 px-4 py-3.5 text-left disabled:opacity-60"
+              className="hover:bg-brand-soft/60 flex w-full items-center gap-3.5 px-4 py-3.5 text-left disabled:opacity-60"
             >
               <choice.icon className="text-muted-foreground size-[18px] shrink-0" aria-hidden />
               <span className="min-w-0 flex-1">

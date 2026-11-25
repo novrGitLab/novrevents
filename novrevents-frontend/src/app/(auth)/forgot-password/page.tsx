@@ -18,10 +18,10 @@ export default function ForgotPasswordPage() {
   const [loading, setLoading] = React.useState(false)
 
   return (
-    <Card className="border-0 bg-transparent">
+    <Card className="border-0 bg-transparent shadow-none">
       <CardHeader className="px-0 pt-0 pb-6">
-        <h1 className="text-[28px] leading-[34px] font-semibold tracking-[-0.02em]">Reset your password</h1>
-        <CardDescription>We’ll email you a link to choose a new password.</CardDescription>
+        <h1 className="text-headline-lg">Reset your password</h1>
+        <CardDescription className="text-body-lg mt-2">We’ll email you a link to choose a new password.</CardDescription>
       </CardHeader>
       <CardContent className="px-0">
         {!emailDeliveryEnabled && (

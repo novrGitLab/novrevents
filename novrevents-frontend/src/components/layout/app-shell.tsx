@@ -1,6 +1,6 @@
 'use client'
 
-import { ChevronRight, Menu, type LucideIcon } from 'lucide-react'
+import { ChevronRight, Menu, MoreHorizontal, type LucideIcon } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import * as React from 'react'
@@ -48,7 +48,7 @@ function NavLinks({ groups, onNavigate }: { groups: NavGroup[]; onNavigate?: () 
     <nav aria-label="Main" className="space-y-6">
       {groups.map((group) => (
         <div key={group.label}>
-          <p className="text-subtle-foreground mb-1.5 px-3 text-xs font-medium">{group.label}</p>
+          <p className="eyebrow text-subtle-foreground mb-2 px-3">{group.label}</p>
           <ul className="space-y-0.5">
             {group.items.map((item) => {
               const current = active?.item.href === item.href
@@ -59,10 +59,10 @@ function NavLinks({ groups, onNavigate }: { groups: NavGroup[]; onNavigate?: () 
                     onClick={onNavigate}
                     aria-current={current ? 'page' : undefined}
                     className={cn(
-                      'flex h-9 items-center gap-3 rounded-md px-3 text-[13px] font-medium transition-colors',
+                      'flex h-9 items-center gap-3 rounded-sm px-3 text-[13px] font-medium transition-colors',
                       current
                         ? 'bg-brand-soft text-brand-text'
-                        : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                        : 'text-muted-foreground hover:bg-brand-soft/60 hover:text-foreground',
                     )}
                   >
                     <item.icon
@@ -96,6 +96,49 @@ function SidebarBrand({ admin }: { admin: boolean }) {
         {admin ? 'Administration · by' : 'by'} <CybernovrLogo height={9} />
       </span>
     </div>
+  )
+}
+
+/** Phone-only bottom tab bar. The last slot opens the full navigation drawer. */
+function BottomTabs({ tabs, groups, onMore }: { tabs: NavItem[]; groups: NavGroup[]; onMore: () => void }) {
+  const pathname = usePathname()
+  const active = findActive(groups, pathname)
+  return (
+    <nav
+      aria-label="Quick navigation"
+      className="bg-card fixed inset-x-0 bottom-0 z-30 border-t pb-[env(safe-area-inset-bottom)] lg:hidden"
+    >
+      <ul className="mx-auto grid max-w-lg grid-cols-5">
+        {tabs.map((tab) => {
+          const current = active?.item.href === tab.href
+          return (
+            <li key={tab.href}>
+              <Link
+                href={tab.href}
+                aria-current={current ? 'page' : undefined}
+                className={cn(
+                  'flex h-14 flex-col items-center justify-center gap-1 text-[11px] font-medium',
+                  current ? 'text-primary' : 'text-muted-foreground hover:text-foreground',
+                )}
+              >
+                <tab.icon className="size-5" aria-hidden />
+                <span className="max-w-full truncate px-1">{tab.label}</span>
+              </Link>
+            </li>
+          )
+        })}
+        <li>
+          <button
+            type="button"
+            onClick={onMore}
+            className="text-muted-foreground hover:text-foreground flex h-14 w-full flex-col items-center justify-center gap-1 text-[11px] font-medium"
+          >
+            <MoreHorizontal className="size-5" aria-hidden />
+            More
+          </button>
+        </li>
+      </ul>
+    </nav>
   )
 }
 
@@ -140,10 +183,13 @@ export function AppShell({
   groups,
   children,
   requireAdmin = false,
+  mobileTabs,
 }: {
   groups: NavGroup[]
   children: React.ReactNode
   requireAdmin?: boolean
+  /** Up to four destinations for the phone bottom bar. Without them, phones get a menu button. */
+  mobileTabs?: NavItem[]
 }) {
   const { user, isLoading, isAuthenticated } = useSession()
   const router = useRouter()
@@ -185,11 +231,17 @@ export function AppShell({
         <header className="bg-card sticky top-0 z-20 border-b">
           <div className="flex h-16 items-center gap-2 px-4 sm:px-8">
             <Dialog open={open} onOpenChange={setOpen}>
-              <DialogTrigger asChild>
-                <Button variant="ghost" size="icon" className="-ml-2 lg:hidden" aria-label="Open navigation">
-                  <Menu />
-                </Button>
-              </DialogTrigger>
+              {mobileTabs ? (
+                <div className="lg:hidden">
+                  <SidebarBrand admin={requireAdmin} />
+                </div>
+              ) : (
+                <DialogTrigger asChild>
+                  <Button variant="ghost" size="icon" className="-ml-2 lg:hidden" aria-label="Open navigation">
+                    <Menu />
+                  </Button>
+                </DialogTrigger>
+              )}
               <DialogContent side="left" className="gap-6 p-0">
                 <DialogTitle className="sr-only">Navigation</DialogTitle>
                 <div className="flex h-16 shrink-0 items-center border-b px-5">
@@ -200,7 +252,7 @@ export function AppShell({
                 </div>
               </DialogContent>
             </Dialog>
-            <nav aria-label="Breadcrumb" className="min-w-0 flex-1">
+            <nav aria-label="Breadcrumb" className={cn('min-w-0 flex-1', mobileTabs && 'max-lg:invisible')}>
               <ol className="flex min-w-0 items-center gap-1.5 text-[13px]">
                 {active && (
                   <>
@@ -230,9 +282,13 @@ export function AppShell({
           </div>
         </header>
         {user && !user.emailVerified && <VerifyBanner />}
-        <main id="main" className="min-w-0 flex-1 px-4 py-6 sm:px-8 sm:py-8">
+        <main
+          id="main"
+          className={cn('min-w-0 flex-1 px-4 py-6 sm:px-8 sm:py-8', mobileTabs && 'pb-24 lg:pb-8')}
+        >
           <div className={cn('mx-auto', wide ? 'max-w-[1440px]' : 'max-w-[1200px]')}>{children}</div>
         </main>
+        {mobileTabs && <BottomTabs tabs={mobileTabs.slice(0, 4)} groups={groups} onMore={() => setOpen(true)} />}
       </div>
     </div>
   )

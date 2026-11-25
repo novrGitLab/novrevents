@@ -4,9 +4,9 @@ import { useQuery } from '@tanstack/react-query'
 import { Info } from 'lucide-react'
 import * as React from 'react'
 import { BarsChart, TrendChart } from '@/components/charts'
-import { StatCard } from '@/components/common'
 import { useManagedEvent } from '@/components/events/event-context'
 import { ErrorState, LoadingState } from '@/components/states'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input, Label } from '@/components/ui/input'
 import { Disclosure } from '@/components/ui/primitives'
@@ -29,6 +29,52 @@ const DEFINITION_LABELS: Record<string, string> = {
   emailDelivery: 'Email delivery',
 }
 
+/** A row of related metrics drawn as one banded panel with hairline rules. */
+function MetricBand({
+  title,
+  metrics,
+}: {
+  title: string
+  metrics: { label: string; value: string; hint?: string }[]
+}) {
+  return (
+    <section aria-label={title}>
+      <h2 className="eyebrow mb-2">{title}</h2>
+      <dl className="bg-border grid grid-cols-2 gap-px overflow-hidden rounded-lg border shadow-xs lg:grid-cols-4">
+        {metrics.map((metric) => (
+          <div key={metric.label} className="bg-card px-5 py-4">
+            <dt className="text-muted-foreground text-[13px]">{metric.label}</dt>
+            <dd className="text-headline-md mt-1 tabular-nums">{metric.value}</dd>
+            {metric.hint && <dd className="text-subtle-foreground mt-0.5 text-xs">{metric.hint}</dd>}
+          </div>
+        ))}
+      </dl>
+    </section>
+  )
+}
+
+function Panel({
+  title,
+  description,
+  children,
+  className,
+}: {
+  title: string
+  description?: React.ReactNode
+  children: React.ReactNode
+  className?: string
+}) {
+  return (
+    <Card className={className}>
+      <CardHeader>
+        <CardTitle className="text-sm">{title}</CardTitle>
+        {description && <CardDescription>{description}</CardDescription>}
+      </CardHeader>
+      <CardContent>{children}</CardContent>
+    </Card>
+  )
+}
+
 export default function AnalyticsPage() {
   const { event } = useManagedEvent()
   const [from, setFrom] = React.useState('')
@@ -41,26 +87,49 @@ export default function AnalyticsPage() {
   })
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-end gap-3">
-        <div className="space-y-1.5">
-          <Label htmlFor="a-from">From (UTC)</Label>
+    <div className="space-y-8">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <p className="text-muted-foreground max-w-xl text-[13px]">
+          Counts come from this event’s pages, forms, tickets and check-ins. Visits by the event team are not
+          counted.
+        </p>
+        <fieldset className="flex flex-wrap items-end gap-2">
+          <legend className="eyebrow mb-1.5">Date range (UTC)</legend>
+          <Label htmlFor="a-from" className="sr-only">
+            From
+          </Label>
           <Input
             id="a-from"
             type="date"
+            className="w-40"
             value={from}
             onChange={(changeEvent) => setFrom(changeEvent.target.value)}
           />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="a-to">To (UTC)</Label>
+          <span className="text-muted-foreground pb-2.5 text-sm" aria-hidden>
+            to
+          </span>
+          <Label htmlFor="a-to" className="sr-only">
+            To
+          </Label>
           <Input
             id="a-to"
             type="date"
+            className="w-40"
             value={to}
             onChange={(changeEvent) => setTo(changeEvent.target.value)}
           />
-        </div>
+          {(from || to) && (
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setFrom('')
+                setTo('')
+              }}
+            >
+              Clear
+            </Button>
+          )}
+        </fieldset>
       </div>
       {query.isPending ? (
         <LoadingState rows={5} />
@@ -75,130 +144,132 @@ export default function AnalyticsPage() {
             { stage: 'Registered', count: data.funnel.registrationCompletions },
             { stage: 'Checked in', count: data.attendance.checkedIn },
           ]
+          const top = Math.max(1, ...funnel.map((step) => step.count))
           return (
             <>
-              <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-                <StatCard
-                  label="Page views"
-                  value={formatNumber(data.traffic.pageViews)}
-                  hint={`${formatNumber(data.traffic.uniqueVisitors)} unique visitors`}
-                />
-                <StatCard
-                  label="Registrations"
-                  value={formatNumber(data.funnel.registrationCompletions)}
-                  hint={`${formatNumber(data.funnel.registrationStarts)} started`}
-                />
-                <StatCard
-                  label="Conversion"
-                  value={formatPercent(data.funnel.conversionRate)}
-                  hint="Registrations ÷ unique visitors"
-                />
-                <StatCard
-                  label="Form completion"
-                  value={formatPercent(data.funnel.formCompletionRate)}
-                  hint="Registrations ÷ starts"
-                />
-                <StatCard label="Tickets issued" value={formatNumber(data.tickets.issued)} />
-                <StatCard
-                  label="Attendance rate"
-                  value={formatPercent(data.attendance.attendanceRate)}
-                  hint={`${data.attendance.checkedIn} of ${data.attendance.expected} checked in`}
-                />
-                <StatCard
-                  label="No-show rate"
-                  value={formatPercent(data.attendance.noShowRate)}
-                  hint={
-                    data.attendance.noShows === null
-                      ? 'After the event ends'
-                      : `${data.attendance.noShows} no-shows`
-                  }
-                />
-                <StatCard
-                  label="Responses"
-                  value={formatNumber(data.responses.received)}
-                  hint={`${data.responses.qualifying} qualifying · ${data.responses.excluded} excluded`}
-                />
-              </div>
+              <MetricBand
+                title="Audience"
+                metrics={[
+                  {
+                    label: 'Page views',
+                    value: formatNumber(data.traffic.pageViews),
+                    hint: `${formatNumber(data.traffic.uniqueVisitors)} unique visitors`,
+                  },
+                  {
+                    label: 'Registrations',
+                    value: formatNumber(data.funnel.registrationCompletions),
+                    hint: `${formatNumber(data.funnel.registrationStarts)} started`,
+                  },
+                  {
+                    label: 'Conversion',
+                    value: formatPercent(data.funnel.conversionRate),
+                    hint: 'Registrations ÷ unique visitors',
+                  },
+                  {
+                    label: 'Form completion',
+                    value: formatPercent(data.funnel.formCompletionRate),
+                    hint: 'Registrations ÷ starts',
+                  },
+                ]}
+              />
+              <MetricBand
+                title="Attendance"
+                metrics={[
+                  { label: 'Tickets issued', value: formatNumber(data.tickets.issued) },
+                  {
+                    label: 'Attendance rate',
+                    value: formatPercent(data.attendance.attendanceRate),
+                    hint: `${data.attendance.checkedIn} of ${data.attendance.expected} checked in`,
+                  },
+                  {
+                    label: 'No-show rate',
+                    value: formatPercent(data.attendance.noShowRate),
+                    hint:
+                      data.attendance.noShows === null
+                        ? 'Shown after the event ends'
+                        : `${data.attendance.noShows} no-shows`,
+                  },
+                  {
+                    label: 'Form responses',
+                    value: formatNumber(data.responses.received),
+                    hint: `${data.responses.qualifying} qualifying · ${data.responses.excluded} excluded`,
+                  },
+                ]}
+              />
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Daily traffic and registrations (UTC)</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <TrendChart
-                    data={data.daily}
-                    xKey="date"
-                    series={[
-                      { key: 'views', label: 'Page views', color: 'var(--chart-3)' },
-                      { key: 'registrations', label: 'Registrations', color: 'var(--chart-1)' },
-                    ]}
-                  />
-                </CardContent>
-              </Card>
+              <Panel title="Daily traffic and registrations (UTC)">
+                <TrendChart
+                  data={data.daily}
+                  xKey="date"
+                  series={[
+                    { key: 'views', label: 'Page views', color: 'var(--chart-3)' },
+                    { key: 'registrations', label: 'Registrations', color: 'var(--chart-1)' },
+                  ]}
+                />
+              </Panel>
 
-              <div className="grid gap-6 lg:grid-cols-2">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Funnel</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <BarsChart
-                      horizontal
-                      data={funnel}
-                      xKey="stage"
-                      series={[{ key: 'count', label: 'People', color: 'var(--chart-1)' }]}
-                    />
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Where visitors came from</CardTitle>
-                  </CardHeader>
-                  <CardContent>
+              <div className="grid items-start gap-6 lg:grid-cols-2">
+                <Panel title="Funnel" description="Share of unique visitors reaching each step.">
+                  <ol className="space-y-4">
+                    {funnel.map((step) => (
+                      <li key={step.stage}>
+                        <div className="flex items-baseline justify-between gap-3 text-[13px]">
+                          <span className="font-medium">{step.stage}</span>
+                          <span className="text-muted-foreground tabular-nums">
+                            <span className="text-foreground font-semibold">{formatNumber(step.count)}</span>
+                            {data.traffic.uniqueVisitors > 0 &&
+                              ` · ${Math.round((step.count / data.traffic.uniqueVisitors) * 100)}%`}
+                          </span>
+                        </div>
+                        <div className="bg-muted mt-1.5 h-2 overflow-hidden rounded-sm" aria-hidden>
+                          <div
+                            className="bg-primary h-full rounded-sm"
+                            style={{ width: `${step.count === 0 ? 0 : Math.max(1, (step.count / top) * 100)}%` }}
+                          />
+                        </div>
+                      </li>
+                    ))}
+                  </ol>
+                </Panel>
+                <Panel title="Where visitors came from">
+                  {data.traffic.referrers.length === 0 ? (
+                    <p className="text-muted-foreground py-6 text-center text-[13px]">
+                      No referring sites recorded yet.
+                    </p>
+                  ) : (
                     <BarsChart
                       horizontal
                       data={data.traffic.referrers}
                       xKey="host"
                       series={[{ key: 'views', label: 'Views', color: 'var(--chart-2)' }]}
                     />
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Registrations by status</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <BarsChart
-                      data={[
-                        { status: 'Confirmed', count: data.registrations.confirmed },
-                        { status: 'Pending', count: data.registrations.pending },
-                        { status: 'Declined', count: data.registrations.declined },
-                        { status: 'Cancelled', count: data.registrations.cancelled },
-                      ]}
-                      xKey="status"
-                      series={[{ key: 'count', label: 'Registrations', color: 'var(--chart-1)' }]}
-                    />
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Email performance</CardTitle>
-                    <CardDescription>
-                      {emailDeliveryEnabled ? (
-                        <>
-                          {formatNumber(data.communications.sent)} sent · delivery{' '}
-                          {formatPercent(data.communications.deliveryRate)} · opens{' '}
-                          {formatPercent(data.communications.openRate)}
-                        </>
-                      ) : (
-                        <>
-                          Email delivery is not switched on yet. {formatNumber(data.communications.sent)}{' '}
-                          messages were recorded but not delivered to inboxes.
-                        </>
-                      )}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
+                  )}
+                </Panel>
+                <Panel title="Registrations by status">
+                  <BarsChart
+                    data={[
+                      { status: 'Confirmed', count: data.registrations.confirmed },
+                      { status: 'Pending', count: data.registrations.pending },
+                      { status: 'Declined', count: data.registrations.declined },
+                      { status: 'Cancelled', count: data.registrations.cancelled },
+                    ]}
+                    xKey="status"
+                    series={[{ key: 'count', label: 'Registrations', color: 'var(--chart-1)' }]}
+                  />
+                </Panel>
+                <Panel
+                  title="Email performance"
+                  description={
+                    emailDeliveryEnabled ? (
+                      <>
+                        {formatNumber(data.communications.sent)} sent · delivery{' '}
+                        {formatPercent(data.communications.deliveryRate)} · opens{' '}
+                        {formatPercent(data.communications.openRate)}
+                      </>
+                    ) : undefined
+                  }
+                >
+                  {emailDeliveryEnabled ? (
                     <BarsChart
                       data={[
                         { stage: 'Sent', count: data.communications.sent },
@@ -211,8 +282,13 @@ export default function AnalyticsPage() {
                       xKey="stage"
                       series={[{ key: 'count', label: 'Messages', color: 'var(--chart-3)' }]}
                     />
-                  </CardContent>
-                </Card>
+                  ) : (
+                    <p className="text-muted-foreground rounded-sm border border-dashed px-4 py-6 text-center text-[13px]">
+                      Email delivery is not switched on yet. {formatNumber(data.communications.sent)} messages were
+                      recorded but not delivered to inboxes.
+                    </p>
+                  )}
+                </Panel>
               </div>
 
               <Disclosure
@@ -222,11 +298,11 @@ export default function AnalyticsPage() {
                   </span>
                 }
               >
-                <dl className="space-y-2 text-sm">
+                <dl className="grid gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
                   {Object.entries(data.definitions).map(([key, text]) => (
                     <div key={key}>
                       <dt className="font-medium">{DEFINITION_LABELS[key] ?? key}</dt>
-                      <dd className="text-muted-foreground">{text}</dd>
+                      <dd className="text-muted-foreground text-[13px]">{text}</dd>
                     </div>
                   ))}
                 </dl>

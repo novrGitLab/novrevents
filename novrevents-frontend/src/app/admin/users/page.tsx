@@ -1,6 +1,7 @@
 'use client'
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { Search } from 'lucide-react'
 import Link from 'next/link'
 import * as React from 'react'
 import { toast } from 'sonner'
@@ -14,6 +15,7 @@ import { useSession } from '@/hooks/use-session'
 import { api, unwrap } from '@/lib/api/client'
 import { errorMessage } from '@/lib/api/errors'
 import { keys } from '@/lib/api/keys'
+import { cn } from '@/lib/utils'
 import { formatDate, relativeTime } from '@/lib/format'
 import { emailDeliveryEnabled } from '@/lib/site'
 
@@ -35,7 +37,14 @@ export default function AdminUsersPage() {
 
   return (
     <>
-      <PageHeader title="Users" />
+      <PageHeader
+        title="Users"
+        description={
+          query.data
+            ? `${query.data.total} account${query.data.total === 1 ? '' : 's'}. Suspended people cannot sign in and their public events are hidden.`
+            : 'Every account on NOVR Events.'
+        }
+      />
       <div className="mb-4 flex flex-col gap-2 sm:flex-row">
         <form
           className="flex flex-1 gap-2"
@@ -45,12 +54,20 @@ export default function AdminUsersPage() {
             setPage(1)
           }}
         >
-          <Input
-            aria-label="Search users"
-            placeholder="Email, username or name"
-            value={q}
-            onChange={(event) => setQ(event.target.value)}
-          />
+          <div className="relative min-w-0 flex-1">
+            <Search
+              className="text-subtle-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+              aria-hidden
+            />
+            <Input
+              type="search"
+              aria-label="Search users"
+              placeholder="Email, username or name"
+              className="pl-9"
+              value={q}
+              onChange={(event) => setQ(event.target.value)}
+            />
+          </div>
           <Button type="submit" variant="outline">
             Search
           </Button>
@@ -74,37 +91,61 @@ export default function AdminUsersPage() {
       ) : query.isError ? (
         <ErrorState error={query.error} retry={() => void query.refetch()} />
       ) : query.data.items.length === 0 ? (
-        <EmptyState title="No users found" />
+        <EmptyState compact title="No users found" description="Try another search or status." />
       ) : (
         <>
-          <ul className="bg-card divide-y rounded-lg border">
+          <ul className="bg-card divide-y rounded-lg border shadow-xs">
             {query.data.items.map((user) => (
-              <li key={user.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
-                <Avatar src={user.avatarUrl} name={user.displayName} />
-                <div className="min-w-0 flex-1">
-                  <p className="font-medium">
-                    {user.displayName}{' '}
-                    <Link
-                      href={`/u/${user.username}`}
-                      className="text-muted-foreground text-sm font-normal hover:underline"
-                    >
-                      @{user.username}
-                    </Link>
-                  </p>
-                  <p className="text-muted-foreground text-sm">{user.email}</p>
-                  <p className="text-muted-foreground text-xs">
-                    Joined {formatDate(user.createdAt)} ·{' '}
-                    {user.lastLoginAt ? `last seen ${relativeTime(user.lastLoginAt)}` : 'never signed in'} ·{' '}
-                    {user.eventCount} events · {user.registrationCount} registrations
-                  </p>
-                  {user.suspendedReason && (
-                    <p className="text-destructive text-xs">Suspended: {user.suspendedReason}</p>
-                  )}
+              <li
+                key={user.id}
+                className={cn(
+                  'flex flex-col gap-3 px-4 py-4 sm:px-5 lg:flex-row lg:items-center',
+                  user.status === 'SUSPENDED' && 'bg-destructive/[0.03]',
+                )}
+              >
+                <div className="flex min-w-0 flex-1 items-start gap-3">
+                  <Avatar src={user.avatarUrl} name={user.displayName} className="size-9" />
+                  <div className="min-w-0 flex-1">
+                    <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-semibold">
+                      {user.displayName}
+                      <Link
+                        href={`/u/${user.username}`}
+                        className="text-muted-foreground hover:text-brand-text text-[13px] font-normal"
+                      >
+                        @{user.username}
+                      </Link>
+                      {user.role === 'ADMIN' && <Badge variant="brand">Admin</Badge>}
+                      {!user.emailVerified && <Badge variant="warning">Unverified</Badge>}
+                      {user.status === 'SUSPENDED' && <Badge variant="destructive">Suspended</Badge>}
+                    </p>
+                    <p className="text-muted-foreground truncate text-[13px]">{user.email}</p>
+                    {user.suspendedReason && (
+                      <p className="text-destructive mt-0.5 text-xs">Reason: {user.suspendedReason}</p>
+                    )}
+                  </div>
                 </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  {user.role === 'ADMIN' && <Badge variant="brand">Admin</Badge>}
-                  {!user.emailVerified && <Badge variant="warning">Unverified</Badge>}
-                  {user.status === 'SUSPENDED' && <Badge variant="destructive">Suspended</Badge>}
+                <dl className="text-muted-foreground grid grid-cols-2 gap-3 pl-12 text-xs sm:grid-cols-4 sm:gap-4 lg:w-[360px] lg:shrink-0 lg:pl-0">
+                  <div>
+                    <dt className="eyebrow">Joined</dt>
+                    <dd className="text-foreground mt-0.5 whitespace-nowrap">{formatDate(user.createdAt)}</dd>
+                  </div>
+                  <div>
+                    <dt className="eyebrow">Last seen</dt>
+                    <dd className="text-foreground mt-0.5 whitespace-nowrap">
+                      {user.lastLoginAt ? relativeTime(user.lastLoginAt) : 'Never'}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="eyebrow">Events</dt>
+                    <dd className="text-foreground mt-0.5 tabular-nums">{user.eventCount}</dd>
+                  </div>
+                  <div>
+                    <dt className="eyebrow">Regs.</dt>
+                    <dd className="text-foreground mt-0.5 tabular-nums">{user.registrationCount}</dd>
+                  </div>
+                </dl>
+                <div className="flex flex-wrap items-center gap-2 pl-12 lg:w-[220px] lg:shrink-0 lg:justify-end lg:pl-0">
+                  {user.id === me?.id && <span className="text-muted-foreground text-xs">This is you</span>}
                   {user.id !== me?.id && (
                     <>
                       {user.status === 'ACTIVE' ? (

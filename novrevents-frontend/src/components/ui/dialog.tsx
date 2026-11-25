@@ -17,16 +17,16 @@ export function DialogContent({
 }: React.ComponentProps<typeof DialogPrimitive.Content> & { side?: 'left' | 'right' }) {
   return (
     <DialogPrimitive.Portal>
-      <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/35" />
+      <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-[#101828]/40" />
       <DialogPrimitive.Content
         className={cn(
-          'bg-card fixed z-50 flex flex-col gap-4 border shadow-[0_12px_32px_-12px_rgb(0_0_0/0.18)] focus:outline-none',
+          'bg-card fixed z-50 flex flex-col gap-4 border shadow-md focus:outline-none',
           side
             ? cn(
-                'inset-y-0 h-full w-72 max-w-[85vw] overflow-y-auto p-4',
+                'inset-y-0 h-full w-80 max-w-[88vw] overflow-y-auto p-5',
                 side === 'left' ? 'left-0' : 'right-0',
               )
-            : 'top-1/2 left-1/2 max-h-[90vh] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-lg p-6',
+            : 'inset-x-0 bottom-0 max-h-[88dvh] w-full overflow-y-auto rounded-t-xl p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:inset-x-auto sm:top-1/2 sm:bottom-auto sm:left-1/2 sm:max-h-[90vh] sm:w-[calc(100%-2rem)] sm:max-w-lg sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-lg sm:p-6',
           className,
         )}
         {...props}

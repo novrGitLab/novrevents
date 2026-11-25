@@ -1,6 +1,6 @@
 'use client'
 
-import { ExternalLink } from 'lucide-react'
+import { ArrowLeft, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
 import { useParams, usePathname, useRouter } from 'next/navigation'
 import { EventHeaderActions } from '@/components/events/event-actions'
@@ -84,16 +84,22 @@ export default function EventWorkspaceLayout({ children }: { children: React.Rea
 
   return (
     <EventProvider event={event}>
+      <Link
+        href="/dashboard/events"
+        className="text-muted-foreground hover:text-foreground mb-3 inline-flex items-center gap-1.5 text-[13px] font-medium"
+      >
+        <ArrowLeft className="size-4" aria-hidden /> My events
+      </Link>
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-center gap-4">
           <EventCover
             event={event}
             sizes="112px"
-            className="hidden aspect-[16/10] w-[104px] shrink-0 rounded-md border sm:block"
+            className="hidden aspect-[16/10] w-[104px] shrink-0 rounded-sm border sm:block"
           />
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="truncate text-xl font-semibold tracking-[-0.015em]">{event.title}</h1>
+              <h1 className="text-headline-md truncate">{event.title}</h1>
               <Badge variant={EVENT_STATUS_VARIANT[event.effectiveStatus]}>
                 {EVENT_STATUS_LABELS[event.effectiveStatus]}
               </Badge>
@@ -134,7 +140,7 @@ export default function EventWorkspaceLayout({ children }: { children: React.Rea
         <ul className="hidden items-end gap-x-5 overflow-x-auto md:flex">
           {groups.map((group) => (
             <li key={group.label} className="shrink-0">
-              <p className="text-subtle-foreground px-2 text-[11px] font-medium">{group.label}</p>
+              <p className="eyebrow text-subtle-foreground px-2">{group.label}</p>
               <ul className="flex">
                 {group.items.map((item) => {
                   const active = isActive(item.href)
@@ -145,7 +151,7 @@ export default function EventWorkspaceLayout({ children }: { children: React.Rea
                         aria-current={active ? 'page' : undefined}
                         className={cn(
                           'text-muted-foreground hover:text-foreground -mb-px inline-flex h-9 items-center border-b-2 border-transparent px-2 text-[13px] font-medium whitespace-nowrap',
-                          active && 'border-brand text-foreground',
+                          active && 'border-primary text-primary',
                         )}
                       >
                         {item.label}
@@ -165,7 +171,7 @@ export default function EventWorkspaceLayout({ children }: { children: React.Rea
             id="event-section"
             value={current?.href ?? ''}
             onChange={(changeEvent) => router.push(`${base}${changeEvent.target.value}`)}
-            className="border-input bg-card h-9 w-full rounded-md border px-3 text-sm font-medium"
+            className="border-input bg-card focus:border-ring h-10 w-full rounded-sm border px-3 text-base font-medium focus:outline-none sm:text-sm"
           >
             {groups.map((group) => (
               <optgroup key={group.label} label={group.label}>

@@ -1,7 +1,7 @@
 'use client'
 
 import { Building2, CalendarDays, Flag, LayoutDashboard, ScrollText, Settings, Users } from 'lucide-react'
-import { AppShell, type NavGroup } from '@/components/layout/app-shell'
+import { AppShell, type NavGroup, type NavItem } from '@/components/layout/app-shell'
 
 const groups: NavGroup[] = [
   {
@@ -22,10 +22,17 @@ const groups: NavGroup[] = [
   },
 ]
 
+const mobileTabs: NavItem[] = [
+  { href: '/admin', label: 'Overview', icon: LayoutDashboard, exact: true },
+  { href: '/admin/users', label: 'Users', icon: Users },
+  { href: '/admin/events', label: 'Events', icon: CalendarDays },
+  { href: '/admin/reports', label: 'Reports', icon: Flag },
+]
+
 /** Visible only to platform administrators; the API enforces the same rule on every /admin endpoint. */
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
-    <AppShell groups={groups} requireAdmin>
+    <AppShell groups={groups} requireAdmin mobileTabs={mobileTabs}>
       {children}
     </AppShell>
   )

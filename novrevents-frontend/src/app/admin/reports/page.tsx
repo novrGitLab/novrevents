@@ -70,36 +70,51 @@ export default function AdminReportsPage() {
           <TabsTrigger value="DISMISSED">Dismissed</TabsTrigger>
         </TabsList>
       </Tabs>
-      <div className="mt-4">
+      <div className="mt-6">
         {query.isPending ? (
           <LoadingState rows={4} />
         ) : query.isError ? (
           <ErrorState error={query.error} retry={() => void query.refetch()} />
         ) : query.data.items.length === 0 ? (
-          <EmptyState icon={Flag} title={status === 'OPEN' ? 'No open reports' : 'Nothing here'} />
+          <EmptyState
+            icon={Flag}
+            compact={status !== 'OPEN'}
+            title={status === 'OPEN' ? 'No open reports' : `No ${status.toLowerCase()} reports`}
+            description={status === 'OPEN' ? 'Reports from visitors about events appear here.' : undefined}
+          />
         ) : (
           <>
-            <ul className="space-y-3">
+            <ul className="bg-card divide-y rounded-lg border shadow-xs">
               {query.data.items.map((report) => (
-                <li key={report.id} className="bg-card rounded-lg border p-4">
+                <li key={report.id} className="px-4 py-4 sm:px-5">
                   <div className="flex flex-wrap items-center gap-2">
                     <Badge variant="destructive">{enumLabel(report.reason)}</Badge>
-                    <Link href={`/events/${report.event.slug}`} className="font-medium hover:underline">
+                    <Link href={`/events/${report.event.slug}`} className="hover:text-brand-text text-sm font-semibold">
                       {report.event.title}
                     </Link>
-                    <Badge variant="outline">Event {report.event.moderationStatus.toLowerCase()}</Badge>
-                    <span className="text-muted-foreground ml-auto text-xs">
+                    {report.event.moderationStatus !== 'CLEAR' && (
+                      <Badge variant="secondary">Event {report.event.moderationStatus.toLowerCase()}</Badge>
+                    )}
+                    <span className="text-muted-foreground ml-auto text-xs whitespace-nowrap">
                       {formatDateTime(report.createdAt)}
                     </span>
                   </div>
-                  {report.details && <p className="mt-2 text-sm whitespace-pre-line">{report.details}</p>}
-                  <p className="text-muted-foreground mt-1 text-xs">
+                  {report.details && (
+                    <blockquote className="border-primary/40 bg-muted/50 mt-3 border-l-2 px-3 py-2 text-sm whitespace-pre-line">
+                      {report.details}
+                    </blockquote>
+                  )}
+                  <p className="text-muted-foreground mt-2 text-xs">
                     {report.isAnonymous ? 'Anonymous visitor' : 'Signed-in user'}
                     {report.reporterEmail && ` · contact: ${report.reporterEmail}`}
                   </p>
-                  {report.resolutionNote && <p className="mt-1 text-xs">Note: {report.resolutionNote}</p>}
+                  {report.resolutionNote && (
+                    <p className="mt-1 text-xs">
+                      <span className="font-medium">Moderator note:</span> {report.resolutionNote}
+                    </p>
+                  )}
                   {report.status === 'OPEN' && (
-                    <div className="mt-3 flex gap-2">
+                    <div className="mt-3 flex flex-wrap gap-2">
                       <Button size="sm" variant="outline" onClick={() => resolve(report.id, 'RESOLVED')}>
                         Resolve
                       </Button>

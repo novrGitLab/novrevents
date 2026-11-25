@@ -1,11 +1,12 @@
 'use client'
 
-import { ArrowRight, Check, Circle } from 'lucide-react'
+import { ArrowRight, Check, ClipboardCheck, ClipboardList, QrCode, Users } from 'lucide-react'
 import Link from 'next/link'
 import { CopyField, StatCard } from '@/components/common'
 import { canManage, useManagedEvent } from '@/components/events/event-context'
 import { CLOSED_REASON_TEXT } from '@/components/events/labels'
 import { Notice } from '@/components/states'
+import { Button } from '@/components/ui/button'
 import { formatNumber } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
@@ -19,9 +20,9 @@ function Panel({
   className?: string
 }) {
   return (
-    <section className={cn('bg-card rounded-lg border', className)}>
-      <h2 className="border-b px-4 py-2.5 text-[13px] font-semibold">{title}</h2>
-      <div className="p-4">{children}</div>
+    <section className={cn('bg-card rounded-lg border shadow-xs', className)}>
+      <h2 className="text-headline-sm border-b px-5 py-4">{title}</h2>
+      <div className="p-5">{children}</div>
     </section>
   )
 }
@@ -52,31 +53,56 @@ export default function EventOverviewPage() {
       )}
 
       {event.status === 'DRAFT' && manage && (
-        <Panel title="Before you publish">
-          <ol className="grid gap-2 sm:grid-cols-4">
-            {steps.map((step, index) => (
-              <li key={step.label} className="flex items-center gap-2 text-sm">
-                {step.done ? (
-                  <Check className="text-success size-4 shrink-0" aria-label="Done" />
-                ) : (
-                  <Circle className="text-subtle-foreground size-4 shrink-0" aria-label="To do" />
-                )}
+        <section
+          aria-labelledby="readiness-heading"
+          className="bg-brand-soft/60 border-brand-soft flex flex-col gap-4 rounded-lg border p-5 lg:flex-row lg:items-center"
+        >
+          <div className="flex min-w-0 flex-1 items-start gap-3">
+            <span className="bg-card text-primary flex size-10 shrink-0 items-center justify-center rounded-sm border">
+              <ClipboardCheck className="size-5" aria-hidden />
+            </span>
+            <div className="min-w-0">
+              <h2 id="readiness-heading" className="text-headline-sm flex flex-wrap items-center gap-2">
+                Ready to publish?
+                <span className="bg-card text-brand-text rounded-sm border px-2 py-0.5 text-xs font-medium">
+                  {steps.filter((step) => step.done).length} of {steps.length} done
+                </span>
+              </h2>
+              <p className="text-muted-foreground mt-0.5 text-[13px]">
+                Finish these steps, then publish with the button above.
+              </p>
+            </div>
+          </div>
+          <ol className="flex flex-wrap gap-2">
+            {steps.map((step) => (
+              <li key={step.label}>
                 {step.href && !step.done ? (
-                  <Link href={step.href} className="font-medium hover:underline">
-                    {index + 1}. {step.label}
+                  <Link
+                    href={step.href}
+                    className="bg-card hover:border-primary hover:text-brand-text inline-flex h-8 items-center gap-1.5 rounded-sm border px-2.5 text-[13px] font-medium"
+                  >
+                    <span aria-hidden className="border-subtle-foreground size-3.5 rounded-full border" />
+                    {step.label}
                   </Link>
                 ) : (
-                  <span className={cn(step.done && 'text-muted-foreground')}>
-                    {index + 1}. {step.label}
-                    {!step.href && !step.done && (
-                      <span className="text-muted-foreground"> — use the button above</span>
+                  <span
+                    className={cn(
+                      'bg-card inline-flex h-8 items-center gap-1.5 rounded-sm border px-2.5 text-[13px]',
+                      step.done ? 'text-muted-foreground' : 'font-medium',
                     )}
+                  >
+                    {step.done ? (
+                      <Check className="text-success size-3.5" aria-label="Done" />
+                    ) : (
+                      <span aria-hidden className="border-subtle-foreground size-3.5 rounded-full border" />
+                    )}
+                    {step.label}
                   </span>
                 )}
               </li>
             ))}
           </ol>
-        </Panel>
+        </section>
       )}
 
       <section aria-label="Event summary" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -104,6 +130,32 @@ export default function EventOverviewPage() {
           value={formatNumber(event.counts.forms)}
           hint="Registration and other forms"
         />
+      </section>
+
+      <section aria-label="Quick actions" className="flex flex-wrap gap-2">
+        <Button asChild>
+          <Link href={`${base}/registrations`}>
+            <ClipboardList />
+            {event.counts.pending > 0
+              ? `Review ${formatNumber(event.counts.pending)} registration${event.counts.pending === 1 ? '' : 's'}`
+              : 'Registrations'}
+          </Link>
+        </Button>
+        {manage && (
+          <Button asChild variant="outline">
+            <Link href={`${base}/forms`}>Edit registration form</Link>
+          </Button>
+        )}
+        <Button asChild variant="outline">
+          <Link href={`${base}/scanner`}>
+            <QrCode /> Open check-in scanner
+          </Link>
+        </Button>
+        <Button asChild variant="outline">
+          <Link href={`${base}/team`}>
+            <Users /> Team
+          </Link>
+        </Button>
       </section>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
@@ -136,7 +188,7 @@ export default function EventOverviewPage() {
               {capacityShare !== null && (
                 <div className="bg-muted mt-3 h-1.5 rounded-full" aria-hidden>
                   <div
-                    className="bg-brand h-1.5 rounded-full"
+                    className="bg-primary h-1.5 rounded-full"
                     style={{ width: `${Math.max(1, capacityShare * 100)}%` }}
                   />
                 </div>
@@ -151,7 +203,7 @@ export default function EventOverviewPage() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="hover:text-foreground flex items-center justify-between py-2.5 font-medium"
+                    className="hover:text-primary flex items-center justify-between py-2.5 font-medium"
                   >
                     {link.label}
                     <ArrowRight className="text-subtle-foreground size-4" aria-hidden />

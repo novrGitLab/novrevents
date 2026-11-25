@@ -4,18 +4,16 @@ import { Button } from '@/components/ui/button'
 export function Closing() {
   return (
     <section aria-labelledby="closing-title">
-      <div className="mx-auto max-w-[1200px] px-4 pt-20 pb-4 sm:px-6 lg:px-8 lg:pt-24 lg:pb-8">
-        <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-[40rem]">
-            <h2 id="closing-title" className="marketing-heading text-balance">
-              List your next security event.
-            </h2>
-            <p className="text-muted-foreground mt-4 text-[16px] leading-7">
-              Create an account, set up your event as a draft and publish it when the details are ready.
-              Attendees can browse and register without an account.
-            </p>
-          </div>
-          <div className="flex shrink-0 flex-wrap gap-3">
+      <div className="mx-auto max-w-[1280px] px-4 py-16 sm:px-6 lg:px-10 lg:py-20">
+        <div className="bg-brand-soft/60 border-brand-soft rounded-xl border px-6 py-12 text-center sm:px-10 lg:py-16">
+          <h2 id="closing-title" className="marketing-heading mx-auto max-w-[24ch] text-balance">
+            List your next security event.
+          </h2>
+          <p className="text-muted-foreground mx-auto mt-4 max-w-[52ch] text-base leading-7">
+            Create an account, set up your event as a draft and publish it when the details are ready. Attendees
+            can browse and register without an account.
+          </p>
+          <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
             <Button asChild size="lg">
               <Link href="/dashboard/events/new">Host an event</Link>
             </Button>

@@ -25,7 +25,7 @@ export default function ProfilePage() {
 
   if (profile.isPending)
     return (
-      <div className="mx-auto max-w-5xl px-4 py-10">
+      <div className="mx-auto max-w-[1280px] px-4 py-10 sm:px-6 lg:px-10">
         <LoadingState rows={3} />
       </div>
     )
@@ -34,7 +34,7 @@ export default function ProfilePage() {
       <div className="mx-auto max-w-3xl px-4 py-16 text-center">
         {isApiError(profile.error) && profile.error.status === 404 ? (
           <>
-            <h1 className="text-2xl font-semibold">Profile not available</h1>
+            <h1 className="page-title">Profile not available</h1>
             <p className="text-muted-foreground mt-2">This profile does not exist or is private.</p>
           </>
         ) : (
@@ -47,10 +47,10 @@ export default function ProfilePage() {
   const links = data.socialLinks
 
   return (
-    <div className="mx-auto max-w-[1080px] px-4 py-8 sm:px-6 sm:py-10">
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_300px]">
+    <div className="mx-auto max-w-[1280px] px-4 py-8 sm:px-6 sm:py-10 lg:px-10">
+      <div className="grid gap-8 border-b pb-8 lg:grid-cols-[minmax(0,1fr)_280px]">
         <section className="flex flex-col gap-5 sm:flex-row sm:items-start">
-          <Avatar src={data.avatarUrl} name={data.displayName} className="size-20 text-lg" />
+          <Avatar src={data.avatarUrl} name={data.displayName} className="size-24 rounded-lg text-xl" />
           <div className="min-w-0 flex-1">
             <h1 className="page-title">{data.displayName}</h1>
             <p className="text-muted-foreground text-sm">@{data.username}</p>
@@ -58,18 +58,18 @@ export default function ProfilePage() {
             {data.bio && (
               <p className="text-muted-foreground mt-1.5 max-w-xl text-sm whitespace-pre-line">{data.bio}</p>
             )}
-            <div className="text-muted-foreground mt-4 flex flex-wrap gap-x-5 gap-y-1 text-[13px]">
-              <span>
-                <strong className="text-foreground tabular-nums">{data.followerCount}</strong> followers
-              </span>
-              <span>
-                <strong className="text-foreground tabular-nums">{data.followingCount}</strong> following
-              </span>
-              <span>
-                <strong className="text-foreground tabular-nums">{data.organizedEventCount}</strong> events
-                organised
-              </span>
-            </div>
+            <dl className="bg-card mt-5 grid w-full grid-cols-3 divide-x rounded-lg border sm:inline-grid sm:w-auto">
+              {[
+                { label: 'Followers', value: data.followerCount },
+                { label: 'Following', value: data.followingCount },
+                { label: 'Events organised', value: data.organizedEventCount },
+              ].map((stat) => (
+                <div key={stat.label} className="min-w-0 px-3 py-2.5 sm:px-4">
+                  <dt className="eyebrow truncate">{stat.label}</dt>
+                  <dd className="text-lg font-semibold tabular-nums">{stat.value}</dd>
+                </div>
+              ))}
+            </dl>
             <div className="mt-4 flex flex-wrap items-center gap-2">
               {data.isSelf ? (
                 <Button asChild variant="outline" size="sm">
@@ -92,23 +92,23 @@ export default function ProfilePage() {
         <IdentityCard username={data.username} displayName={data.displayName} headline={data.headline} />
       </div>
 
-      <Tabs defaultValue="events" className="mt-10">
+      <Tabs defaultValue="events" className="mt-8">
         <TabsList>
           <TabsTrigger value="events">Events organised</TabsTrigger>
           <TabsTrigger value="attending">Attending</TabsTrigger>
           <TabsTrigger value="followers">Followers</TabsTrigger>
           <TabsTrigger value="following">Following</TabsTrigger>
         </TabsList>
-        <TabsContent value="events">
+        <TabsContent value="events" className="mt-6">
           <ProfileEvents username={data.username} list="events" />
         </TabsContent>
-        <TabsContent value="attending">
+        <TabsContent value="attending" className="mt-6">
           <ProfileEvents username={data.username} list="registered-events" />
         </TabsContent>
-        <TabsContent value="followers">
+        <TabsContent value="followers" className="mt-6 max-w-3xl">
           <PeopleList username={data.username} list="followers" />
         </TabsContent>
-        <TabsContent value="following">
+        <TabsContent value="following" className="mt-6 max-w-3xl">
           <PeopleList username={data.username} list="following" />
         </TabsContent>
       </Tabs>
@@ -129,13 +129,13 @@ function IdentityCard({
   return (
     <aside
       aria-label="Profile QR code"
-      className="bg-card hidden self-start overflow-hidden rounded-lg border lg:block"
+      className="bg-card hidden self-start overflow-hidden rounded-lg border shadow-xs lg:block"
     >
       <div className="flex items-center justify-between border-b px-4 py-2.5">
         <span className="text-[13px] font-semibold">
           NOVR <span className="font-normal">Events</span>
         </span>
-        <span className="text-muted-foreground text-[11px]">Profile card</span>
+        <span className="eyebrow">Profile card</span>
       </div>
       <div className="flex flex-col items-center px-5 pt-5 pb-4 text-center">
         <img
@@ -164,7 +164,7 @@ function SocialLink({ href, icon: Icon, label }: { href: string; icon: typeof Gl
       href={href}
       target="_blank"
       rel="noopener noreferrer nofollow me"
-      className="text-muted-foreground hover:text-foreground hover:bg-secondary inline-flex h-8 items-center gap-1.5 rounded-md px-2 text-[13px] font-medium"
+      className="text-muted-foreground hover:text-brand-text hover:border-primary inline-flex h-8 items-center gap-1.5 rounded-sm border px-2.5 text-[13px] font-medium"
     >
       <Icon className="size-4" aria-hidden /> {label}
     </a>
@@ -229,6 +229,7 @@ function ProfileEvents({ username, list }: { username: string; list: 'events' | 
   if (!query.data.visible) {
     return (
       <EmptyState
+        compact
         icon={Lock}
         title="Registrations are private"
         description="This person has not chosen to share the events they attend, or shares them with followers only."
@@ -236,7 +237,7 @@ function ProfileEvents({ username, list }: { username: string; list: 'events' | 
     )
   }
   if (query.data.items.length === 0)
-    return <EmptyState title={list === 'events' ? 'No public events yet' : 'No shared registrations'} />
+    return <EmptyState compact title={list === 'events' ? 'No public events yet' : 'No shared registrations'} />
   return (
     <>
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">

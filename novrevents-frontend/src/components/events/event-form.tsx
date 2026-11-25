@@ -8,15 +8,87 @@ import { z } from 'zod'
 import { Field, fieldAria } from '@/components/common'
 import { Notice } from '@/components/states'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Input, NativeSelect, Textarea } from '@/components/ui/input'
 import { api, unwrap, type Schema } from '@/lib/api/client'
 import { applyFieldErrors, errorMessage } from '@/lib/api/errors'
 import { keys } from '@/lib/api/keys'
-import { browserTimeZone, fromLocalInput, TIMEZONES, toLocalInput } from '@/lib/format'
+import { browserTimeZone, formatDateTime, fromLocalInput, TIMEZONES, toLocalInput } from '@/lib/format'
 import { EVENT_MODE_LABELS, EVENT_TYPE_LABELS, VISIBILITY_LABELS } from './labels'
 
 type ManagedEvent = Schema<'EventManage'>
+
+/** Numbered section heading: the form is filled in this order. */
+function SectionTitle({ number, children }: { number: number; children: React.ReactNode }) {
+  return (
+    <h2 className="text-headline-sm flex items-center gap-3">
+      <span
+        aria-hidden
+        className="bg-primary text-primary-foreground flex size-6 shrink-0 items-center justify-center rounded-sm text-xs tabular-nums"
+      >
+        {String(number).padStart(2, '0')}
+      </span>
+      {children}
+    </h2>
+  )
+}
+
+/** How the listing will look in the directory, built only from what has been typed so far. */
+function CardPreview({ values }: { values: Partial<Values> }) {
+  let when = 'Date not set'
+  if (values.startsAt && values.timezone) {
+    try {
+      when = formatDateTime(fromLocalInput(values.startsAt, values.timezone), values.timezone)
+    } catch {
+      when = 'Date not set'
+    }
+  }
+  const place =
+    values.mode === 'VIRTUAL'
+      ? 'Online'
+      : [values.city, values.country].filter(Boolean).join(', ') || values.venueName || 'Location not set'
+  return (
+    <section aria-labelledby="card-preview" className="bg-card rounded-lg border p-5 shadow-xs">
+      <div className="flex items-center justify-between gap-2">
+        <h2 id="card-preview" className="text-sm font-semibold">
+          Directory card preview
+        </h2>
+        <span className="text-muted-foreground flex items-center gap-1.5 text-xs">
+          <span aria-hidden className="bg-success size-1.5 rounded-full" /> Live
+        </span>
+      </div>
+      <div aria-hidden className="mt-4 overflow-hidden rounded-lg border">
+        <div className="bg-brand-soft relative flex aspect-[16/9] flex-col justify-end p-3">
+          <span className="bg-card absolute top-3 left-3 rounded-sm border px-2 py-0.5 text-[11px] font-medium">
+            {values.eventType ? EVENT_TYPE_LABELS[values.eventType] : 'Event'}
+          </span>
+          <span className="text-brand-text line-clamp-2 text-sm leading-snug font-semibold">
+            {values.title || 'Your event title'}
+          </span>
+        </div>
+        <div className="p-4">
+          <p className="text-[15px] leading-snug font-semibold">{values.title || 'Your event title'}</p>
+          <p className="text-muted-foreground mt-1 text-[13px]">{when}</p>
+          {values.summary && (
+            <p className="text-muted-foreground mt-2 line-clamp-2 text-[13px]">{values.summary}</p>
+          )}
+          <div className="mt-3 flex items-center justify-between gap-2 border-t pt-3 text-[13px]">
+            <span className="text-muted-foreground truncate">{place}</span>
+            <span className="text-primary shrink-0 font-medium">
+              {values.isPaid ? values.priceInfo || 'Paid' : 'Free'}
+            </span>
+          </div>
+          <p className="text-muted-foreground mt-2 truncate text-[13px]">
+            By {values.organizerName || 'organiser name'}
+          </p>
+        </div>
+      </div>
+      <p className="text-muted-foreground mt-3 text-xs">
+        Upload cover artwork on the event’s Details page; until then the directory shows this plain cover.
+      </p>
+    </section>
+  )
+}
 
 const optionalUrl = z.union([z.literal(''), z.url('Enter a full URL starting with https://')])
 const schema = z
@@ -155,6 +227,7 @@ export function EventForm({
   const isPaid = form.watch('isPaid')
   const timezone = form.watch('timezone')
   const accent = form.watch('accentColor')
+  const previewValues = form.watch()
   const readOnly = event?.status === 'CANCELLED' || event?.status === 'ARCHIVED'
 
   const submit = form.handleSubmit(async (values) => {
@@ -181,10 +254,11 @@ export function EventForm({
         </Notice>
       )}
       {formError && <Notice tone="error">{formError}</Notice>}
-      <fieldset disabled={readOnly || isSubmitting} className="space-y-6">
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+      <fieldset disabled={readOnly || isSubmitting} className="min-w-0 space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>Basics</CardTitle>
+            <SectionTitle number={1}>Basics</SectionTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <Field label="Title" htmlFor="title" required error={err('title')}>
@@ -241,7 +315,7 @@ export function EventForm({
 
         <Card>
           <CardHeader>
-            <CardTitle>Date and time</CardTitle>
+            <SectionTitle number={2}>Date and time</SectionTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <Field
@@ -270,7 +344,7 @@ export function EventForm({
 
         <Card>
           <CardHeader>
-            <CardTitle>Location</CardTitle>
+            <SectionTitle number={3}>Location</SectionTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {mode !== 'VIRTUAL' && (
@@ -311,7 +385,7 @@ export function EventForm({
 
         <Card>
           <CardHeader>
-            <CardTitle>Registration</CardTitle>
+            <SectionTitle number={4}>Registration</SectionTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
@@ -360,7 +434,7 @@ export function EventForm({
 
         <Card>
           <CardHeader>
-            <CardTitle>Organiser and branding</CardTitle>
+            <SectionTitle number={5}>Organiser and branding</SectionTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
@@ -412,13 +486,13 @@ export function EventForm({
                 <input
                   type="color"
                   aria-label="Pick accent colour"
-                  value={accent || '#0b7285'}
+                  value={accent || '#662f8e'}
                   onChange={(changeEvent) =>
                     form.setValue('accentColor', changeEvent.target.value, { shouldDirty: true })
                   }
-                  className="bg-card h-10 w-12 cursor-pointer rounded-md border p-1"
+                  className="bg-card h-10 w-12 cursor-pointer rounded-sm border p-1"
                 />
-                <Input className="max-w-32 font-mono" placeholder="#0b7285" {...reg('accentColor', true)} />
+                <Input className="max-w-32 font-mono" placeholder="#662f8e" {...reg('accentColor', true)} />
                 {accent && (
                   <Button
                     type="button"
@@ -434,8 +508,17 @@ export function EventForm({
           </CardContent>
         </Card>
       </fieldset>
+      <aside className="space-y-4 lg:sticky lg:top-20">
+        <CardPreview values={previewValues} />
+        {!readOnly && (
+          <Button type="submit" size="lg" className="hidden w-full lg:inline-flex" loading={isSubmitting}>
+            {submitLabel}
+          </Button>
+        )}
+      </aside>
+      </div>
       {!readOnly && (
-        <div className="bg-background/95 sticky bottom-0 -mx-4 flex justify-end gap-2 border-t px-4 py-3 backdrop-blur sm:mx-0 sm:rounded-lg sm:border">
+        <div className="bg-card sticky bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-20 -mx-4 flex justify-end gap-2 border-t px-4 py-3 sm:mx-0 sm:rounded-lg sm:border lg:hidden">
           <Button type="submit" loading={isSubmitting}>
             {submitLabel}
           </Button>

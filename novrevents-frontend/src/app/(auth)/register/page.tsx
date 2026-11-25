@@ -77,10 +77,10 @@ function RegisterForm() {
   })
 
   return (
-    <Card className="border-0 bg-transparent">
+    <Card className="border-0 bg-transparent shadow-none">
       <CardHeader className="px-0 pt-0 pb-6">
-        <h1 className="text-[28px] leading-[34px] font-semibold tracking-[-0.02em]">Create your account</h1>
-        <CardDescription>
+        <h1 className="text-headline-lg">Create your account</h1>
+        <CardDescription className="text-body-lg mt-2">
           Register for events, host your own, and keep your tickets in one place.
         </CardDescription>
       </CardHeader>

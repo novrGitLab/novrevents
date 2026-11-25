@@ -1,6 +1,7 @@
 import { AlertTriangle, Check, CheckCircle2, Circle, Copy, XCircle } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { cn } from '@/lib/utils'
+import { WorkspaceShowcase } from './hero'
 import { QrGlyph } from './qr-glyph'
 import { SAMPLE } from './sample'
 import { Section, SectionIntro } from './section-intro'
@@ -52,6 +53,13 @@ export function Organisers() {
         </p>
       </SectionIntro>
 
+      <figure className="mt-10">
+        <WorkspaceShowcase />
+        <figcaption className="text-muted-foreground mt-3 text-xs leading-5">
+          Illustration with sample content, composed from the event workspace overview and registrations pages.
+        </figcaption>
+      </figure>
+
       <ol className="mt-12 border-t">
         {STAGES.map((stage, index) => (
           <li
@@ -80,7 +88,7 @@ export function Organisers() {
 
 /* ─── Fragments ─────────────────────────────────────────────────────────────────────────────── */
 
-const FRAME = 'bg-card rounded-lg border p-4 text-[12px]'
+const FRAME = 'bg-card rounded-lg border p-4 text-[12px] shadow-xs'
 
 function PublishFragment() {
   const steps = [

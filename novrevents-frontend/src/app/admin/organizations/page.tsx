@@ -1,6 +1,7 @@
 'use client'
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { Search } from 'lucide-react'
 import Link from 'next/link'
 import * as React from 'react'
 import { toast } from 'sonner'
@@ -12,6 +13,7 @@ import { Input } from '@/components/ui/input'
 import { api, unwrap } from '@/lib/api/client'
 import { errorMessage } from '@/lib/api/errors'
 import { keys } from '@/lib/api/keys'
+import { cn } from '@/lib/utils'
 import { formatDate } from '@/lib/format'
 
 export default function AdminOrganizationsPage() {
@@ -67,12 +69,20 @@ export default function AdminOrganizationsPage() {
           setPage(1)
         }}
       >
-        <Input
-          aria-label="Search organizations"
-          placeholder="Name"
-          value={q}
-          onChange={(event) => setQ(event.target.value)}
-        />
+        <div className="relative min-w-0 flex-1">
+          <Search
+            className="text-subtle-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+            aria-hidden
+          />
+          <Input
+            type="search"
+            aria-label="Search organizations"
+            placeholder="Organization name"
+            className="pl-9"
+            value={q}
+            onChange={(event) => setQ(event.target.value)}
+          />
+        </div>
         <Button type="submit" variant="outline">
           Search
         </Button>
@@ -82,24 +92,41 @@ export default function AdminOrganizationsPage() {
       ) : query.isError ? (
         <ErrorState error={query.error} retry={() => void query.refetch()} />
       ) : query.data.items.length === 0 ? (
-        <EmptyState title="No organizations" />
+        <EmptyState compact title="No organizations" description={search ? 'Try another name.' : undefined} />
       ) : (
         <>
-          <ul className="bg-card divide-y rounded-lg border">
+          <ul className="bg-card divide-y rounded-lg border shadow-xs">
             {query.data.items.map((org) => (
-              <li key={org.id} className="flex flex-wrap items-center gap-3 p-4">
+              <li
+                key={org.id}
+                className={cn(
+                  'flex flex-wrap items-center gap-x-6 gap-y-3 px-4 py-4 sm:px-5',
+                  org.status === 'SUSPENDED' && 'bg-destructive/[0.03]',
+                )}
+              >
                 <div className="min-w-0 flex-1">
-                  <Link href={`/o/${org.slug}`} className="font-medium hover:underline">
-                    {org.name}
-                  </Link>
-                  <p className="text-muted-foreground text-sm">
-                    {org.memberCount} members · {org.eventCount} events · created {formatDate(org.createdAt)}
-                  </p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Link href={`/o/${org.slug}`} className="hover:text-brand-text text-sm font-semibold">
+                      {org.name}
+                    </Link>
+                    {org.status === 'SUSPENDED' && <Badge variant="destructive">Suspended</Badge>}
+                  </div>
+                  <p className="text-muted-foreground mt-0.5 text-xs">Created {formatDate(org.createdAt)}</p>
                 </div>
-                {org.status === 'SUSPENDED' && <Badge variant="destructive">Suspended</Badge>}
+                <dl className="flex gap-6 text-right">
+                  <div>
+                    <dt className="eyebrow">Members</dt>
+                    <dd className="text-sm font-medium tabular-nums">{org.memberCount}</dd>
+                  </div>
+                  <div>
+                    <dt className="eyebrow">Events</dt>
+                    <dd className="text-sm font-medium tabular-nums">{org.eventCount}</dd>
+                  </div>
+                </dl>
                 <Button
                   variant="outline"
                   size="sm"
+                  className={org.status === 'ACTIVE' ? 'text-destructive' : undefined}
                   onClick={() =>
                     setStatus(org.id, org.name, org.status === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE')
                   }

@@ -14,6 +14,7 @@ import { Input, Textarea } from '@/components/ui/input'
 import { api, unwrap, type Schema } from '@/lib/api/client'
 import { errorMessage } from '@/lib/api/errors'
 import { keys } from '@/lib/api/keys'
+import { emailDeliveryEnabled } from '@/lib/site'
 import { formatDate } from '@/lib/format'
 
 type Template = Schema<'CertificateTemplate'>
@@ -26,7 +27,8 @@ export default function CertificatesPage() {
       unwrap(api.GET('/api/v1/events/{id}/certificates/template', { params: { path: { id: event.id } } })),
   })
   return (
-    <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
+    <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
+      <Issued eventId={event.id} draft={event.status === 'DRAFT'} />
       {template.isPending ? (
         <LoadingState rows={3} />
       ) : template.isError ? (
@@ -34,7 +36,6 @@ export default function CertificatesPage() {
       ) : (
         <TemplateEditor eventId={event.id} template={template.data} />
       )}
-      <Issued eventId={event.id} draft={event.status === 'DRAFT'} />
     </div>
   )
 }
@@ -184,33 +185,48 @@ function Issued({ eventId, draft }: { eventId: string; draft: boolean }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Issued certificates</CardTitle>
+        <CardTitle>
+          Issued certificates{' '}
+          {list.data && list.data.items.length > 0 && (
+            <span className="text-muted-foreground text-sm font-normal tabular-nums">
+              ({list.data.items.length})
+            </span>
+          )}
+        </CardTitle>
         <CardDescription>
-          Issue to everyone who checked in. To authorise someone who did not check in, use the registrations
-          list.
+          Anyone can check a certificate by its verification code. Revoked certificates show as revoked.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {draft ? (
           <Notice tone="warning">Publish the event before issuing certificates.</Notice>
         ) : (
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="bg-brand-soft/50 border-brand-soft flex flex-col gap-3 rounded-sm border p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-semibold tabular-nums">
+                {list.data?.eligibleAttendees ?? 0} checked-in attendee
+                {list.data?.eligibleAttendees === 1 ? '' : 's'} without a certificate
+              </p>
+              <label className="text-muted-foreground mt-1 flex items-center gap-2 text-[13px]">
+                <input
+                  type="checkbox"
+                  className="accent-primary size-4"
+                  checked={sendEmail}
+                  onChange={(changeEvent) => setSendEmail(changeEvent.target.checked)}
+                />
+                {emailDeliveryEnabled
+                  ? 'Email each certificate'
+                  : 'Record an email for each certificate (not delivered until email is switched on)'}
+              </label>
+            </div>
             <Button
+              className="shrink-0"
               onClick={() => issue.mutate()}
               loading={issue.isPending}
               disabled={!list.data || list.data.eligibleAttendees === 0}
             >
-              <Award /> Issue to {list.data?.eligibleAttendees ?? 0} checked-in attendees
+              <Award /> Issue certificates
             </Button>
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                className="accent-primary size-4"
-                checked={sendEmail}
-                onChange={(changeEvent) => setSendEmail(changeEvent.target.checked)}
-              />{' '}
-              Email each certificate
-            </label>
           </div>
         )}
         {!draft && <IssueToSelected eventId={eventId} sendEmail={sendEmail} />}
@@ -219,11 +235,15 @@ function Issued({ eventId, draft }: { eventId: string; draft: boolean }) {
         ) : list.isError ? (
           <ErrorState error={list.error} />
         ) : list.data.items.length === 0 ? (
-          <EmptyState icon={Award} title="No certificates issued yet" />
+          <EmptyState
+            compact
+            title="No certificates issued yet"
+            description="Issue them after the event to attendees who checked in."
+          />
         ) : (
-          <ul className="divide-y rounded-lg border text-sm">
+          <ul className="-mx-5 -mb-5 divide-y border-t text-sm">
             {list.data.items.map((certificate) => (
-              <li key={certificate.id} className="flex flex-wrap items-center gap-3 p-3">
+              <li key={certificate.id} className="flex flex-wrap items-center gap-3 px-5 py-3">
                 <div className="min-w-0 flex-1">
                   <p className="font-medium">{certificate.recipientName}</p>
                   <p className="text-muted-foreground font-mono text-xs">

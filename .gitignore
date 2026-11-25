@@ -26,8 +26,13 @@ coverage/
 *.dump
 *.sql.gz
 *.log
+stitch/
+stitch_novr_events_design_system/
 backups/
 archive/
+.claude/
+NOVR_EVENTS_AUDIT_REPORT.md
+UI_REDESIGN_PROGRESS.md
 
 .claude/
 CLAUDE.md

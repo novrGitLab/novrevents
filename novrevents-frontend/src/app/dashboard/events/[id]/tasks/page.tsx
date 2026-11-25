@@ -5,10 +5,9 @@ import { ListChecks, Plus, Trash2 } from 'lucide-react'
 import * as React from 'react'
 import { toast } from 'sonner'
 import { canManage, useManagedEvent } from '@/components/events/event-context'
-import { EmptyState, ErrorState, LoadingState } from '@/components/states'
+import { ErrorState, LoadingState } from '@/components/states'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input, NativeSelect } from '@/components/ui/input'
 import { useSession } from '@/hooks/use-session'
 import { api, unwrap, type Schema } from '@/lib/api/client'
@@ -85,7 +84,7 @@ export default function TasksPage() {
   const row = (task: Task) => {
     const editable = manage || task.assignee?.userId === user?.id
     return (
-      <li key={task.id} className="flex flex-wrap items-center gap-3 p-3">
+      <li key={task.id} className="hover:bg-brand-soft/40 flex flex-wrap items-center gap-x-3 gap-y-2 px-5 py-3">
         <input
           type="checkbox"
           aria-label={`Mark “${task.title}” done`}
@@ -102,7 +101,16 @@ export default function TasksPage() {
           </p>
           <p className="text-muted-foreground text-xs">
             {task.assignee ? task.assignee.displayName : 'Unassigned'}
-            {task.dueAt && ` · due ${formatDate(task.dueAt, event.timezone)}`}
+            {task.dueAt && (
+              <span
+                className={cn(
+                  task.status !== 'DONE' && new Date(task.dueAt).getTime() < Date.now() && 'text-destructive font-medium',
+                )}
+              >
+                {' '}
+                · due {formatDate(task.dueAt, event.timezone)}
+              </span>
+            )}
           </p>
         </div>
         {task.kind === 'TASK' && editable && (
@@ -155,27 +163,77 @@ export default function TasksPage() {
   if (tasks.isPending) return <LoadingState rows={4} />
   if (tasks.isError) return <ErrorState error={tasks.error} retry={() => void tasks.refetch()} />
 
+  const openTasks = taskItems.filter((task) => task.status !== 'DONE')
+  const overdue = items.filter(
+    (task) => task.status !== 'DONE' && task.dueAt && new Date(task.dueAt).getTime() < Date.now(),
+  ).length
+
   return (
     <div className="space-y-6">
-      <label className="flex items-center gap-2 text-sm">
-        <input
-          type="checkbox"
-          className="accent-primary size-4"
-          checked={mine}
-          onChange={(changeEvent) => setMine(changeEvent.target.checked)}
-        />{' '}
-        Only tasks assigned to me
-      </label>
-      <div className="grid gap-6 2xl:grid-cols-2">
-        <Card>
-          <CardHeader className="flex-row items-start justify-between gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div role="group" aria-label="Show" className="flex gap-2">
+          {[
+            { value: false, label: 'All tasks' },
+            { value: true, label: 'Assigned to me' },
+          ].map((option) => (
+            <button
+              key={option.label}
+              type="button"
+              aria-pressed={mine === option.value}
+              onClick={() => setMine(option.value)}
+              className={cn(
+                'h-8 rounded-sm border px-3 text-[13px] font-medium',
+                mine === option.value
+                  ? 'border-primary bg-primary text-primary-foreground'
+                  : 'bg-card text-muted-foreground hover:border-primary hover:text-brand-text',
+              )}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+        <p className="text-muted-foreground text-[13px] tabular-nums">
+          {openTasks.length} open {openTasks.length === 1 ? 'task' : 'tasks'}
+          {overdue > 0 && <span className="text-destructive font-medium"> · {overdue} overdue</span>}
+        </p>
+      </div>
+
+      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
+        <section aria-labelledby="tasks-heading" className="bg-card overflow-hidden rounded-lg border shadow-xs">
+          <div className="border-b px-5 py-4">
+            <h2 id="tasks-heading" className="text-headline-sm">
+              Tasks
+            </h2>
+            <p className="text-muted-foreground mt-0.5 text-[13px]">Assign work to members of the event team.</p>
+          </div>
+          {taskItems.length === 0 ? (
+            <p className="text-muted-foreground px-5 py-6 text-center text-[13px]">
+              {mine ? 'No tasks are assigned to you.' : 'No tasks yet.'}
+            </p>
+          ) : (
+            <ul className="divide-y">{taskItems.map(row)}</ul>
+          )}
+          {manage && (
+            <div className="bg-muted/50 border-t px-5 py-4">
+              <NewTask eventId={event.id} kind="TASK" team={team.data?.items ?? []} timezone={event.timezone} />
+            </div>
+          )}
+        </section>
+
+        <section
+          aria-labelledby="checklist-heading"
+          className="bg-card overflow-hidden rounded-lg border shadow-xs"
+        >
+          <div className="flex items-start justify-between gap-3 border-b px-5 py-4">
             <div>
-              <CardTitle>Preparation checklist</CardTitle>
-              <CardDescription>
+              <h2 id="checklist-heading" className="text-headline-sm">
+                Preparation checklist
+              </h2>
+              <p className="text-muted-foreground mt-0.5 text-[13px] tabular-nums">
                 {checklistItems.length > 0
                   ? `${done} of ${checklistItems.length} done`
                   : 'A standard list of things to get ready.'}
-              </CardDescription>
+              </p>
             </div>
             {manage && (
               <Button
@@ -187,62 +245,35 @@ export default function TasksPage() {
                 <ListChecks /> Add standard items
               </Button>
             )}
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {checklistItems.length > 0 && (
-              <div
-                className="bg-muted h-2 overflow-hidden rounded-full"
-                role="progressbar"
-                aria-valuemin={0}
-                aria-valuemax={checklistItems.length}
-                aria-valuenow={done}
-                aria-label="Checklist progress"
-              >
-                <div
-                  className="bg-success h-full"
-                  style={{ width: `${(done / checklistItems.length) * 100}%` }}
-                />
-              </div>
-            )}
-            {checklistItems.length === 0 ? (
-              <EmptyState title="No checklist items" />
-            ) : (
-              <ul className="divide-y rounded-lg border">{checklistItems.map(row)}</ul>
-            )}
-            {manage && (
+          </div>
+          {checklistItems.length > 0 && (
+            <div
+              className="bg-muted h-1"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={checklistItems.length}
+              aria-valuenow={done}
+              aria-label="Checklist progress"
+            >
+              <div className="bg-primary h-full" style={{ width: `${(done / checklistItems.length) * 100}%` }} />
+            </div>
+          )}
+          {checklistItems.length === 0 ? (
+            <p className="text-muted-foreground px-5 py-6 text-center text-[13px]">No checklist items yet.</p>
+          ) : (
+            <ul className="divide-y">{checklistItems.map(row)}</ul>
+          )}
+          {manage && (
+            <div className="bg-muted/50 border-t px-5 py-4">
               <NewTask
                 eventId={event.id}
                 kind="CHECKLIST"
                 team={team.data?.items ?? []}
                 timezone={event.timezone}
               />
-            )}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Tasks</CardTitle>
-            <CardDescription>
-              {taskItems.filter((task) => task.status !== 'DONE').length} open · assign to members of the
-              event team.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {taskItems.length === 0 ? (
-              <EmptyState title="No tasks yet" />
-            ) : (
-              <ul className="divide-y rounded-lg border">{taskItems.map(row)}</ul>
-            )}
-            {manage && (
-              <NewTask
-                eventId={event.id}
-                kind="TASK"
-                team={team.data?.items ?? []}
-                timezone={event.timezone}
-              />
-            )}
-          </CardContent>
-        </Card>
+            </div>
+          )}
+        </section>
       </div>
       {!manage && (
         <p className="text-muted-foreground text-sm">
@@ -330,7 +361,7 @@ function NewTask({
           />
         </>
       )}
-      <Button type="submit" variant="secondary" loading={create.isPending}>
+      <Button type="submit" variant="outline" className="shrink-0" loading={create.isPending}>
         <Plus /> Add
       </Button>
     </form>

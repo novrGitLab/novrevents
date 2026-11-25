@@ -14,14 +14,14 @@ import {
   User,
   Users,
 } from 'lucide-react'
-import { AppShell, type NavGroup } from '@/components/layout/app-shell'
+import { AppShell, type NavGroup, type NavItem } from '@/components/layout/app-shell'
 
 const groups: NavGroup[] = [
   {
     label: 'Workspace',
     items: [
       { href: '/dashboard', label: 'Overview', icon: LayoutDashboard, exact: true },
-      { href: '/explore', label: 'Discover', icon: Compass },
+      { href: '/dashboard/discover', label: 'Discover', icon: Compass },
     ],
   },
   {
@@ -51,6 +51,17 @@ const groups: NavGroup[] = [
   },
 ]
 
+const mobileTabs: NavItem[] = [
+  { href: '/dashboard', label: 'Home', icon: LayoutDashboard, exact: true },
+  { href: '/dashboard/discover', label: 'Discover', icon: Compass },
+  { href: '/dashboard/tickets', label: 'Tickets', icon: Ticket },
+  { href: '/dashboard/events', label: 'My events', icon: CalendarDays },
+]
+
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  return <AppShell groups={groups}>{children}</AppShell>
+  return (
+    <AppShell groups={groups} mobileTabs={mobileTabs}>
+      {children}
+    </AppShell>
+  )
 }

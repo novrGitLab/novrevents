@@ -12,7 +12,7 @@ import { CopyField, Field, fieldAria, PageHeader } from '@/components/common'
 import { ImageUpload } from '@/components/image-upload'
 import { ErrorState, LoadingState } from '@/components/states'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input, Textarea } from '@/components/ui/input'
 import { Switch } from '@/components/ui/primitives'
 import { api, unwrap, type Schema } from '@/lib/api/client'
@@ -77,9 +77,13 @@ export default function ProfileSettingsPage() {
           </Button>
         }
       />
-      <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
-        <div className="space-y-6">
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="min-w-0 space-y-6">
           <Card>
+            <CardHeader className="border-b pb-4">
+              <CardTitle>Photo</CardTitle>
+              <CardDescription>Square images work best. Shown on your profile and to organisers.</CardDescription>
+            </CardHeader>
             <CardContent className="pt-5">
               <ImageUpload<OwnProfile>
                 label="Profile photo"
@@ -97,11 +101,11 @@ export default function ProfileSettingsPage() {
           </Card>
           <DetailsForm profile={profile} onSave={save} />
         </div>
-        <div className="space-y-6">
-          <PublicPreviewCard username={profile.username} isPrivate={profile.visibility === 'PRIVATE'} />
+        <aside className="space-y-6 lg:sticky lg:top-20" aria-label="Visibility and sharing">
           <PrivacyCard profile={profile} onSave={save} />
+          <PublicPreviewCard username={profile.username} isPrivate={profile.visibility === 'PRIVATE'} />
           <QrCard profile={profile} />
-        </div>
+        </aside>
       </div>
     </>
   )
@@ -169,30 +173,42 @@ function DetailsForm({
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Details</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={onSubmit} noValidate className="space-y-4">
+      <form onSubmit={onSubmit} noValidate>
+        <CardHeader className="border-b pb-4">
+          <CardTitle>Details</CardTitle>
+          <CardDescription>Your name and username are always public when your profile is public.</CardDescription>
+        </CardHeader>
+        <div className="space-y-4 p-5">
+          <h3 className="eyebrow">About you</h3>
           <div className="grid gap-4 sm:grid-cols-2">
             {text('displayName', 'Name')}
             {text('username', 'Username', { description: 'Changing it changes your profile address.' })}
           </div>
           {text('headline', 'Headline', { placeholder: 'e.g. Detection engineer at …' })}
-          <Field label="Short bio" htmlFor="bio" error={errors.bio?.message}>
-            <Textarea {...fieldAria('bio', errors.bio?.message)} maxLength={600} {...form.register('bio')} />
+          <Field label="Short bio" htmlFor="bio" description="Up to 600 characters." error={errors.bio?.message}>
+            <Textarea
+              {...fieldAria('bio', errors.bio?.message, true)}
+              maxLength={600}
+              {...form.register('bio')}
+            />
           </Field>
+        </div>
+        <div className="space-y-4 border-t p-5">
+          <h3 className="eyebrow">Links</h3>
           <div className="grid gap-4 sm:grid-cols-2">
             {text('website', 'Website', { type: 'url', placeholder: 'https://' })}
             {text('linkedin', 'LinkedIn', { type: 'url', placeholder: 'https://www.linkedin.com/in/…' })}
             {text('github', 'GitHub', { type: 'url', placeholder: 'https://github.com/…' })}
             {text('x', 'X', { type: 'url', placeholder: 'https://x.com/…' })}
           </div>
+        </div>
+        <CardFooter className="justify-between">
+          <p className="text-muted-foreground text-[13px]">{isDirty ? 'You have unsaved changes.' : 'All changes saved.'}</p>
           <Button type="submit" loading={isSubmitting} disabled={!isDirty}>
             Save profile
           </Button>
-        </form>
-      </CardContent>
+        </CardFooter>
+      </form>
     </Card>
   )
 }
@@ -223,7 +239,7 @@ function PublicPreviewCard({ username, isPrivate }: { username: string; isPrivat
         ) : preview.isError ? (
           <ErrorState error={preview.error} retry={() => void preview.refetch()} />
         ) : (
-          <div className="space-y-2 text-sm">
+          <div className="space-y-2 rounded-sm border p-3 text-sm">
             <p className="font-medium">{preview.data.displayName}</p>
             <p className="text-muted-foreground">@{preview.data.username}</p>
             {preview.data.headline && <p>{preview.data.headline}</p>}
@@ -235,11 +251,6 @@ function PublicPreviewCard({ username, isPrivate }: { username: string; isPrivat
                 Nothing else is public yet. Turn on the fields you want to share in Privacy.
               </p>
             )}
-            <Button asChild variant="outline" size="sm" className="mt-2">
-              <Link href={`/u/${username}`}>
-                Open public profile <ExternalLink />
-              </Link>
-            </Button>
           </div>
         )}
       </CardContent>
@@ -269,7 +280,7 @@ function PrivacyCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Privacy</CardTitle>
+        <CardTitle>Visibility</CardTitle>
         <CardDescription>Your email address is never shown on your profile.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
@@ -342,7 +353,7 @@ function QrCard({ profile }: { profile: OwnProfile }) {
             <img
               src={`/api/v1/profiles/${profile.username}/qr?format=svg`}
               alt="QR code for your public profile"
-              className="mx-auto size-48 rounded-lg border bg-white p-2"
+              className="mx-auto size-40 rounded-lg border bg-white p-2"
             />
             <CopyField label="Profile link" value={profile.profileUrl} />
             <Button asChild variant="outline" size="sm" className="w-full">

@@ -19,7 +19,7 @@ export default function CertificateVerificationPage() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-12">
-      <h1 className="text-2xl font-semibold tracking-tight">Certificate verification</h1>
+      <h1 className="page-title">Certificate verification</h1>
       <p className="text-muted-foreground mt-1 text-sm">
         Verification ID: <span className="font-mono">{decodeURIComponent(code).toUpperCase()}</span>
       </p>

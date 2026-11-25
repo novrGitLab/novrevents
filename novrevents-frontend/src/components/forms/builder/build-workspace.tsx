@@ -156,7 +156,7 @@ export function BuildWorkspace({
         className="bg-card flex flex-col rounded-lg border lg:sticky lg:top-20 lg:max-h-[calc(100dvh-7rem)] lg:self-start"
       >
         <div className="flex items-center justify-between border-b px-3 py-2.5">
-          <h2 className="text-[13px] font-semibold">Questions</h2>
+          <h2 className="text-sm font-semibold">Questions</h2>
           <span className="text-muted-foreground text-xs tabular-nums">{definition.fields.length}</span>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto p-2">
@@ -174,7 +174,7 @@ export function BuildWorkspace({
                     'text-muted-foreground hover:text-foreground flex w-full items-center gap-1.5 rounded-md px-2 py-1 text-left text-xs font-medium',
                     selection?.kind === 'step' &&
                       selection.key === step.key &&
-                      'text-foreground bg-secondary',
+                      'text-brand-text bg-brand-soft',
                   )}
                 >
                   {definition.steps.length > 1 && <span className="tabular-nums">{stepIndex + 1}.</span>}
@@ -194,7 +194,7 @@ export function BuildWorkspace({
                           }}
                           aria-current={active ? 'true' : undefined}
                           className={cn(
-                            'hover:bg-secondary flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px]',
+                            'hover:bg-brand-soft/60 flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px]',
                             active && 'bg-brand-soft text-brand-text hover:bg-brand-soft font-medium',
                           )}
                         >
@@ -245,7 +245,7 @@ export function BuildWorkspace({
                   key={type}
                   type="button"
                   onClick={() => addField(type)}
-                  className="hover:bg-secondary hover:border-input flex items-center gap-1.5 rounded-md border border-transparent px-1.5 py-1.5 text-left text-xs"
+                  className="hover:bg-brand-soft/60 hover:border-input flex items-center gap-1.5 rounded-md border border-transparent px-1.5 py-1.5 text-left text-xs"
                   title={`Add a ${FIELD_TYPE_LABELS[type].toLowerCase()} question`}
                 >
                   <Icon className="text-muted-foreground size-3.5 shrink-0" aria-hidden />
@@ -260,14 +260,14 @@ export function BuildWorkspace({
       {/* Centre: live preview */}
       <section aria-label="Live preview" className="bg-muted/50 min-w-0 rounded-lg border">
         <div className="flex items-center justify-between border-b px-4 py-2.5">
-          <h2 className="text-[13px] font-semibold">Live preview</h2>
+          <h2 className="text-sm font-semibold">Live preview</h2>
           <span className="text-muted-foreground text-xs">
             Rules and validation run exactly as they will live
           </span>
         </div>
         <div className="p-4 sm:p-8">
           <div className="bg-card mx-auto max-w-[560px] rounded-lg border p-6 sm:p-8">
-            <h3 className="text-xl font-semibold tracking-[-0.015em]">{title}</h3>
+            <h3 className="text-headline-md">{title}</h3>
             {description && <p className="text-muted-foreground mt-1.5 text-sm">{description}</p>}
             <div className="mt-6">
               {hasIssues ? (
@@ -299,7 +299,7 @@ export function BuildWorkspace({
                 className: 'text-muted-foreground size-4',
                 'aria-hidden': true,
               })}
-              <h2 className="text-[13px] font-semibold">Question properties</h2>
+              <h2 className="text-sm font-semibold">Question properties</h2>
             </div>
             <div className="p-4">
               <FieldCard
@@ -324,7 +324,7 @@ export function BuildWorkspace({
         ) : selectedStep ? (
           <>
             <div className="border-b px-4 py-2.5">
-              <h2 className="text-[13px] font-semibold">Step properties</h2>
+              <h2 className="text-sm font-semibold">Step properties</h2>
             </div>
             <div className="space-y-4 p-4">
               <div className="space-y-1.5">
@@ -380,7 +380,7 @@ export function BuildWorkspace({
         ) : (
           <>
             <div className="border-b px-4 py-2.5">
-              <h2 className="text-[13px] font-semibold">Form</h2>
+              <h2 className="text-sm font-semibold">Form</h2>
             </div>
             <div className="p-4">
               <p className="text-muted-foreground mb-4 text-[13px]">

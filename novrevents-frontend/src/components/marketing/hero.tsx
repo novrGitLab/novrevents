@@ -1,11 +1,13 @@
 import {
   Bookmark,
   CalendarDays,
+  CheckCircle2,
   ChevronRight,
   ClipboardList,
   Compass,
   FileDown,
   LayoutDashboard,
+  MapPin,
   Settings,
   Ticket,
   Users,
@@ -13,43 +15,117 @@ import {
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { QrGlyph } from './qr-glyph'
 import { SAMPLE, SAMPLE_REGISTRATIONS } from './sample'
+
+/** What the product covers, stated as plain capabilities rather than claims. */
+const HERO_POINTS = ['Free to browse and register', 'Signed QR tickets', 'Check-in from any phone'] as const
 
 export function Hero() {
   return (
     <section aria-labelledby="hero-title" className="border-b">
-      <div className="mx-auto max-w-[1200px] px-4 pt-16 pb-16 sm:px-6 lg:px-8 lg:pt-24 lg:pb-20">
-        <div className="max-w-[760px]">
-          <h1 id="hero-title" className="marketing-hero text-balance">
-            Discover and manage cybersecurity events.
-          </h1>
-          <p className="text-muted-foreground mt-6 max-w-[60ch] text-[17px] leading-7">
-            NOVR Events is the event platform for the security community. Professionals, researchers and
-            students find conferences, workshops, CTF competitions and meetups. Organisers run registration,
-            tickets and check-in in one place.
+      <div className="mx-auto grid max-w-[1280px] grid-cols-[minmax(0,1fr)] items-center gap-12 px-4 pt-14 pb-16 sm:px-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,30rem)] lg:gap-16 lg:px-10 lg:pt-20 lg:pb-20">
+        <div>
+          <p className="bg-brand-soft text-brand-text inline-flex items-center gap-2 rounded-sm px-2 py-1 text-xs font-medium">
+            <span aria-hidden className="bg-primary size-1.5 rounded-full" />
+            The event platform for the security community
           </p>
-          <div className="mt-8 flex flex-wrap gap-3">
+          <h1 id="hero-title" className="marketing-hero mt-5 max-w-[16ch] text-balance">
+            Where the cybersecurity community meets.
+          </h1>
+          <p className="text-muted-foreground mt-5 max-w-[56ch] text-base leading-7 sm:text-[17px]">
+            Find conferences, workshops, CTF competitions and meetups. Organisers run registration, approvals,
+            QR tickets and check-in for every stage of an event in one place.
+          </p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Button asChild size="lg">
-              <Link href="/explore">Discover events</Link>
+              <Link href="/explore">
+                <Compass /> Discover events
+              </Link>
             </Button>
             <Button asChild size="lg" variant="outline">
               <Link href="/dashboard/events/new">Host an event</Link>
             </Button>
           </div>
-          <p className="text-muted-foreground mt-4 text-[13px]">
-            Browsing and registering work without an account.
-          </p>
+          <ul className="mt-8 flex flex-col gap-2 border-t pt-5 text-[13px] sm:flex-row sm:flex-wrap sm:gap-x-6">
+            {HERO_POINTS.map((point) => (
+              <li key={point} className="text-muted-foreground inline-flex items-center gap-2">
+                <CheckCircle2 className="text-primary size-4 shrink-0" aria-hidden />
+                {point}
+              </li>
+            ))}
+          </ul>
         </div>
 
-        <figure className="mt-14 lg:mt-16">
-          <Showcase />
-          <figcaption className="text-muted-foreground mt-4 text-[13px] leading-5">
-            Illustration with sample content, composed from the event workspace overview and registrations
-            pages in NOVR Events.
+        <figure>
+          <HeroPass />
+          <figcaption className="text-muted-foreground mt-3 text-xs leading-5">
+            Illustration with sample content: an event listing, its registration form and the attendee’s ticket.
           </figcaption>
         </figure>
       </div>
     </section>
+  )
+}
+
+/** Compact composition of listing, form and ticket, drawn from tokens and the product's own labels. */
+function HeroPass() {
+  return (
+    <div aria-hidden className="bg-card rounded-xl border p-4 shadow-xs select-none sm:p-5">
+      <div className="flex items-start justify-between gap-3 border-b pb-4">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="rounded-sm border px-1.5 py-px text-[10px] font-medium">{SAMPLE.type}</span>
+            <span className="bg-success/10 text-success rounded-sm px-1.5 py-px text-[10px] font-medium">
+              Registration open
+            </span>
+          </div>
+          <p className="mt-2 text-[15px] leading-5 font-semibold tracking-[-0.01em]">{SAMPLE.event}</p>
+          <p className="text-muted-foreground mt-1 flex items-center gap-1.5 text-[11px]">
+            <CalendarDays className="size-3" /> {SAMPLE.dateShort}
+            <MapPin className="ml-1 size-3" /> {SAMPLE.place}
+          </p>
+        </div>
+        <Bookmark className="text-subtle-foreground size-4 shrink-0" />
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_11rem]">
+        <div className="rounded-lg border p-3">
+          <p className="eyebrow">Registration form</p>
+          <div className="mt-3 space-y-2.5">
+            {['Full name', 'Organisation'].map((label) => (
+              <div key={label}>
+                <p className="text-[10px] font-medium">{label}</p>
+                <div className="mt-1 h-6 rounded-sm border" />
+              </div>
+            ))}
+            <div>
+              <p className="text-[10px] font-medium">Role</p>
+              <div className="border-primary text-brand-text mt-1 flex h-6 items-center rounded-sm border px-2 text-[10px]">
+                Student
+              </div>
+            </div>
+            <p className="bg-brand-soft text-brand-text rounded-sm px-2 py-1 text-[10px]">
+              Shown because Role is Student: University
+            </p>
+          </div>
+        </div>
+        <div className="flex flex-col items-center rounded-lg border p-3">
+          <div className="flex w-full items-center justify-between">
+            <p className="eyebrow">Ticket</p>
+            <span className="text-success text-[10px] font-medium">Valid</span>
+          </div>
+          <QrGlyph seed={11} className="mt-3 size-24" />
+          <p className="text-muted-foreground mt-2 font-mono text-[10px] tracking-wide">{SAMPLE.ticketCode}</p>
+          <p className="mt-1 text-[10px] font-medium">{SAMPLE.ticketType}</p>
+        </div>
+      </div>
+
+      <div className="bg-brand-soft mt-3 flex items-center gap-2 rounded-lg px-3 py-2.5">
+        <CheckCircle2 className="text-primary size-4 shrink-0" />
+        <p className="text-brand-text text-[11px] font-medium">Checked in at the door · Scan accepted</p>
+      </div>
+    </div>
   )
 }
 
@@ -81,7 +157,8 @@ const STATUS_TONE: Record<string, string> = {
 
 const WORKSPACE_TABS = ['Overview', 'Forms', 'Registrations', 'Attendance', 'Check-in', 'Team'] as const
 
-function Showcase() {
+/** The organiser workspace, used on the homepage beside the organiser lifecycle. */
+export function WorkspaceShowcase() {
   return (
     <div aria-hidden className="bg-card overflow-hidden rounded-lg border select-none">
       <div className="flex">
@@ -98,7 +175,7 @@ function Showcase() {
               <div
                 key={item.label}
                 className={cn(
-                  'flex h-8 items-center gap-2.5 rounded-md px-2.5 text-[12px] font-medium',
+                  'flex h-8 items-center gap-2.5 rounded-sm px-2.5 text-[12px] font-medium',
                   'active' in item ? 'bg-brand-soft text-brand-text' : 'text-muted-foreground',
                 )}
               >
@@ -171,7 +248,7 @@ function Showcase() {
             <div className="mt-5 overflow-hidden rounded-lg border">
               <table className="w-full text-[12px]">
                 <thead>
-                  <tr className="bg-muted text-muted-foreground border-b text-left">
+                  <tr className="text-muted-foreground border-b text-left text-[10px] tracking-[0.04em] uppercase">
                     <th className="px-3.5 py-2 font-medium">Name</th>
                     <th className="hidden px-3.5 py-2 font-medium sm:table-cell">Ticket type</th>
                     <th className="px-3.5 py-2 font-medium">Status</th>

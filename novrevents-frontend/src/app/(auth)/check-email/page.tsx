@@ -48,10 +48,10 @@ function CheckEmail() {
   }
 
   return (
-    <Card className="border-0 bg-transparent">
+    <Card className="border-0 bg-transparent shadow-none">
       <CardHeader className="px-0 pt-0 pb-6">
-        <h1 className="text-[28px] leading-[34px] font-semibold tracking-[-0.02em]">Check your email</h1>
-        <CardDescription>
+        <h1 className="text-headline-lg">Check your email</h1>
+        <CardDescription className="text-body-lg mt-2">
           {!emailDeliveryEnabled ? (
             'Your account is created. Verifying your email address unlocks publishing events and forms and sending messages.'
           ) : email ? (

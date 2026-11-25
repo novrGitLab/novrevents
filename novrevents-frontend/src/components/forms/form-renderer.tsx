@@ -147,21 +147,21 @@ export function FormRenderer({
     >
       {steps.length > 1 && (
         <div>
-          <p className="text-muted-foreground text-sm">
-            Step {safeIndex + 1} of {steps.length}
+          <p className="eyebrow">
+            Section {safeIndex + 1} of {steps.length}
           </p>
           <div className="mt-2 flex gap-1" aria-hidden>
             {steps.map((item, index) => (
               <div
                 key={item.key}
-                className={cn('h-1.5 flex-1 rounded-full', index <= safeIndex ? 'bg-primary' : 'bg-muted')}
+                className={cn('h-1 flex-1 rounded-full', index <= safeIndex ? 'bg-primary' : 'bg-border')}
               />
             ))}
           </div>
         </div>
       )}
       <div>
-        <h2 className="text-lg font-semibold">{step.title}</h2>
+        <h2 className="text-headline-sm">{step.title}</h2>
         {step.description && <p className="text-muted-foreground mt-1 text-sm">{step.description}</p>}
       </div>
 
@@ -336,7 +336,7 @@ function Question({
           value={selected}
           onChange={(event) => onChange(Array.from(event.target.selectedOptions, (option) => option.value))}
           disabled={disabled}
-          className="border-input bg-card min-h-28 w-full rounded-md border p-2 text-sm"
+          className="border-input bg-card focus:border-ring focus:ring-ring min-h-28 w-full rounded-sm border p-2.5 text-base focus:ring-1 focus:outline-none sm:text-sm"
         >
           {field.options?.map((option) => (
             <option key={option.value} value={option.value}>
@@ -352,7 +352,7 @@ function Question({
           {field.options?.map((option) => (
             <label
               key={option.value}
-              className="bg-card has-[:checked]:border-primary has-[:checked]:bg-accent flex cursor-pointer items-center gap-3 rounded-lg border px-3 py-2.5 text-sm"
+              className="bg-card has-[:checked]:border-primary has-[:checked]:bg-brand-soft hover:border-primary/50 flex cursor-pointer items-center gap-3 rounded-sm border px-3.5 py-3 text-sm"
             >
               <input
                 type="radio"
@@ -375,7 +375,7 @@ function Question({
           {field.options?.map((option) => (
             <label
               key={option.value}
-              className="bg-card has-[:checked]:border-primary has-[:checked]:bg-accent flex cursor-pointer items-center gap-3 rounded-lg border px-3 py-2.5 text-sm"
+              className="bg-card has-[:checked]:border-primary has-[:checked]:bg-brand-soft hover:border-primary/50 flex cursor-pointer items-center gap-3 rounded-sm border px-3.5 py-3 text-sm"
             >
               <input
                 type="checkbox"
@@ -426,7 +426,7 @@ function Question({
               {files.map((file, index) => (
                 <li
                   key={`${file.name}-${index}`}
-                  className="bg-muted flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm"
+                  className="bg-muted flex items-center gap-2 rounded-sm border px-3 py-1.5 text-sm"
                 >
                   <Paperclip className="size-4" aria-hidden />
                   <span className="min-w-0 flex-1 truncate">{file.name}</span>

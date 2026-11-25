@@ -1,75 +1,72 @@
 @import 'tailwindcss';
 
 /*
- * NOVR Events design tokens. See docs/DESIGN_SYSTEM.md.
- *
- * One theme only: pure white surfaces, graphite text, thin neutral borders, and Cybernovr purple
- * as the primary action and selection colour. Brand colours are the official Cybernovr values
- * (purple #662F8E, blue #4451A2, red #EB2027). Change colours here only; components use the
- * semantic names below.
+ * NOVR Events design tokens, from the Stitch "Editorial Precision" system.
+ * Pure white surfaces, Cybernovr purple #662F8E, Inter only, light mode only.
+ * Depth comes from 1px #E5E7EB hairlines and micro-shadows, never from blur or gradients.
  */
 
-/*
- * NOVR Events has no dark theme. Nothing sets a `.dark` class, so binding the variant to that class
- * keeps any stray `dark:` utility inert instead of following the operating system.
- */
+/* `dark:` only applies under an explicit .dark ancestor, which the app never sets. */
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
   color-scheme: light;
-  --radius: 0.375rem;
 
-  /* Official Cybernovr colours (verified from cybernovr.com source). */
+  /* Official Cybernovr colours. */
   --cn-purple: #662f8e;
+  --cn-purple-dark: #4e216d;
+  --cn-purple-tint: #f5eff9;
   --cn-blue: #4451a2;
   --cn-red: #eb2027;
 
-  /* Surfaces: white canvas, sidebar, header and cards. */
   --background: #ffffff;
-  --foreground: #18181b;
+  --foreground: #171717;
   --card: #ffffff;
-  --card-foreground: #18181b;
+  --card-foreground: #171717;
   --popover: #ffffff;
-  --popover-foreground: #18181b;
-  --muted: #f5f5f7; /* subtle secondary surface: table headers, wells, placeholders */
-  --muted-foreground: #5f5f68; /* 6.3:1 on white */
-  --subtle-foreground: #7a7a83; /* placeholders and tertiary text, 4.5:1 on white */
+  --popover-foreground: #171717;
 
-  /* Actions: purple primary, white secondary with a neutral border. */
+  /* Neutral wash for skeletons, track fills and quiet panels. */
+  --muted: #f7f7f8;
+  --muted-foreground: #667085;
+  --subtle-foreground: #98a2b3;
+
   --primary: var(--cn-purple);
-  --primary-hover: #572879;
+  --primary-hover: var(--cn-purple-dark);
   --primary-foreground: #ffffff;
-  --secondary: #f5f5f7;
-  --secondary-foreground: #18181b;
 
-  /* Brand accent for active navigation, links and focus. */
+  --secondary: #ffffff;
+  --secondary-foreground: #171717;
+
   --brand: var(--cn-purple);
   --brand-foreground: #ffffff;
-  --brand-soft: #f4eef8; /* selected navigation background */
-  --brand-text: #5b2a80; /* purple text on white (8.6:1) */
+  --brand-soft: var(--cn-purple-tint);
+  --brand-text: var(--cn-purple-dark);
 
-  --accent: #f5f5f7;
-  --accent-foreground: #18181b;
+  /* Hover and selected fill: the purple tint. */
+  --accent: var(--cn-purple-tint);
+  --accent-foreground: var(--cn-purple-dark);
 
-  /* Status */
-  --destructive: #c8161d; /* darker than brand red so text passes contrast */
+  --destructive: #b42318;
   --destructive-foreground: #ffffff;
-  --success: #17803d;
+  --success: #067647;
   --success-foreground: #ffffff;
-  --warning: #a35c00;
+  --warning: #b54708;
   --warning-foreground: #ffffff;
   --info: var(--cn-blue);
 
-  --border: #e4e4e7;
-  --input: #d9d9de;
-  --ring: #7d4aa3;
+  --border: #e5e7eb;
+  --input: #e5e7eb;
+  --ring: var(--cn-purple);
 
-  /* Charts: purple first, blue second, neutrals after. Red is reserved for negatives. */
   --chart-1: #662f8e;
   --chart-2: #4451a2;
-  --chart-3: #9c9ca6;
+  --chart-3: #98a2b3;
   --chart-4: #b48fd0;
   --chart-5: #eb2027;
+
+  --shadow-hairline: 0 1px 2px rgb(16 24 40 / 0.05);
+  --shadow-float: 0 4px 12px rgb(16 24 40 / 0.08);
 }
 
 @theme inline {
@@ -113,18 +110,58 @@
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
 
+  /* 4px controls, 8px containers, 12px hero surfaces. No pills except status dots and avatars. */
   --radius-sm: 4px;
   --radius-md: 6px;
   --radius-lg: 8px;
-  --radius-xl: 8px;
-  --radius-2xl: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 12px;
 
-  --text-xs: 0.75rem;
-  --text-xs--line-height: 1rem;
-  --text-sm: 0.875rem;
-  --text-sm--line-height: 1.25rem;
-  --text-base: 0.9375rem;
-  --text-base--line-height: 1.5rem;
+  --shadow-xs: var(--shadow-hairline);
+  --shadow-sm: var(--shadow-hairline);
+  --shadow-md: var(--shadow-float);
+  --shadow-lg: var(--shadow-float);
+
+  /*
+   * Named Stitch type roles. Tailwind's default scale (text-xs … text-5xl) is left untouched so
+   * existing pages keep their sizes; these add `text-display`, `text-headline-lg`, `text-label-sm` etc.
+   */
+  --text-display: 3rem;
+  --text-display--line-height: 3.5rem;
+  --text-display--font-weight: 700;
+  --text-display--letter-spacing: -0.03em;
+  --text-headline-lg: 2rem;
+  --text-headline-lg--line-height: 2.5rem;
+  --text-headline-lg--font-weight: 600;
+  --text-headline-lg--letter-spacing: -0.025em;
+  --text-headline-md: 1.5rem;
+  --text-headline-md--line-height: 2rem;
+  --text-headline-md--font-weight: 600;
+  --text-headline-md--letter-spacing: -0.02em;
+  --text-headline-sm: 1.125rem;
+  --text-headline-sm--line-height: 1.5rem;
+  --text-headline-sm--font-weight: 600;
+  --text-headline-sm--letter-spacing: -0.015em;
+  --text-body-lg: 1rem;
+  --text-body-lg--line-height: 1.625rem;
+  --text-body-lg--letter-spacing: -0.01em;
+  --text-body-md: 0.875rem;
+  --text-body-md--line-height: 1.375rem;
+  --text-body-md--letter-spacing: -0.005em;
+  --text-body-sm: 0.8125rem;
+  --text-body-sm--line-height: 1.125rem;
+  --text-label-lg: 0.875rem;
+  --text-label-lg--line-height: 1.25rem;
+  --text-label-lg--font-weight: 600;
+  --text-label-lg--letter-spacing: -0.005em;
+  --text-label-md: 0.75rem;
+  --text-label-md--line-height: 1rem;
+  --text-label-md--font-weight: 500;
+  --text-label-md--letter-spacing: 0.01em;
+  --text-label-sm: 0.6875rem;
+  --text-label-sm--line-height: 0.875rem;
+  --text-label-sm--font-weight: 600;
+  --text-label-sm--letter-spacing: 0.04em;
 }
 
 @layer base {
@@ -156,68 +193,98 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Typography helpers so headings stay consistent across the product. Inter throughout. */
+/* Page title: 24px on phones, 32px from tablet up. */
 @utility page-title {
   font-size: 1.5rem;
-  line-height: 2rem;
+  line-height: 1.875rem;
   font-weight: 600;
-  letter-spacing: -0.018em;
-}
-@utility display-title {
-  font-size: 2rem;
-  line-height: 2.5rem;
-  font-weight: 600;
-  letter-spacing: -0.022em;
+  letter-spacing: -0.02em;
+  @media (width >= 48rem) {
+    font-size: 2rem;
+    line-height: 2.5rem;
+    letter-spacing: -0.025em;
+  }
 }
 @utility section-title {
-  font-size: 1rem;
+  font-size: 1.125rem;
   line-height: 1.5rem;
   font-weight: 600;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
 }
+
+/* Uppercase micro-label for table headers, time zones and classification meta. Use sparingly. */
 @utility eyebrow {
-  font-size: 0.75rem;
-  line-height: 1rem;
-  font-weight: 500;
+  font-size: 0.6875rem;
+  line-height: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   color: var(--muted-foreground);
 }
 
-/* Marketing site only: hero 40–60px, section headings 28–36px. */
+/* Marketing hero: 32px on phones up to 48px on desktop. */
 @utility marketing-hero {
-  font-size: clamp(2.5rem, 1.75rem + 2.6vw, 3.75rem);
-  line-height: 1.06;
-  font-weight: 600;
-  letter-spacing: -0.032em;
+  font-size: 2rem;
+  line-height: 2.375rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  @media (width >= 64rem) {
+    font-size: 3rem;
+    line-height: 3.5rem;
+    letter-spacing: -0.03em;
+  }
 }
 @utility marketing-heading {
-  font-size: clamp(1.75rem, 1.45rem + 1vw, 2.25rem);
-  line-height: 1.15;
+  font-size: 1.5rem;
+  line-height: 1.875rem;
   font-weight: 600;
-  letter-spacing: -0.024em;
+  letter-spacing: -0.02em;
+  @media (width >= 48rem) {
+    font-size: 2rem;
+    line-height: 2.5rem;
+    letter-spacing: -0.025em;
+  }
 }
 
-/* Data tables: one look everywhere. Apply `data-table` to a <table> inside a bordered wrapper. */
+/* A card that is a link or button: border turns purple on hover, no lift or zoom. */
+@utility card-interactive {
+  transition:
+    border-color 150ms,
+    box-shadow 150ms;
+  &:hover {
+    border-color: var(--primary);
+    box-shadow: 0 2px 4px rgb(16 24 40 / 0.06);
+  }
+}
+
+/* Data tables: white sticky-style headers, uppercase micro-labels, 48px rows, tinted hover. */
 @utility data-table {
   width: 100%;
   font-size: 0.8125rem;
   line-height: 1.25rem;
   & thead th {
-    background: var(--muted);
+    background: var(--card);
     color: var(--muted-foreground);
-    font-weight: 500;
-    font-size: 0.75rem;
+    font-weight: 600;
+    font-size: 0.6875rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
     text-align: start;
     white-space: nowrap;
-    padding: 0.5rem 0.875rem;
+    padding: 0.625rem 1rem;
     border-bottom: 1px solid var(--border);
   }
   & tbody td {
-    padding: 0.625rem 0.875rem;
+    padding: 0.75rem 1rem;
+    height: 3rem;
     border-bottom: 1px solid var(--border);
     vertical-align: middle;
   }
   & tbody tr:last-child td {
     border-bottom: 0;
+  }
+  & tbody tr:hover td {
+    background: var(--brand-soft);
   }
   & th.text-right,
   & td.text-right {

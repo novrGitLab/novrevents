@@ -26,10 +26,10 @@ export function PageHeader({
   className?: string
 }) {
   return (
-    <div className={cn('mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between', className)}>
+    <div className={cn('mb-6 flex flex-col gap-4 border-b border-border pb-6 sm:flex-row sm:items-end sm:justify-between', className)}>
       <div className="min-w-0">
         <h1 className="page-title text-balance">{title}</h1>
-        {description && <p className="text-muted-foreground mt-1 max-w-2xl text-sm">{description}</p>}
+        {description && <p className="text-muted-foreground mt-1.5 max-w-2xl text-sm">{description}</p>}
       </div>
       {actions && <div className="flex shrink-0 flex-wrap gap-2">{actions}</div>}
     </div>
@@ -227,9 +227,9 @@ export function StatCard({
   hint?: React.ReactNode
 }) {
   return (
-    <div className="bg-card rounded-lg border px-5 py-4">
-      <p className="text-muted-foreground text-[13px]">{label}</p>
-      <p className="mt-1.5 text-2xl leading-8 font-semibold tracking-[-0.02em] tabular-nums">{value}</p>
+    <div className="bg-card rounded-lg border px-5 py-4 shadow-xs">
+      <p className="eyebrow">{label}</p>
+      <p className="text-headline-md mt-2 tabular-nums">{value}</p>
       {hint && <p className="text-subtle-foreground mt-0.5 text-xs">{hint}</p>}
     </div>
   )
@@ -244,7 +244,7 @@ export function CopyField({ value, label }: { value: string; label: string }) {
         aria-label={label}
         value={value}
         onFocus={(event) => event.currentTarget.select()}
-        className="bg-muted h-9 min-w-0 flex-1 rounded-md border px-3 font-mono text-xs"
+        className="bg-muted h-9 min-w-0 flex-1 rounded-sm border px-3 font-mono text-xs"
       />
       <Button
         variant="outline"

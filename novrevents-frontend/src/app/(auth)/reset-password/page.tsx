@@ -28,9 +28,9 @@ function ResetPassword() {
   const [loading, setLoading] = React.useState(false)
 
   return (
-    <Card className="border-0 bg-transparent">
+    <Card className="border-0 bg-transparent shadow-none">
       <CardHeader className="px-0 pt-0 pb-6">
-        <h1 className="text-[28px] leading-[34px] font-semibold tracking-[-0.02em]">Choose a new password</h1>
+        <h1 className="text-headline-lg">Choose a new password</h1>
       </CardHeader>
       <CardContent className="px-0">
         {!token ? (

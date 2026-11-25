@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { CalendarDays, CheckCircle2, MapPin } from 'lucide-react'
+import { ArrowLeft, CalendarDays, CheckCircle2, Lock, MapPin } from 'lucide-react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import * as React from 'react'
@@ -118,7 +118,7 @@ export default function PublicFormPage() {
       <div className="mx-auto max-w-2xl px-4 py-16">
         {isApiError(query.error) && query.error.status === 404 ? (
           <div className="text-center">
-            <h1 className="text-2xl font-semibold">Form not found</h1>
+            <h1 className="page-title">Form not found</h1>
             <p className="text-muted-foreground mt-2">Check the link you were given.</p>
           </div>
         ) : (
@@ -131,21 +131,27 @@ export default function PublicFormPage() {
   const accent = form.branding.accentColor ?? undefined
 
   return (
-    <div className="mx-auto max-w-[640px] px-4 py-8 sm:py-12">
+    <div className="mx-auto max-w-[720px] px-4 py-8 sm:py-12">
       {form.event && (
         <Link
           href={`/events/${form.event.slug}`}
-          className="hover:bg-card -mx-2 mb-4 flex items-center gap-3 rounded-lg p-2"
+          className="text-muted-foreground hover:text-foreground mb-4 inline-flex items-center gap-1.5 text-[13px] font-medium"
         >
+          <ArrowLeft className="size-4" aria-hidden /> Back to event
+        </Link>
+      )}
+      {form.event && (
+        <div className="bg-card mb-6 flex items-center gap-4 rounded-lg border p-4 shadow-xs">
           {form.branding.bannerUrl ? (
             <img
               src={form.branding.bannerUrl}
               alt=""
-              className="aspect-[16/10] w-20 shrink-0 rounded-md border object-cover"
+              className="hidden aspect-[16/10] w-28 shrink-0 rounded-sm border object-cover sm:block"
             />
           ) : null}
           <div className="min-w-0 text-[13px]">
-            <p className="truncate font-medium">{form.event.title}</p>
+            <p className="eyebrow">Registering for</p>
+            <p className="mt-1 text-[15px] leading-5 font-semibold">{form.event.title}</p>
             <p className="text-muted-foreground flex items-center gap-1.5">
               <CalendarDays className="size-3.5 shrink-0" aria-hidden />
               <span className="truncate">
@@ -161,12 +167,12 @@ export default function PublicFormPage() {
               </p>
             )}
           </div>
-        </Link>
+        </div>
       )}
-      <div className="bg-card overflow-hidden rounded-lg border">
+      <div className="bg-card overflow-hidden rounded-lg border shadow-xs">
         {accent && <div className="h-1" style={{ background: accent }} aria-hidden />}
         <div className="space-y-6 p-5 sm:p-8">
-          <header className="space-y-2">
+          <header className="space-y-2 border-b pb-6">
             {form.branding.logoUrl && <img src={form.branding.logoUrl} alt="" className="h-10 w-auto" />}
             <h1 className="page-title">{form.title}</h1>
             {form.description && (
@@ -204,12 +210,15 @@ export default function PublicFormPage() {
                 serverErrors={serverErrors}
                 onSubmit={(payload) => void submit(payload)}
               />
-              <p className="text-muted-foreground mt-6 text-xs">
-                Your answers are shared only with the organiser of this form. See our{' '}
-                <Link href="/privacy" className="underline">
-                  privacy policy
-                </Link>
-                .
+              <p className="text-muted-foreground mt-6 flex gap-2 border-t pt-4 text-xs">
+                <Lock className="mt-px size-3.5 shrink-0" aria-hidden />
+                <span>
+                  No account needed. Your answers are shared only with the organiser of this form. See our{' '}
+                  <Link href="/privacy" className="underline">
+                    privacy policy
+                  </Link>
+                  .
+                </span>
               </p>
             </div>
           )}

@@ -39,10 +39,10 @@ export function SiteHeader() {
 
   return (
     <header className="bg-card sticky top-0 z-40 border-b">
-      <div className="mx-auto flex h-16 max-w-[1200px] items-center gap-4 px-4 sm:px-6 lg:px-8">
+      <div className="relative mx-auto flex h-16 max-w-[1280px] items-center gap-4 px-4 sm:px-6 lg:px-10">
         <Wordmark />
 
-        <nav aria-label="Main" className="ml-6 hidden items-center gap-1 md:flex">
+        <nav aria-label="Main" className="hidden items-center gap-1 md:ml-6 md:flex lg:absolute lg:left-1/2 lg:ml-0 lg:-translate-x-1/2">
           {navLinks.map((link) => {
             const active = link.match?.some((prefix) => pathname.startsWith(prefix)) ?? false
             return (
@@ -51,9 +51,9 @@ export function SiteHeader() {
                 href={link.href}
                 aria-current={active ? 'page' : undefined}
                 className={cn(
-                  'text-muted-foreground hover:text-foreground relative rounded-md px-3 py-2 text-[13px] font-medium transition-colors',
+                  'text-muted-foreground hover:text-foreground relative rounded-sm px-3 py-2 text-[13px] font-medium transition-colors',
                   active &&
-                    'text-foreground after:bg-brand after:absolute after:inset-x-3 after:-bottom-[13px] after:h-0.5',
+                    'text-primary hover:text-primary after:bg-primary after:absolute after:inset-x-3 after:-bottom-[13px] after:h-0.5',
                 )}
               >
                 {link.label}
@@ -100,7 +100,7 @@ export function SiteHeader() {
                     key={link.href}
                     href={link.href}
                     onClick={close}
-                    className="hover:bg-muted rounded-md px-3 py-3 text-[15px] font-medium"
+                    className="hover:bg-brand-soft hover:text-brand-text rounded-sm px-3 py-3 text-[15px] font-medium"
                   >
                     {link.label}
                   </Link>

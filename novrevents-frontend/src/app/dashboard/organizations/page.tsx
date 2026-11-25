@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Building2, Plus } from 'lucide-react'
+import { Building2, ChevronRight, Plus } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import * as React from 'react'
@@ -50,26 +50,46 @@ export default function OrganizationsPage() {
         <EmptyState
           icon={Building2}
           title="You are not in any organization"
-          description="Create one to share events, forms and responses with your team."
+          description="Create one to share events, forms and responses with your team. You can also be invited by an existing organization."
+          action={
+            <Button size="sm" onClick={() => setOpen(true)}>
+              <Plus /> New organization
+            </Button>
+          }
         />
       ) : (
-        <ul className="grid gap-4 sm:grid-cols-2">
+        <ul className="bg-card divide-y rounded-lg border shadow-xs">
           {query.data.items.map((org) => (
             <li key={org.id}>
               <Link
                 href={`/dashboard/organizations/${org.id}`}
-                className="bg-card flex items-center gap-3 rounded-lg border p-4 hover:shadow-sm"
+                className="hover:bg-brand-soft/50 flex items-center gap-4 px-4 py-4 sm:px-5"
               >
-                <Avatar src={org.logoUrl} name={org.name} className="size-12 rounded-lg" />
+                <Avatar src={org.logoUrl} name={org.name} className="size-11 rounded-sm border" />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium">{org.name}</p>
-                  <p className="text-muted-foreground text-sm">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="truncate text-sm font-semibold">{org.name}</p>
+                    {org.status === 'SUSPENDED' && <Badge variant="destructive">Suspended</Badge>}
+                  </div>
+                  <p className="text-muted-foreground mt-0.5 text-[13px] tabular-nums sm:hidden">
                     {org.memberCount} {org.memberCount === 1 ? 'member' : 'members'} · {org.eventCount}{' '}
                     {org.eventCount === 1 ? 'event' : 'events'}
                   </p>
                 </div>
-                <Badge variant="secondary">{enumLabel(org.role)}</Badge>
-                {org.status === 'SUSPENDED' && <Badge variant="destructive">Suspended</Badge>}
+                <dl className="hidden shrink-0 gap-8 text-right sm:flex">
+                  <div>
+                    <dt className="eyebrow">Members</dt>
+                    <dd className="text-sm font-medium tabular-nums">{org.memberCount}</dd>
+                  </div>
+                  <div>
+                    <dt className="eyebrow">Events</dt>
+                    <dd className="text-sm font-medium tabular-nums">{org.eventCount}</dd>
+                  </div>
+                </dl>
+                <Badge variant={org.role === 'OWNER' ? 'default' : 'secondary'} className="shrink-0">
+                  {enumLabel(org.role)}
+                </Badge>
+                <ChevronRight className="text-subtle-foreground size-4 shrink-0" aria-hidden />
               </Link>
             </li>
           ))}

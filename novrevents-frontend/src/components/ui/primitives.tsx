@@ -17,7 +17,7 @@ export function Checkbox({ className, ...props }: React.ComponentProps<typeof Ch
   return (
     <CheckboxPrimitive.Root
       className={cn(
-        'peer border-input bg-card focus-visible:ring-ring data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground size-4 shrink-0 rounded-sm border shadow-xs focus-visible:ring-2 disabled:opacity-50',
+        'peer border-input bg-card focus-visible:ring-ring data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground size-4 shrink-0 rounded-[3px] border focus-visible:ring-2 disabled:opacity-50',
         className,
       )}
       {...props}
@@ -53,7 +53,7 @@ export function TabsList({ className, ...props }: React.ComponentProps<typeof Ta
   return (
     <TabsPrimitive.List
       className={cn(
-        'text-muted-foreground bg-secondary inline-flex h-9 max-w-full items-center gap-0.5 overflow-x-auto rounded-md p-0.5',
+        'text-muted-foreground inline-flex h-10 max-w-full items-stretch gap-5 overflow-x-auto border-b border-border [scrollbar-width:none]',
         className,
       )}
       {...props}
@@ -65,7 +65,7 @@ export function TabsTrigger({ className, ...props }: React.ComponentProps<typeof
   return (
     <TabsPrimitive.Trigger
       className={cn(
-        'hover:text-foreground data-[state=active]:bg-card data-[state=active]:text-foreground inline-flex h-8 items-center justify-center gap-1.5 rounded-[5px] px-3 text-[13px] font-medium whitespace-nowrap data-[state=active]:shadow-[0_1px_2px_rgb(0_0_0/0.06)] [&_svg]:size-4',
+        'hover:text-foreground data-[state=active]:text-primary data-[state=active]:border-primary -mb-px inline-flex items-center justify-center gap-1.5 border-b-2 border-transparent text-[13px] font-medium whitespace-nowrap [&_svg]:size-4',
         className,
       )}
       {...props}
@@ -113,7 +113,7 @@ export function DropdownMenuContent({
         sideOffset={6}
         align="end"
         className={cn(
-          'bg-popover text-popover-foreground z-50 min-w-52 overflow-hidden rounded-lg border p-1 shadow-[0_8px_24px_-8px_rgb(0_0_0/0.18)]',
+          'bg-popover text-popover-foreground z-50 min-w-52 overflow-hidden rounded-lg border p-1 shadow-md',
           className,
         )}
         {...props}
@@ -130,7 +130,7 @@ export function DropdownMenuItem({
   return (
     <MenuPrimitive.Item
       className={cn(
-        'data-[highlighted]:bg-muted [&_svg]:text-muted-foreground relative flex h-8 cursor-pointer items-center gap-2 rounded-[5px] px-2 text-[13px] outline-none select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:size-4',
+        'data-[highlighted]:bg-brand-soft data-[highlighted]:text-brand-text [&_svg]:text-muted-foreground relative flex h-9 cursor-pointer items-center gap-2 rounded-sm px-2 text-[13px] outline-none select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:size-4',
         destructive && 'text-destructive [&_svg]:text-destructive',
         className,
       )}
@@ -162,7 +162,7 @@ export function Separator({ className }: { className?: string }) {
 }
 
 export function Skeleton({ className, ...props }: React.ComponentProps<'div'>) {
-  return <div aria-hidden className={cn('bg-muted animate-pulse rounded-md', className)} {...props} />
+  return <div aria-hidden className={cn('bg-muted animate-pulse rounded-sm', className)} {...props} />
 }
 
 export function Disclosure({

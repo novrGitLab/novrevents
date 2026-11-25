@@ -37,7 +37,7 @@ export function TicketView({
   const { event, ticket } = registration
   const showTicket = registration.status === 'CONFIRMED' && ticket?.status === 'VALID'
   return (
-    <article className="bg-card overflow-hidden rounded-lg border">
+    <article className="bg-card overflow-hidden rounded-xl border shadow-xs">
       <div className="grid md:grid-cols-[minmax(0,1fr)_260px]">
         <div className="min-w-0 p-5 sm:p-6">
           <div className="flex items-start gap-4">
@@ -45,12 +45,12 @@ export function TicketView({
               <img
                 src={event.bannerUrl}
                 alt=""
-                className="hidden aspect-[16/10] w-24 shrink-0 rounded-md border object-cover sm:block"
+                className="hidden aspect-[16/10] w-24 shrink-0 rounded-sm border object-cover sm:block"
               />
             )}
             <div className="min-w-0">
-              <p className="text-muted-foreground text-xs">NOVR Events ticket · {event.organizerName}</p>
-              <h2 className="mt-0.5 text-lg leading-snug font-semibold tracking-[-0.01em]">
+              <p className="eyebrow">Ticket · {event.organizerName}</p>
+              <h2 className="text-headline-sm sm:text-headline-md mt-1">
                 <Link href={`/events/${event.slug}`} className="hover:underline">
                   {event.title}
                 </Link>
@@ -65,36 +65,36 @@ export function TicketView({
             </div>
           </div>
 
-          <dl className="mt-5 grid gap-x-6 gap-y-3 border-t pt-4 text-sm sm:grid-cols-2">
+          <dl className="mt-5 grid gap-x-6 gap-y-4 border-t pt-5 text-sm sm:grid-cols-2">
             <div>
-              <dt className="text-muted-foreground text-xs">Attendee</dt>
+              <dt className="eyebrow">Attendee</dt>
               <dd className="font-medium">{registration.attendeeName}</dd>
             </div>
             <div>
-              <dt className="text-muted-foreground text-xs">Ticket type</dt>
+              <dt className="eyebrow">Ticket type</dt>
               <dd className="font-medium">{registration.ticketType.name}</dd>
             </div>
             <div>
-              <dt className="text-muted-foreground flex items-center gap-1 text-xs">
+              <dt className="eyebrow flex items-center gap-1">
                 <CalendarDays className="size-3" aria-hidden /> When
               </dt>
               <dd>{event.whenText}</dd>
             </div>
             <div>
-              <dt className="text-muted-foreground flex items-center gap-1 text-xs">
+              <dt className="eyebrow flex items-center gap-1">
                 <MapPin className="size-3" aria-hidden /> Where
               </dt>
               <dd>{event.whereText}</dd>
             </div>
             {ticket && (
               <div>
-                <dt className="text-muted-foreground text-xs">Ticket code</dt>
+                <dt className="eyebrow">Ticket code</dt>
                 <dd className="font-mono text-[13px] tracking-wide">{ticket.code}</dd>
               </div>
             )}
             {registration.checkedInAt && (
               <div>
-                <dt className="text-muted-foreground text-xs">Checked in</dt>
+                <dt className="eyebrow">Checked in</dt>
                 <dd>{formatDateTime(registration.checkedInAt, event.timezone)}</dd>
               </div>
             )}
@@ -145,12 +145,12 @@ export function TicketView({
         </div>
 
         {showTicket && (
-          <div className="bg-muted/40 relative flex flex-col items-center justify-center gap-3 border-t border-dashed p-5 md:border-t-0 md:border-l">
+          <div className="bg-brand-soft/40 relative flex flex-col items-center justify-center gap-3 border-t border-dashed p-5 md:border-t-0 md:border-l">
             {/* QR codes stay black on white in both themes so every scanner can read them. */}
             <img
               src={`${ticketBase}?format=svg`}
               alt={`QR code for ticket ${ticket?.code}`}
-              className="size-44 rounded-md border bg-white p-2"
+              className="size-44 rounded-lg border bg-white p-2"
             />
             <p className="text-muted-foreground max-w-48 text-center text-xs">
               Show this code at the door. It works once.

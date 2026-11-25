@@ -37,7 +37,7 @@ export default function OrganizerPage() {
 
   if (org.isPending)
     return (
-      <div className="mx-auto max-w-5xl px-4 py-10">
+      <div className="mx-auto max-w-[1280px] px-4 py-10 sm:px-6 lg:px-10">
         <LoadingState />
       </div>
     )
@@ -45,7 +45,7 @@ export default function OrganizerPage() {
     return (
       <div className="mx-auto max-w-3xl px-4 py-16 text-center">
         {isApiError(org.error) && org.error.status === 404 ? (
-          <h1 className="text-2xl font-semibold">Organiser not found</h1>
+          <h1 className="page-title">Organiser not found</h1>
         ) : (
           <ErrorState error={org.error} />
         )}
@@ -54,27 +54,34 @@ export default function OrganizerPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-10">
-      <section className="bg-card flex flex-col gap-5 rounded-lg border p-6 sm:flex-row sm:items-center">
-        <Avatar src={org.data.logoUrl} name={org.data.name} className="size-20 rounded-lg" />
+    <div className="mx-auto max-w-[1280px] px-4 py-10 sm:px-6 lg:px-10">
+      <section className="flex flex-col gap-5 border-b pb-8 sm:flex-row sm:items-start">
+        <Avatar src={org.data.logoUrl} name={org.data.name} className="size-24 rounded-lg border text-xl" />
         <div className="min-w-0 flex-1">
-          <h1 className="text-2xl font-semibold tracking-tight">{org.data.name}</h1>
+          <p className="eyebrow">Organiser</p>
+          <h1 className="page-title mt-1">{org.data.name}</h1>
           {org.data.description && (
-            <p className="text-muted-foreground mt-2 max-w-2xl text-sm whitespace-pre-line">
+            <p className="text-muted-foreground mt-2 max-w-2xl text-sm leading-6 whitespace-pre-line">
               {org.data.description}
             </p>
           )}
-          <div className="text-muted-foreground mt-2 flex flex-wrap items-center gap-4 text-sm">
-            <span>{org.data.publicEventCount} public events</span>
-            <span>
-              {org.data.followerCount} {org.data.followerCount === 1 ? 'follower' : 'followers'}
-            </span>
+          <div className="mt-5 flex flex-wrap items-center gap-3">
+            <dl className="bg-card grid grid-cols-2 divide-x rounded-lg border">
+              <div className="px-4 py-2.5">
+                <dt className="eyebrow">Public events</dt>
+                <dd className="text-lg font-semibold tabular-nums">{org.data.publicEventCount}</dd>
+              </div>
+              <div className="px-4 py-2.5">
+                <dt className="eyebrow">Followers</dt>
+                <dd className="text-lg font-semibold tabular-nums">{org.data.followerCount}</dd>
+              </div>
+            </dl>
             {org.data.websiteUrl && (
               <a
                 href={org.data.websiteUrl}
                 target="_blank"
                 rel="noopener noreferrer nofollow"
-                className="hover:text-foreground inline-flex items-center gap-1"
+                className="text-muted-foreground hover:border-primary hover:text-brand-text inline-flex h-8 items-center gap-1.5 rounded-sm border px-2.5 text-[13px] font-medium"
               >
                 <Globe className="size-4" aria-hidden /> Website
               </a>
@@ -89,7 +96,7 @@ export default function OrganizerPage() {
           setTimeframe(value as 'upcoming' | 'past')
           setPage(1)
         }}
-        className="mt-8"
+        className="mt-6"
       >
         <TabsList>
           <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
@@ -102,7 +109,7 @@ export default function OrganizerPage() {
         ) : events.isError ? (
           <ErrorState error={events.error} retry={() => void events.refetch()} />
         ) : events.data.items.length === 0 ? (
-          <EmptyState title={timeframe === 'upcoming' ? 'No upcoming events' : 'No past events'} />
+          <EmptyState compact title={timeframe === 'upcoming' ? 'No upcoming events' : 'No past events'} />
         ) : (
           <>
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">

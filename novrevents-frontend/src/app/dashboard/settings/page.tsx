@@ -9,7 +9,6 @@ import { EmailPreferenceSwitches } from '@/components/email-preferences'
 import { ErrorState, LoadingState, Notice } from '@/components/states'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { useSession } from '@/hooks/use-session'
 import { api, unwrap } from '@/lib/api/client'
@@ -18,11 +17,61 @@ import { keys } from '@/lib/api/keys'
 import { formatDateTime, relativeTime } from '@/lib/format'
 import { emailDeliveryEnabled } from '@/lib/site'
 
+const SECTIONS = [
+  { id: 'email', label: 'Email address' },
+  { id: 'password', label: 'Password' },
+  { id: 'preferences', label: 'Email preferences' },
+  { id: 'sessions', label: 'Sessions' },
+] as const
+
+/** One settings group: title and explanation on the left, controls in a panel on the right. */
+function SettingsSection({
+  id,
+  title,
+  description,
+  actions,
+  children,
+}: {
+  id: (typeof SECTIONS)[number]['id']
+  title: string
+  description: React.ReactNode
+  actions?: React.ReactNode
+  children: React.ReactNode
+}) {
+  return (
+    <section
+      id={id}
+      aria-labelledby={`${id}-title`}
+      className="grid scroll-mt-24 gap-4 border-t py-8 first:border-t-0 first:pt-2 lg:grid-cols-[260px_minmax(0,1fr)] lg:gap-10"
+    >
+      <div>
+        <h2 id={`${id}-title`} className="text-headline-sm">
+          {title}
+        </h2>
+        <div className="text-muted-foreground mt-1 text-[13px] leading-5">{description}</div>
+        {actions && <div className="mt-4">{actions}</div>}
+      </div>
+      <div className="bg-card min-w-0 rounded-lg border p-5 shadow-xs">{children}</div>
+    </section>
+  )
+}
+
 export default function SettingsPage() {
   return (
     <>
       <PageHeader title="Settings" description="Account security, sessions and email preferences." />
-      <div className="grid gap-6 lg:grid-cols-2">
+      <nav aria-label="Settings sections" className="-mt-2 mb-6 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">
+        {SECTIONS.map((section) => (
+          <a
+            key={section.id}
+            href={`#${section.id}`}
+            className="bg-card text-muted-foreground hover:border-primary hover:text-brand-text h-8 shrink-0 rounded-sm border px-3 text-[13px] leading-8 font-medium"
+          >
+            {section.label}
+          </a>
+        ))}
+      </nav>
+      <div>
         <EmailCard />
         <PasswordCard />
         <PreferencesCard />
@@ -53,19 +102,23 @@ function EmailCard() {
     onError: (caught) => setError(errorMessage(caught)),
   })
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Email address</CardTitle>
-        <CardDescription>
-          Currently <span className="text-foreground font-medium">{user?.email}</span>{' '}
-          {user?.emailVerified ? (
-            <Badge variant="success">Verified</Badge>
-          ) : (
-            <Badge variant="warning">Not verified</Badge>
-          )}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+    <SettingsSection
+      id="email"
+      title="Email address"
+      description={
+        <>
+          <p className="text-foreground font-medium break-all">{user?.email}</p>
+          <p className="mt-1.5">
+            {user?.emailVerified ? (
+              <Badge variant="success">Verified</Badge>
+            ) : (
+              <Badge variant="warning">Not verified</Badge>
+            )}
+          </p>
+          <p className="mt-2">Changing it needs your password and a new verification.</p>
+        </>
+      }
+    >
         <form
           className="space-y-4"
           onSubmit={(event) => {
@@ -103,8 +156,7 @@ function EmailCard() {
             Change email
           </Button>
         </form>
-      </CardContent>
-    </Card>
+    </SettingsSection>
   )
 }
 
@@ -123,12 +175,11 @@ function PasswordCard() {
     onError: (caught) => setError(errorMessage(caught)),
   })
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Password</CardTitle>
-        <CardDescription>Changing your password signs out your other devices.</CardDescription>
-      </CardHeader>
-      <CardContent>
+    <SettingsSection
+      id="password"
+      title="Password"
+      description="Changing your password signs out your other devices."
+    >
         <form
           className="space-y-4"
           onSubmit={(event) => {
@@ -163,8 +214,7 @@ function PasswordCard() {
             Change password
           </Button>
         </form>
-      </CardContent>
-    </Card>
+    </SettingsSection>
   )
 }
 
@@ -184,12 +234,11 @@ function PreferencesCard() {
     onError: (error) => toast.error(errorMessage(error)),
   })
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Email preferences</CardTitle>
-        <CardDescription>Choose which optional emails you receive.</CardDescription>
-      </CardHeader>
-      <CardContent>
+    <SettingsSection
+      id="preferences"
+      title="Email preferences"
+      description="Choose which optional emails you receive. Messages about your tickets and account security are not optional."
+    >
         {query.isPending ? (
           <LoadingState rows={2} />
         ) : query.isError ? (
@@ -201,8 +250,7 @@ function PreferencesCard() {
             onChange={(patch) => update.mutate(patch)}
           />
         )}
-      </CardContent>
-    </Card>
+    </SettingsSection>
   )
 }
 
@@ -213,12 +261,11 @@ function SessionsCard() {
   const refresh = () => queryClient.invalidateQueries({ queryKey: ['sessions'] })
 
   return (
-    <Card>
-      <CardHeader className="flex-row items-start justify-between gap-2">
-        <div>
-          <CardTitle>Active sessions</CardTitle>
-          <CardDescription>Devices currently signed in to your account.</CardDescription>
-        </div>
+    <SettingsSection
+      id="sessions"
+      title="Active sessions"
+      description="Devices currently signed in to your account. Sign out any you don’t recognise."
+      actions={
         <Button
           variant="outline"
           size="sm"
@@ -237,17 +284,19 @@ function SessionsCard() {
         >
           Sign out others
         </Button>
-      </CardHeader>
-      <CardContent>
+      }
+    >
         {query.isPending ? (
           <LoadingState rows={2} />
         ) : query.isError ? (
           <ErrorState error={query.error} />
         ) : (
-          <ul className="divide-y">
+          <ul className="-my-3 divide-y">
             {query.data.items.map((session) => (
               <li key={session.id} className="flex items-start gap-3 py-3">
-                <Monitor className="text-muted-foreground mt-0.5 size-4" aria-hidden />
+                <span className="bg-muted text-muted-foreground flex size-8 shrink-0 items-center justify-center rounded-sm">
+                  <Monitor className="size-4" aria-hidden />
+                </span>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">
                     {describeAgent(session.userAgent)}{' '}
@@ -279,9 +328,8 @@ function SessionsCard() {
             ))}
           </ul>
         )}
-      </CardContent>
       {dialog}
-    </Card>
+    </SettingsSection>
   )
 }
 

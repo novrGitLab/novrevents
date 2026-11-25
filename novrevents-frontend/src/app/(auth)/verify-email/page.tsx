@@ -55,12 +55,12 @@ function VerifyEmail() {
   }, [token, queryClient, router])
 
   return (
-    <Card className="border-0 bg-transparent">
+    <Card className="border-0 bg-transparent shadow-none">
       <CardHeader className="px-0 pt-0 pb-6">
-        <h1 className="text-[28px] leading-[34px] font-semibold tracking-[-0.02em]">
+        <h1 className="text-headline-lg">
           {state === 'error' ? 'This link can’t be used' : 'Verifying your email'}
         </h1>
-        {state === 'working' && <CardDescription>This only takes a moment.</CardDescription>}
+        {state === 'working' && <CardDescription className="text-body-lg mt-2">This only takes a moment.</CardDescription>}
       </CardHeader>
       <CardContent className="space-y-6 px-0">
         {state === 'working' && <LoadingState rows={1} label="Verifying" />}

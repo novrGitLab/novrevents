@@ -1,5 +1,29 @@
 import { clsx, type ClassValue } from 'clsx'
-import { twMerge } from 'tailwind-merge'
+import { extendTailwindMerge } from 'tailwind-merge'
+
+/**
+ * The Stitch type roles (`text-label-md`, `text-headline-sm` …) are font sizes defined in globals.css.
+ * Registering them stops tailwind-merge mistaking them for text colours, which used to strip
+ * `text-primary-foreground` from small primary buttons and leave black text on purple.
+ */
+const twMerge = extendTailwindMerge({
+  extend: {
+    theme: {
+      text: [
+        'display',
+        'headline-lg',
+        'headline-md',
+        'headline-sm',
+        'body-lg',
+        'body-md',
+        'body-sm',
+        'label-lg',
+        'label-md',
+        'label-sm',
+      ],
+    },
+  },
+})
 
 export function cn(...inputs: ClassValue[]): string {
   return twMerge(clsx(inputs))

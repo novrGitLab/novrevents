@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Check, FileDown, Plus, Trash2, X } from 'lucide-react'
+import { Check, FileDown, Plus, Search, Trash2, X } from 'lucide-react'
 import * as React from 'react'
 import { toast } from 'sonner'
 import { Field, Pagination, useConfirm } from '@/components/common'
@@ -13,11 +13,11 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input, NativeSelect } from '@/components/ui/input'
-import { Switch } from '@/components/ui/primitives'
+import { Avatar, Switch } from '@/components/ui/primitives'
 import { api, toQuery, unwrap } from '@/lib/api/client'
 import { errorMessage } from '@/lib/api/errors'
 import { keys } from '@/lib/api/keys'
-import { enumLabel, formatDateTime } from '@/lib/format'
+import { enumLabel, formatDateTime, formatNumber } from '@/lib/format'
 import { emailDeliveryEnabled } from '@/lib/site'
 
 type Status = 'PENDING' | 'CONFIRMED' | 'DECLINED' | 'CANCELLED'
@@ -137,6 +137,29 @@ export default function RegistrationsPage() {
             </Button>
           )}
         </div>
+        <dl className="bg-card grid grid-cols-3 divide-x rounded-lg border shadow-xs">
+          {[
+            { label: 'Confirmed', value: event.counts.confirmed, hint: event.capacity ? `of ${formatNumber(event.capacity)}` : null },
+            { label: 'Awaiting review', value: event.counts.pending, hint: event.counts.pending > 0 ? 'Needs a decision' : null },
+            { label: 'Checked in', value: event.counts.checkedIn, hint: null },
+          ].map((stat) => (
+            <div key={stat.label} className="min-w-0 px-4 py-3 sm:px-5 sm:py-4">
+              <dt className="eyebrow truncate">{stat.label}</dt>
+              <dd className="mt-1 flex flex-wrap items-baseline gap-x-2">
+                <span
+                  className={
+                    stat.label === 'Awaiting review' && stat.value > 0
+                      ? 'text-headline-md text-primary tabular-nums'
+                      : 'text-headline-md tabular-nums'
+                  }
+                >
+                  {formatNumber(stat.value)}
+                </span>
+                {stat.hint && <span className="text-muted-foreground text-xs">{stat.hint}</span>}
+              </dd>
+            </div>
+          ))}
+        </dl>
         <div className="space-y-3">
           <div className="flex flex-col gap-2 lg:flex-row">
             <form
@@ -150,12 +173,20 @@ export default function RegistrationsPage() {
               <label htmlFor="attendee-search" className="sr-only">
                 Search attendees
               </label>
-              <Input
-                id="attendee-search"
-                placeholder="Name, email or ticket code"
-                value={q}
-                onChange={(changeEvent) => setQ(changeEvent.target.value)}
-              />
+              <div className="relative min-w-0 flex-1">
+                <Search
+                  className="text-subtle-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+                  aria-hidden
+                />
+                <Input
+                  id="attendee-search"
+                  type="search"
+                  placeholder="Name, email or ticket code"
+                  value={q}
+                  onChange={(changeEvent) => setQ(changeEvent.target.value)}
+                  className="pl-9"
+                />
+              </div>
               <Button type="submit" variant="outline">
                 Search
               </Button>
@@ -234,21 +265,24 @@ export default function RegistrationsPage() {
             />
           ) : (
             <>
-              <div className="bg-card overflow-x-auto rounded-lg border">
+              <div className="bg-card overflow-x-auto rounded-lg border shadow-xs">
                 <table className="w-full min-w-[720px] text-sm">
-                  <thead className="bg-muted text-muted-foreground border-b text-left text-xs">
+                  <thead className="text-muted-foreground border-b text-left text-[11px] font-semibold tracking-[0.04em] uppercase">
                     <tr>
-                      <th className="p-3 font-medium">Attendee</th>
-                      <th className="p-3 font-medium">Ticket</th>
-                      <th className="p-3 font-medium">Status</th>
-                      <th className="p-3 font-medium">Registered</th>
-                      {manage && <th className="p-3 text-right font-medium">Actions</th>}
+                      <th className="p-3 pl-4 font-semibold">Attendee</th>
+                      <th className="p-3 font-semibold">Ticket</th>
+                      <th className="p-3 font-semibold">Status</th>
+                      <th className="p-3 font-semibold">Registered</th>
+                      {manage && <th className="p-3 pr-4 text-right font-semibold">Actions</th>}
                     </tr>
                   </thead>
                   <tbody className="divide-y">
                     {list.data.items.map((registration) => (
-                      <tr key={registration.id}>
-                        <td className="p-3">
+                      <tr key={registration.id} className="hover:bg-brand-soft/50">
+                        <td className="p-3 pl-4">
+                          <div className="flex items-center gap-3">
+                          <Avatar name={registration.attendeeName} className="size-9 rounded-sm" />
+                          <div className="min-w-0">
                           <button
                             type="button"
                             onClick={() => setOpenId(registration.id)}
@@ -260,6 +294,8 @@ export default function RegistrationsPage() {
                             {registration.attendeeEmail}
                             {registration.isGuest ? ' · guest' : ''}
                           </p>
+                          </div>
+                          </div>
                         </td>
                         <td className="p-3">
                           <p>{registration.ticketType.name}</p>

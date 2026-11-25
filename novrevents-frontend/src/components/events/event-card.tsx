@@ -184,7 +184,7 @@ export function SaveEventButton({
       aria-pressed={saved}
       aria-label={saved ? `Remove ${event.title} from saved events` : `Save ${event.title}`}
       className={cn(
-        'text-muted-foreground hover:bg-secondary hover:text-foreground relative z-10 inline-flex size-8 items-center justify-center rounded-md disabled:opacity-50',
+        'text-muted-foreground hover:bg-brand-soft hover:text-primary relative z-10 inline-flex size-8 items-center justify-center rounded-sm disabled:opacity-50',
         saved && 'text-brand-text',
         className,
       )}
@@ -197,7 +197,8 @@ export function SaveEventButton({
 // ─── List row (discovery) ────────────────────────────────────────────────────
 
 /** Compact row used in date-grouped lists: time, title, organiser, place, availability, cover. */
-export function EventRow({ event, saved }: { event: EventSummary; saved: boolean }) {
+/** `href` overrides the public event page, e.g. to open the in-app preview from the dashboard. */
+export function EventRow({ event, saved, href }: { event: EventSummary; saved: boolean; href?: string }) {
   return (
     <article className="group hover:bg-card relative -mx-3 flex gap-4 rounded-lg px-3 py-3 transition-colors sm:gap-5">
       <div className="min-w-0 flex-1">
@@ -208,7 +209,7 @@ export function EventRow({ event, saved }: { event: EventSummary; saved: boolean
         </p>
         <h3 className="mt-0.5 text-base leading-snug font-semibold tracking-[-0.01em] text-pretty">
           <Link
-            href={`/events/${event.slug}`}
+            href={href ?? `/events/${event.slug}`}
             className="after:absolute after:inset-0 focus-visible:outline-none"
           >
             {event.title}
@@ -234,7 +235,7 @@ export function EventRow({ event, saved }: { event: EventSummary; saved: boolean
         <EventCover
           event={event}
           sizes="160px"
-          className="aspect-[16/10] w-24 rounded-md border sm:w-[148px]"
+          className="aspect-[16/10] w-24 rounded-sm border sm:w-[148px]"
         />
       </div>
     </article>
@@ -247,42 +248,75 @@ export function EventCard({
   event,
   saved,
   className,
+  href,
 }: {
   event: EventSummary
   saved?: boolean
   className?: string
+  /** Overrides the public event page, e.g. to open the in-app preview from the dashboard. */
+  href?: string
 }) {
   const badge = dateBadge(event.startsAt, event.timezone)
+  const price = event.isPaid ? (event.priceInfo ?? 'Paid') : 'Free'
   return (
-    <article className={cn('group relative flex min-w-0 flex-col', className)}>
-      <EventCover
-        event={event}
-        sizes="(min-width: 1024px) 360px, 100vw"
-        className="aspect-[16/9] rounded-lg border transition-opacity group-hover:opacity-95"
-      />
-      <div className="flex flex-1 gap-3 pt-3">
-        <div className="w-10 shrink-0 text-center" aria-hidden>
-          <p className="text-brand-text text-[11px] leading-4 font-semibold">{badge.month}</p>
-          <p className="text-lg leading-6 font-semibold tabular-nums">{badge.day}</p>
+    <article
+      className={cn(
+        'group bg-card card-interactive relative flex min-w-0 flex-col overflow-hidden rounded-lg border',
+        className,
+      )}
+    >
+      <div className="relative">
+        <EventCover event={event} sizes="(min-width: 1024px) 380px, 100vw" className="aspect-[16/9] border-b" />
+        <span className="bg-card text-foreground absolute top-3 left-3 rounded-sm border px-2 py-0.5 text-[11px] font-medium">
+          {EVENT_TYPE_LABELS[event.eventType]}
+        </span>
+        {saved !== undefined && (
+          <SaveEventButton
+            event={event}
+            saved={saved}
+            className="bg-card absolute top-2.5 right-2.5 border shadow-xs"
+          />
+        )}
+        <div
+          aria-hidden
+          className="bg-card absolute bottom-3 left-3 flex h-11 min-w-11 flex-col items-center justify-center rounded-sm border px-1.5 shadow-xs"
+        >
+          <span className="text-primary text-[10px] leading-3 font-semibold uppercase">{badge.month}</span>
+          <span className="text-base leading-5 font-semibold tabular-nums">{badge.day}</span>
         </div>
-        <div className="min-w-0 flex-1">
-          <h3 className="text-[15px] leading-snug font-semibold tracking-[-0.01em] text-pretty">
-            <Link
-              href={`/events/${event.slug}`}
-              className="after:absolute after:inset-0 focus-visible:outline-none"
-            >
-              {event.title}
-            </Link>
-          </h3>
-          <p className="text-muted-foreground mt-0.5 text-[13px]">
-            {formatEventRange(event.startsAt, event.endsAt, event.timezone)}
-          </p>
-          <p className="text-muted-foreground mt-0.5 truncate text-[13px]">
-            {organizerName(event)} · {eventPlace(event)}
-          </p>
-          <RegistrationStatus registration={event.registration} status={event.status} className="mt-1.5" />
+      </div>
+      <div className="flex flex-1 flex-col p-4">
+        <h3 className="text-[15px] leading-snug font-semibold tracking-[-0.01em] text-pretty">
+          <Link
+            href={href ?? `/events/${event.slug}`}
+            className="after:absolute after:inset-0 focus-visible:outline-none"
+          >
+            {event.title}
+          </Link>
+        </h3>
+        <p className="text-muted-foreground mt-1 text-[13px]">
+          {formatEventRange(event.startsAt, event.endsAt, event.timezone)}
+        </p>
+        {event.summary && (
+          <p className="text-muted-foreground mt-2 line-clamp-2 text-[13px] leading-5">{event.summary}</p>
+        )}
+        <div className="mt-auto pt-4">
+          <div className="flex items-center justify-between gap-3 border-t pt-3">
+            <span className="text-muted-foreground inline-flex min-w-0 items-center gap-1.5 text-[13px]">
+              {event.mode === 'VIRTUAL' ? (
+                <Globe className="size-3.5 shrink-0" aria-hidden />
+              ) : (
+                <MapPin className="size-3.5 shrink-0" aria-hidden />
+              )}
+              <span className="truncate">{eventPlace(event)}</span>
+            </span>
+            <span className="text-primary shrink-0 text-[13px] font-medium">{price}</span>
+          </div>
+          <div className="mt-2 flex items-center justify-between gap-3">
+            <span className="text-muted-foreground truncate text-[13px]">By {organizerName(event)}</span>
+            <RegistrationStatus registration={event.registration} status={event.status} />
+          </div>
         </div>
-        {saved !== undefined && <SaveEventButton event={event} saved={saved} className="-mr-1.5" />}
       </div>
     </article>
   )
