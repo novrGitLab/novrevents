@@ -100,7 +100,7 @@ test.describe('demo walkthrough', () => {
     await page.getByLabel('Minimum age').fill('18')
     await page.getByLabel('Accessibility information').fill('Step-free entry at the east gate.')
     await page.getByRole('button', { name: 'Add a guest question' }).click()
-    await page.getByLabel('Question 1').fill('Where is the cloakroom?')
+    await page.getByRole('textbox', { name: 'Question 1', exact: true }).fill('Where is the cloakroom?')
     await page.getByLabel('Answer 1').fill('Inside the east entrance.')
     await page.getByRole('button', { name: 'Create draft' }).click()
     await expect(page.getByRole('heading', { name: title })).toBeVisible()
