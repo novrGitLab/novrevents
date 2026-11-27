@@ -22,3 +22,15 @@ The server owns immutable IDs, actor identity, permission scope, issued ticket i
 
 ### Evidence limits
 The live review reached manual draft creation, ticket setup, advanced ticket controls and organizer menus. The live order form and disabled-by-default waitlist were also inspected. Waitlists can open at capacity or when a visible ticket type sells out. Maximum list size, optional phone collection and a timed invitation are documented. [Waitlist controls](https://www.eventbrite.com/help/es-mx/articles/811539/como-configurar-una-lista-de-espera-de-un-evento/) Paid checkout, provider settlement, refunds, reserved seating, MFA enrollment and post-publication tools still require independent end-to-end verification. Full new-account registration was not completed in the existing signed-in account.
+
+### NovrEvents delivery and remaining differences
+
+| Area | Available in NovrEvents | Eventbrite workflows still outside this release |
+| --- | --- | --- |
+| Guest preparation | Organizers set minimum age, accessibility notes, venue parking, a doors-open offset and ordered questions and answers. Public details derive doors-open time from the event’s start and time zone. Online-only events omit venue details. | Reserved seating and seat selection. |
+| Ticket orders | One registration per attendee, free tickets, reviewed applications, NGN hosted checkout, final server-side verification, protected ticket QR, PDF and duplicate check-in detection. Test payments have separate organizer subaccounts and never issue admission. | Multi-attendee baskets, buyer versus guest answers, post-purchase questionnaires, donation tiers and promotional codes. [Eventbrite discounts](https://www.eventbrite.com/help/en-us/articles/448974/create-a-discount-on-tickets/) |
+| Capacity and scheduling | Event and ticket-type limits, transactional reservations, hold expiry, agendas, one time zone per event and event duplication. | Waitlist invitation expiry and recurring occurrences with separate inventory. [Time slots](https://www.eventbrite.com/help/en-us/articles/101829/) |
+| Settlement | Verified NGN subaccounts and manual reconciliation for exceptional charges. | Self-service refunds and a settlement dashboard. [Eventbrite payment processing](https://www.eventbrite.com/help/en-us/articles/426093/getting-started-with-eventbrite-payment-processing/) |
+| Promotion | Five customizable flyer designs, QR links to registration, PDF export, a public flyer link and planner requests. | Attribution reporting across campaigns and marketing integrations. |
+
+The private draft provided organizer-side evidence. It did not establish the behavior of published settlement, refunds or a newly registered Eventbrite user. The checkout implementation is tested locally with provider fixtures. Merchant acceptance requires a separate Paystack test transaction.

@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { CybernovrLogo } from '@/components/brand'
+import { Wordmark } from '@/components/brand'
 
 type FooterLink = { href: string; label: string; external?: boolean }
 
@@ -35,28 +35,12 @@ const columns: { label: string; links: FooterLink[] }[] = [
 
 export function SiteFooter() {
   return (
-    <footer className="bg-card mt-16 border-t">
+    <footer className="public-footer">
       <div className="mx-auto max-w-[1280px] px-4 pt-14 pb-10 sm:px-6 lg:px-10">
         <div className="grid gap-12 lg:grid-cols-[1.4fr_2fr]">
           <div className="max-w-sm">
-            <Link href="/" className="inline-block rounded-sm" aria-label="NOVR Events home">
-              <span className="text-[18px] font-semibold tracking-[-0.01em]">
-                NOVR <span className="font-normal">Events</span>
-              </span>
-            </Link>
-            <p className="text-muted-foreground mt-3 text-[14px] leading-6">
-              Discover, organise and manage events, with a dedicated cybersecurity experience. Host your own
-              with registration forms, QR tickets and check-in.
-            </p>
-            <a
-              href="https://cybernovr.com"
-              target="_blank"
-              rel="noreferrer"
-              className="text-muted-foreground hover:text-foreground mt-5 inline-flex items-center gap-2 rounded-sm text-[13px] transition-colors"
-            >
-              A product of <CybernovrLogo height={12} />
-              <span className="sr-only">(opens cybernovr.com in a new tab)</span>
-            </a>
+            <Wordmark />
+            <p className="footer-intro">Live music, learning and celebrations. Find an event or bring people together for one of your own.</p>
           </div>
 
           <div className="grid grid-cols-2 gap-8 sm:grid-cols-3">
@@ -94,7 +78,7 @@ export function SiteFooter() {
 
         <div className="text-subtle-foreground mt-12 flex flex-col gap-2 border-t pt-6 text-[13px] sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} Cybernovr. All rights reserved.</p>
-          <p>NOVR Events is built and operated by Cybernovr.</p>
+
         </div>
       </div>
     </footer>

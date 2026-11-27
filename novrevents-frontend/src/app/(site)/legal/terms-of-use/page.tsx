@@ -3,7 +3,6 @@ import { POLICY_VERSION } from '@/lib/policy'
 
 export const metadata: Metadata = { title: 'Terms of use' }
 
-/* Working terms written from the product's actual rules. Cybernovr should have them reviewed before launch. */
 export default function TermsPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
@@ -11,9 +10,9 @@ export default function TermsPage() {
       <p className="text-muted-foreground mt-2 text-sm">Version {POLICY_VERSION}.</p>
       <div className="mt-8 space-y-8 text-[15px] leading-7 [&_h2]:text-lg [&_h2]:font-semibold [&_ul]:list-disc [&_ul]:pl-5">
         <section>
-          <h2>Using NOVR Events</h2>
+          <h2>Using NovrEvents</h2>
           <p>
-            NOVR Events is operated by Cybernovr. By creating an account or submitting a form you agree to
+            NovrEvents is operated by Cybernovr. By creating an account or submitting a form you agree to
             these terms.
           </p>
         </section>
@@ -33,10 +32,13 @@ export default function TermsPage() {
               have a reason to invite. Bulk marketing is not permitted.
             </li>
             <li>
-              NOVR Events does not process payments. If your event is paid, you handle payment and refunds
-              directly with attendees.
+              State the ticket price, what it includes and the refund terms before accepting payment. Online NGN tickets use Paystack checkout. Payment at the door follows the terms in the listing.
             </li>
           </ul>
+        </section>
+        <section>
+          <h2>Tickets and payments</h2>
+          <p>For online tickets, complete checkout before the reservation expires. A confirmed registration includes a QR ticket. If a charge appears on your statement without a ticket, keep the payment reference and contact the organiser. Direct refund requests to the organiser named on the event page.</p>
         </section>
         <section>
           <h2>Acceptable use</h2>

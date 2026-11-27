@@ -5,7 +5,7 @@ test.describe('public site', () => {
   test('home and explore load real data and filters work @mobile', async ({ page }) => {
     await page.goto('/', { waitUntil: 'networkidle' })
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(
-      /Find your\s*people\./i,
+      /The art of\s*going out\./i,
     )
     await page.getByRole('main').getByRole('link', { name: 'Browse all events' }).first().click()
     await expect(page).toHaveURL(/\/events/)

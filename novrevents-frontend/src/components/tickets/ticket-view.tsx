@@ -137,6 +137,11 @@ export function TicketView({
             {payable && (
               <div>
                 <p className="mb-2 text-sm">
+                  {registration.testPayment && (
+                    <strong className="block">
+                      Test checkout · Use Paystack test details. No money is collected or ticket issued.
+                    </strong>
+                  )}
                   Held until {formatDateTime(registration.paymentDueAt!, event.timezone)}.
                 </p>
                 <Button onClick={() => pay.mutate()} loading={pay.isPending}>

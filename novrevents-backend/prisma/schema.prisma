@@ -26,6 +26,7 @@ enum UserStatus {
 model User {
   id              String     @id @default(uuid(7)) @db.Uuid
   email           String     @unique
+  payoutTestSubaccount String? @map("payout_test_subaccount")
   payoutSubaccount String? @map("payout_subaccount")
   googleSubject   String?    @unique @map("google_subject")
   passwordHash    String     @map("password_hash")
@@ -222,6 +223,10 @@ enum EventType {
   WEBINAR
   TRAINING
   HACKATHON
+  CONCERT
+  FESTIVAL
+  EXHIBITION
+  CELEBRATION
   SUMMIT
   PANEL
   OTHER
@@ -269,6 +274,7 @@ model EventCategory {
 }
 
 model Event {
+  guestInfo Json @default("{}") @map("guest_info")
   flyer Json?
   id             String  @id @default(uuid(7)) @db.Uuid
   slug           String  @unique
@@ -786,6 +792,7 @@ enum CancelledBy {
 
 model Registration {
   amountKobo Int? @map("amount_kobo")
+  paymentMode String @default("live") @map("payment_mode")
   checkoutSubaccount String? @map("checkout_subaccount")
   paymentDueAt DateTime? @map("payment_due_at") @db.Timestamptz(3)
   paidReference String? @unique @map("paid_reference")

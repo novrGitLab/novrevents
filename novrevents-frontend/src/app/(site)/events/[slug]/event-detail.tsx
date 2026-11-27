@@ -1,5 +1,6 @@
 'use client'
 
+import { GuestInformation } from '@/components/events/guest-information'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   ArrowRight,
@@ -348,6 +349,7 @@ function EventView({
             </section>
           )}
 
+          <GuestInformation event={event} />
           <RelatedEvents event={event} inApp={inApp} />
         </div>
 

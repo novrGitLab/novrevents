@@ -1893,6 +1893,10 @@
               "WEBINAR",
               "TRAINING",
               "HACKATHON",
+              "CONCERT",
+              "FESTIVAL",
+              "EXHIBITION",
+              "CELEBRATION",
               "SUMMIT",
               "PANEL",
               "OTHER"
@@ -2212,6 +2216,10 @@
               "WEBINAR",
               "TRAINING",
               "HACKATHON",
+              "CONCERT",
+              "FESTIVAL",
+              "EXHIBITION",
+              "CELEBRATION",
               "SUMMIT",
               "PANEL",
               "OTHER"
@@ -2337,6 +2345,61 @@
           },
           "registration": {
             "$ref": "#/components/schemas/RegistrationStateInput"
+          },
+          "guestInfo": {
+            "type": "object",
+            "properties": {
+              "doorsBeforeMinutes": {
+                "default": null,
+                "nullable": true,
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1440
+              },
+              "minimumAge": {
+                "default": null,
+                "nullable": true,
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "accessibility": {
+                "default": "",
+                "type": "string",
+                "maxLength": 1500
+              },
+              "parking": {
+                "default": "",
+                "type": "string",
+                "maxLength": 1000
+              },
+              "faqs": {
+                "default": [],
+                "maxItems": 12,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "question": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 160
+                    },
+                    "answer": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 1500
+                    }
+                  },
+                  "required": [
+                    "question",
+                    "answer"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "additionalProperties": false
           },
           "description": {
             "type": "string"
@@ -2476,6 +2539,7 @@
           "category",
           "organizer",
           "registration",
+          "guestInfo",
           "description",
           "address",
           "visibility",
@@ -2493,6 +2557,61 @@
       "EventManageInput": {
         "type": "object",
         "properties": {
+          "guestInfo": {
+            "type": "object",
+            "properties": {
+              "doorsBeforeMinutes": {
+                "default": null,
+                "nullable": true,
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1440
+              },
+              "minimumAge": {
+                "default": null,
+                "nullable": true,
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "accessibility": {
+                "default": "",
+                "type": "string",
+                "maxLength": 1500
+              },
+              "parking": {
+                "default": "",
+                "type": "string",
+                "maxLength": 1000
+              },
+              "faqs": {
+                "default": [],
+                "maxItems": 12,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "question": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 160
+                    },
+                    "answer": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 1500
+                    }
+                  },
+                  "required": [
+                    "question",
+                    "answer"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "additionalProperties": false
+          },
           "id": {
             "type": "string",
             "format": "uuid",
@@ -2527,6 +2646,10 @@
               "WEBINAR",
               "TRAINING",
               "HACKATHON",
+              "CONCERT",
+              "FESTIVAL",
+              "EXHIBITION",
+              "CELEBRATION",
               "SUMMIT",
               "PANEL",
               "OTHER"
@@ -2756,6 +2879,7 @@
           }
         },
         "required": [
+          "guestInfo",
           "id",
           "slug",
           "title",
@@ -2829,6 +2953,10 @@
               "WEBINAR",
               "TRAINING",
               "HACKATHON",
+              "CONCERT",
+              "FESTIVAL",
+              "EXHIBITION",
+              "CELEBRATION",
               "SUMMIT",
               "PANEL",
               "OTHER"
@@ -4304,6 +4432,9 @@
             "minimum": -9007199254740991,
             "maximum": 9007199254740991
           },
+          "testPayment": {
+            "type": "boolean"
+          },
           "paymentDueAt": {
             "nullable": true
           },
@@ -4335,6 +4466,7 @@
           "createdAt",
           "event",
           "amountKobo",
+          "testPayment",
           "paymentDueAt",
           "canCancel",
           "certificateCode",
@@ -6968,6 +7100,10 @@
               "WEBINAR",
               "TRAINING",
               "HACKATHON",
+              "CONCERT",
+              "FESTIVAL",
+              "EXHIBITION",
+              "CELEBRATION",
               "SUMMIT",
               "PANEL",
               "OTHER"
@@ -7306,6 +7442,10 @@
               "WEBINAR",
               "TRAINING",
               "HACKATHON",
+              "CONCERT",
+              "FESTIVAL",
+              "EXHIBITION",
+              "CELEBRATION",
               "SUMMIT",
               "PANEL",
               "OTHER"
@@ -7440,6 +7580,68 @@
           },
           "registration": {
             "$ref": "#/components/schemas/RegistrationState"
+          },
+          "guestInfo": {
+            "type": "object",
+            "properties": {
+              "doorsBeforeMinutes": {
+                "default": null,
+                "nullable": true,
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1440
+              },
+              "minimumAge": {
+                "default": null,
+                "nullable": true,
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "accessibility": {
+                "default": "",
+                "type": "string",
+                "maxLength": 1500
+              },
+              "parking": {
+                "default": "",
+                "type": "string",
+                "maxLength": 1000
+              },
+              "faqs": {
+                "default": [],
+                "maxItems": 12,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "question": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 160
+                    },
+                    "answer": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 1500
+                    }
+                  },
+                  "required": [
+                    "question",
+                    "answer"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "doorsBeforeMinutes",
+              "minimumAge",
+              "accessibility",
+              "parking",
+              "faqs"
+            ],
+            "additionalProperties": false
           },
           "description": {
             "type": "string"
@@ -7583,6 +7785,7 @@
           "category",
           "organizer",
           "registration",
+          "guestInfo",
           "description",
           "address",
           "visibility",
@@ -7601,6 +7804,68 @@
       "EventManage": {
         "type": "object",
         "properties": {
+          "guestInfo": {
+            "type": "object",
+            "properties": {
+              "doorsBeforeMinutes": {
+                "default": null,
+                "nullable": true,
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1440
+              },
+              "minimumAge": {
+                "default": null,
+                "nullable": true,
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "accessibility": {
+                "default": "",
+                "type": "string",
+                "maxLength": 1500
+              },
+              "parking": {
+                "default": "",
+                "type": "string",
+                "maxLength": 1000
+              },
+              "faqs": {
+                "default": [],
+                "maxItems": 12,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "question": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 160
+                    },
+                    "answer": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 1500
+                    }
+                  },
+                  "required": [
+                    "question",
+                    "answer"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "doorsBeforeMinutes",
+              "minimumAge",
+              "accessibility",
+              "parking",
+              "faqs"
+            ],
+            "additionalProperties": false
+          },
           "id": {
             "type": "string",
             "format": "uuid",
@@ -7635,6 +7900,10 @@
               "WEBINAR",
               "TRAINING",
               "HACKATHON",
+              "CONCERT",
+              "FESTIVAL",
+              "EXHIBITION",
+              "CELEBRATION",
               "SUMMIT",
               "PANEL",
               "OTHER"
@@ -7884,6 +8153,7 @@
           }
         },
         "required": [
+          "guestInfo",
           "id",
           "slug",
           "title",
@@ -7958,6 +8228,10 @@
               "WEBINAR",
               "TRAINING",
               "HACKATHON",
+              "CONCERT",
+              "FESTIVAL",
+              "EXHIBITION",
+              "CELEBRATION",
               "SUMMIT",
               "PANEL",
               "OTHER"
@@ -9531,6 +9805,9 @@
             "minimum": -9007199254740991,
             "maximum": 9007199254740991
           },
+          "testPayment": {
+            "type": "boolean"
+          },
           "paymentDueAt": {
             "nullable": true,
             "type": "string",
@@ -9564,6 +9841,7 @@
           "createdAt",
           "event",
           "amountKobo",
+          "testPayment",
           "paymentDueAt",
           "canCancel",
           "certificateCode",
@@ -10421,7 +10699,7 @@
                   "policyVersion": {
                     "type": "string",
                     "enum": [
-                      "2026-11-27"
+                      "2026-11-27.2"
                     ]
                   }
                 },
@@ -11462,7 +11740,7 @@
                       "policyVersion": {
                         "type": "string",
                         "enum": [
-                          "2026-11-27"
+                          "2026-11-27.2"
                         ]
                       }
                     },
@@ -14080,6 +14358,61 @@
               "schema": {
                 "type": "object",
                 "properties": {
+                  "guestInfo": {
+                    "type": "object",
+                    "properties": {
+                      "doorsBeforeMinutes": {
+                        "default": null,
+                        "nullable": true,
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1440
+                      },
+                      "minimumAge": {
+                        "default": null,
+                        "nullable": true,
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 100
+                      },
+                      "accessibility": {
+                        "default": "",
+                        "type": "string",
+                        "maxLength": 1500
+                      },
+                      "parking": {
+                        "default": "",
+                        "type": "string",
+                        "maxLength": 1000
+                      },
+                      "faqs": {
+                        "default": [],
+                        "maxItems": 12,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "question": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 160
+                            },
+                            "answer": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 1500
+                            }
+                          },
+                          "required": [
+                            "question",
+                            "answer"
+                          ],
+                          "additionalProperties": false
+                        }
+                      }
+                    },
+                    "additionalProperties": false
+                  },
                   "title": {
                     "type": "string",
                     "minLength": 3,
@@ -14110,6 +14443,10 @@
                       "WEBINAR",
                       "TRAINING",
                       "HACKATHON",
+                      "CONCERT",
+                      "FESTIVAL",
+                      "EXHIBITION",
+                      "CELEBRATION",
                       "SUMMIT",
                       "PANEL",
                       "OTHER"
@@ -14372,6 +14709,61 @@
               "schema": {
                 "type": "object",
                 "properties": {
+                  "guestInfo": {
+                    "type": "object",
+                    "properties": {
+                      "doorsBeforeMinutes": {
+                        "default": null,
+                        "nullable": true,
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1440
+                      },
+                      "minimumAge": {
+                        "default": null,
+                        "nullable": true,
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 100
+                      },
+                      "accessibility": {
+                        "default": "",
+                        "type": "string",
+                        "maxLength": 1500
+                      },
+                      "parking": {
+                        "default": "",
+                        "type": "string",
+                        "maxLength": 1000
+                      },
+                      "faqs": {
+                        "default": [],
+                        "maxItems": 12,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "question": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 160
+                            },
+                            "answer": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 1500
+                            }
+                          },
+                          "required": [
+                            "question",
+                            "answer"
+                          ],
+                          "additionalProperties": false
+                        }
+                      }
+                    },
+                    "additionalProperties": false
+                  },
                   "title": {
                     "type": "string",
                     "minLength": 3,
@@ -14402,6 +14794,10 @@
                       "WEBINAR",
                       "TRAINING",
                       "HACKATHON",
+                      "CONCERT",
+                      "FESTIVAL",
+                      "EXHIBITION",
+                      "CELEBRATION",
                       "SUMMIT",
                       "PANEL",
                       "OTHER"
@@ -15763,6 +16159,10 @@
                 "WEBINAR",
                 "TRAINING",
                 "HACKATHON",
+                "CONCERT",
+                "FESTIVAL",
+                "EXHIBITION",
+                "CELEBRATION",
                 "SUMMIT",
                 "PANEL",
                 "OTHER"

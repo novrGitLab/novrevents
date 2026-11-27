@@ -53,7 +53,7 @@ export const guides = [
     image: 'culture',
     alt: 'Gallery visitors looking up at a suspended textile installation',
     action: 'Explore arts events',
-    filter: 'q=art',
+    filter: 'category=arts-culture',
     intro:
       'See a new exhibition, hear the story behind a work or discover a space through the people who programme it.',
     sections: [

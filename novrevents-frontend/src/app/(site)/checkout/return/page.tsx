@@ -20,6 +20,7 @@ function Result() {
     },
   })
   const paid = query.data?.outcome === 'PAID'
+  const testPaid = query.data?.outcome === 'TEST_PAID'
   const review = query.data?.outcome === 'RECONCILE'
   const href =
     typeof window === 'undefined'
@@ -28,25 +29,33 @@ function Result() {
   return (
     <main className="mx-auto max-w-xl px-5 py-20">
       <h1 className="page-title">
-        {paid ? 'Payment received' : review ? 'Payment needs attention' : 'Ticket payment'}
+        {testPaid
+          ? 'Test payment verified'
+          : paid
+            ? 'Payment received'
+            : review
+              ? 'Payment needs attention'
+              : 'Ticket payment'}
       </h1>
       <p role="status" className="my-6">
         {!valid
           ? 'Open your registration to check your ticket.'
-          : paid
-            ? 'Your ticket is ready. Open the registration for the QR code and ticket download.'
-            : review
-              ? 'Your charge was received. Contact the organiser with the payment reference below.'
-              : query.isFetching
-                ? 'Checking the payment with Paystack…'
-                : 'Confirmation is pending. Check again before making another payment.'}
+          : testPaid
+            ? 'Paystack confirmed the test transaction. No money was collected and the reserved place has been released.'
+            : paid
+              ? 'Your ticket is ready. Open the registration for the QR code and ticket download.'
+              : review
+                ? 'Your charge was received. Contact the organiser with the payment reference below.'
+                : query.isFetching
+                  ? 'Checking the payment with Paystack…'
+                  : 'Confirmation is pending. Check again before making another payment.'}
       </p>
       {valid && <p className="mb-5 text-sm break-all">{reference}</p>}
       <div className="flex flex-wrap gap-3">
         <Button asChild>
           <Link href={href}>Open registration</Link>
         </Button>
-        {valid && !paid && !review && (
+        {valid && !testPaid && !paid && !review && (
           <Button variant="outline" loading={query.isFetching} onClick={() => void query.refetch()}>
             Check payment
           </Button>

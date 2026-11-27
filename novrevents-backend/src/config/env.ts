@@ -33,7 +33,9 @@ const schema = z
     NHAAI_BASE_URL: z.url({ protocol: /^https$/ }).optional(),
     NHAAI_MODEL: z.string().min(1).optional(),
     NHAAI_API_KEY: z.string().min(1).optional(),
-    PAYSTACK_SECRET_KEY: z.string().min(1).optional(),
+    PAYSTACK_MODE: z.enum(['test', 'live']).default('test'),
+    PAYSTACK_PUBLIC_KEY: z.string().optional(),
+    PAYSTACK_SECRET_KEY: z.string().optional(),
     GOOGLE_CLIENT_ID: z.string().min(1).optional(),
     GOOGLE_CLIENT_SECRET: z.string().min(1).optional(),
     SESSION_SECRET: z.string().min(32, 'SESSION_SECRET must be at least 32 characters'),
@@ -69,6 +71,24 @@ const schema = z
     API_DOCS_ENABLED: flag(false),
   })
   .superRefine((value, ctx) => {
+    if (value.PAYSTACK_SECRET_KEY || value.PAYSTACK_PUBLIC_KEY) {
+      for (const [field, prefix] of [
+        ['PAYSTACK_PUBLIC_KEY', 'pk'],
+        ['PAYSTACK_SECRET_KEY', 'sk'],
+      ] as const) {
+        if (
+          !new RegExp('^' + prefix + '_' + value.PAYSTACK_MODE + '_[A-Za-z0-9]{20,128}$').test(
+            value[field] ?? '',
+          )
+        ) {
+          ctx.addIssue({
+            code: 'custom',
+            path: [field],
+            message: 'A complete key pair for the selected Paystack mode is required.',
+          })
+        }
+      }
+    }
     if (value.STORAGE_DRIVER === 's3') {
       for (const key of ['S3_BUCKET', 'S3_ACCESS_KEY_ID', 'S3_SECRET_ACCESS_KEY'] as const) {
         if (!value[key]) {

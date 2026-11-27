@@ -18,10 +18,12 @@ import {
 
 let app: FastifyInstance
 let organizer: TestUser
+const originalMode = env.PAYSTACK_MODE
 const original = env.PAYSTACK_SECRET_KEY
 beforeAll(async () => {
   app = await createTestApp()
   organizer = await createUser(app)
+  env.PAYSTACK_MODE = 'live'
   env.PAYSTACK_SECRET_KEY = 'fixture-only'
   await prisma.user.update({
     where: { id: organizer.id },
@@ -29,6 +31,7 @@ beforeAll(async () => {
   })
 })
 afterAll(async () => {
+  env.PAYSTACK_MODE = originalMode
   env.PAYSTACK_SECRET_KEY = original
   await app.close()
 })
@@ -38,6 +41,8 @@ async function held(review: boolean) {
     settings: { autoAccept: !review },
   })
   await prisma.ticketType.updateMany({ where: { eventId: event.id }, data: { priceKobo: 325000 } })
+  if (env.PAYSTACK_MODE === 'test')
+    await prisma.event.update({ where: { id: event.id }, data: { visibility: 'UNLISTED' } })
   const email = 'checkout-' + crypto.randomUUID() + '@example.test'
   const response = await submit(app, form.slug, { full_name: 'Ticket holder', email })
   expect(response.status).toBe(201)
@@ -54,6 +59,7 @@ async function held(review: boolean) {
     reference: ref,
     amount: 325000,
     currency: 'NGN',
+    domain: env.PAYSTACK_MODE,
     status: 'success',
     customer: { email },
     paid_at: new Date().toISOString(),
@@ -102,5 +108,28 @@ it('recovers a paid checkout without a webhook or returning browser', async () =
     expect(await prisma.ticket.count({ where: { registrationId: reg.id } })).toBe(1)
   } finally {
     fake.mockRestore()
+  }
+})
+
+it('verifies a sandbox payment once, releases its hold and never issues admission', async () => {
+  env.PAYSTACK_MODE = 'test'
+  try {
+    await prisma.user.update({
+      where: { id: organizer.id },
+      data: { payoutTestSubaccount: 'ACCT_sandbox' },
+    })
+    const { reg, ref, data, event } = await held(false)
+    expect(reg.checkoutSubaccount).toBe('ACCT_sandbox')
+    expect(reg.paymentMode).toBe('test')
+    await Promise.all([recordCharge(ref, data), recordCharge(ref, data)])
+    expect(await prisma.paymentAttempt.findUnique({ where: { reference: ref } })).toMatchObject({
+      outcome: 'TEST_PAID',
+    })
+    expect(await prisma.event.findUnique({ where: { id: event.id } })).toMatchObject({
+      registeredCount: 0,
+    })
+    expect(await prisma.ticket.count({ where: { registrationId: reg.id } })).toBe(0)
+  } finally {
+    env.PAYSTACK_MODE = 'live'
   }
 })

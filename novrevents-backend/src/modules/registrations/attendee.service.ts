@@ -281,7 +281,7 @@ function toSelfService(row: SelfServiceRow) {
       event.status !== 'CANCELLED',
     certificateCode:
       row.certificate && !row.certificate.revokedAt ? row.certificate.verificationCode : null,
-    amountKobo:row.amountKobo, paymentDueAt:row.paymentDueAt,
+    testPayment: !!row.amountKobo && row.paymentMode === 'test', amountKobo:row.amountKobo, paymentDueAt:row.paymentDueAt,
     manageUrl: manageUrlFor(row),
   }
 }

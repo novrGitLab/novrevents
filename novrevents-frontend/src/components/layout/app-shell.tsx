@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import * as React from 'react'
 import { toast } from 'sonner'
-import { CybernovrLogo } from '@/components/brand'
+import { CybernovrLogo, ProductSignature } from '@/components/brand'
 import { LoadingState } from '@/components/states'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
@@ -89,8 +89,8 @@ function SidebarBrand({ admin }: { admin: boolean }) {
         href={admin ? '/admin' : '/dashboard'}
         className="text-foreground w-fit rounded-sm text-[15px] leading-none font-semibold tracking-[-0.01em]"
       >
-        NOVR <span className="font-normal">Events</span>
-        <span className="sr-only">{admin ? ', administration' : ', dashboard'}</span>
+        <ProductSignature />
+        <span className="sr-only">NovrEvents{admin ? ', administration' : ', dashboard'}</span>
       </Link>
       <span className="text-subtle-foreground inline-flex items-center gap-1.5 text-[11px] leading-none">
         {admin ? 'Administration · by' : 'by'} <CybernovrLogo height={9} />

@@ -3,6 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useQuery } from '@tanstack/react-query'
 import * as React from 'react'
+import { guestFields, GuestInformationFields } from './guest-information-fields'
 import { DraftDescription } from './draft-description'
 import { useForm, useWatch } from 'react-hook-form'
 import { z } from 'zod'
@@ -36,7 +37,7 @@ function SectionTitle({ number, children }: { number: number; children: React.Re
 }
 
 /** How the listing will look in the directory, built only from what has been typed so far. */
-function CardPreview({ values }: { values: Partial<Values> }) {
+function CardPreview({ values }: { values: Partial<Omit<Values, 'guestInfo'>> }) {
   let when = 'Date not set'
   if (values.startsAt && values.timezone) {
     try {
@@ -97,6 +98,7 @@ const schema = z
   .object({
     title: z.string().trim().min(3, 'Use at least 3 characters.').max(140),
     summary: z.string().max(240),
+    guestInfo: guestFields,
     description: z.string().max(20_000),
     categoryId: z.string(),
     eventType: z.enum(Object.keys(EVENT_TYPE_LABELS) as [keyof typeof EVENT_TYPE_LABELS]),
@@ -127,13 +129,21 @@ const schema = z
     message: 'The end must be after the start.',
   })
 
-type Values = z.infer<typeof schema>
+export type EventFormValues = z.infer<typeof schema>
+type Values = EventFormValues
 
 function defaults(event?: ManagedEvent): Values {
   const timezone = event?.timezone ?? browserTimeZone()
   return {
     title: event?.title ?? '',
     summary: event?.summary ?? '',
+    guestInfo: {
+      doorsBeforeMinutes: event?.guestInfo?.doorsBeforeMinutes ?? null,
+      minimumAge: event?.guestInfo?.minimumAge ?? null,
+      parking: event?.guestInfo?.parking ?? '',
+      accessibility: event?.guestInfo?.accessibility ?? '',
+      faqs: event?.guestInfo?.faqs ?? [],
+    },
     description: event?.description ?? '',
     categoryId: event?.categoryId ?? '',
     eventType: event?.eventType ?? 'CONFERENCE',
@@ -167,6 +177,10 @@ function toPayload(values: Values) {
   return {
     title: values.title,
     summary: values.summary || null,
+    guestInfo: { ...values.guestInfo,
+      doorsBeforeMinutes: values.mode === 'VIRTUAL' ? null : values.guestInfo.doorsBeforeMinutes,
+      parking: values.mode === 'VIRTUAL' ? '' : values.guestInfo.parking,
+    },
     description: values.description,
     categoryId: values.categoryId || null,
     eventType: values.eventType,
@@ -406,6 +420,7 @@ export function EventForm({
             </CardContent>
           </Card>
 
+          <GuestInformationFields form={form} physical={mode !== 'VIRTUAL'} />
           <Card>
             <CardHeader>
               <SectionTitle number={4}>Registration</SectionTitle>
@@ -437,7 +452,7 @@ export function EventForm({
                 <Field
                   label="Price information"
                   htmlFor="priceInfo"
-                  description="Shown to attendees. NOVR Events does not process payments."
+                  description="Explain any payment at the door. Set online NGN prices in ticket types."
                   error={err('priceInfo')}
                 >
                   <Input placeholder="e.g. ₦15,000 — pay at the door" {...reg('priceInfo', true)} />

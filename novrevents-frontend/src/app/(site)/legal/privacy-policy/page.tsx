@@ -3,17 +3,13 @@ import { POLICY_VERSION } from '@/lib/policy'
 
 export const metadata: Metadata = { title: 'Privacy policy' }
 
-/*
- * Plain-language description of what the platform actually does with data, written from the
- * implementation. It is not legal advice: Cybernovr should have it reviewed before launch.
- */
 export default function PrivacyPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
       <h1 className="text-3xl font-semibold tracking-tight">Privacy policy</h1>
       <p className="text-muted-foreground mt-2 text-sm">Version {POLICY_VERSION}.</p>
       <p className="text-muted-foreground mt-2 text-sm">
-        This summary describes how NOVR Events, a Cybernovr platform, handles personal data.
+        This summary describes how NovrEvents, a Cybernovr platform, handles personal data.
       </p>
       <div className="mt-8 space-y-8 text-[15px] leading-7 [&_h2]:text-lg [&_h2]:font-semibold [&_ul]:list-disc [&_ul]:pl-5">
         <section>
@@ -33,7 +29,7 @@ export default function PrivacyPage() {
             </li>
             <li>Registrations, tickets and check-in times for events you attend.</li>
             <li>
-              A record of the emails we send you and, where our email provider reports it, whether they were
+              A record of the emails sent to you and, where the delivery provider reports it, whether they were
               delivered or opened.
             </li>
             <li>

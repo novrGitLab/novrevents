@@ -596,3 +596,16 @@
 .flyer-afterhours .flyer-art{transform:rotate(-3deg) scale(1.04)}
 .flyer-programme .flyer-art{height:clamp(7rem,12vw,10rem)}
 @media print{body:has(.flyer){height:100vh;overflow:hidden}body:has(.flyer) .flyer{max-height:100vh}body:has(.flyer) .flyer-art{height:55mm}}
+
+.guest-editor { background:var(--card); border:1px solid var(--border); border-radius:.8rem; }
+.guest-editor summary,.guest-information summary {cursor:pointer;min-height:44px;font-weight:600;}
+.guest-editor summary {font-size:1.15rem;padding:1.25rem;}
+.guest-information {margin:3rem 0;}
+.guest-information dl {margin-top:1rem;}
+.guest-information dl>div {display:grid;grid-template-columns:minmax(8rem,1fr) 2.5fr;gap:1rem;padding:.7rem 0;border-top:1px solid var(--border);}
+.guest-information dt {font-weight:600;}
+.guest-information dd,.guest-information p {white-space:pre-line;line-height:1.65;}
+.guest-information details {border-top:1px solid var(--border);}
+.guest-information summary {padding:.8rem 0;}
+.guest-information details p {padding-bottom:1rem;}
+@media (max-width:540px){.guest-information dl>div{display:block}.guest-information dd{margin-top:.2rem}}

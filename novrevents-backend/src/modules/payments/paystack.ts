@@ -25,6 +25,7 @@ const paymentResult = z.object({
   reference: z.string(),
   amount: z.number().int(),
   currency: z.string(),
+  domain: z.enum(['live', 'test']),
   status: z.string(),
   customer: z.object({ email: z.email() }),
   paid_at: z.string().nullable(),
@@ -60,7 +61,11 @@ async function verify(reference: string) {
 export async function verifyPendingPayments(now: Date) {
   if (!env.PAYSTACK_SECRET_KEY) return
   const attempts = await prisma.paymentAttempt.findMany({
-    where: { outcome: 'OPEN', nextCheckAt: { lte: now } },
+    where: {
+      outcome: 'OPEN',
+      nextCheckAt: { lte: now },
+      registration: { paymentMode: env.PAYSTACK_MODE },
+    },
     select: { reference: true, createdAt: true, nextCheckAt: true },
     orderBy: { nextCheckAt: 'asc' },
     take: 60,
@@ -115,6 +120,8 @@ async function startCheckout(token: string) {
     if (
       event.status === 'CANCELLED' ||
       event.moderationStatus === 'REMOVED' ||
+      registration.paymentMode !== env.PAYSTACK_MODE ||
+      (registration.paymentMode === 'test' && event.visibility === 'PUBLIC') ||
       !registration.amountKobo ||
       !registration.checkoutSubaccount ||
       registration.status !== 'PENDING' ||
@@ -229,13 +236,16 @@ export const paymentRoutes: FastifyPluginAsyncZod = async (app) => {
         throw conflict('Paystack returned a different subaccount.')
       await prisma.user.update({
         where: { id: req.params.id },
-        data: { payoutSubaccount: bank.subaccount_code },
+        data:
+          env.PAYSTACK_MODE === 'test'
+            ? { payoutTestSubaccount: bank.subaccount_code }
+            : { payoutSubaccount: bank.subaccount_code },
       })
       await audit(req, {
         action: 'admin.payout.link',
         targetType: 'user',
         targetId: req.params.id,
-        metadata: { subaccount: bank.subaccount_code },
+        metadata: { subaccount: bank.subaccount_code, mode: env.PAYSTACK_MODE },
       })
       return { businessName: bank.business_name }
     },
@@ -266,10 +276,12 @@ export const paymentRoutes: FastifyPluginAsyncZod = async (app) => {
       const reference = req.params.reference
       const attempt = await prisma.paymentAttempt.findUnique({
         where: { reference },
-        select: { outcome: true },
+        select: { outcome: true, registration: { select: { paymentMode: true } } },
       })
       if (!attempt) throw notFound('Payment')
-      if (attempt.outcome !== 'OPEN') return attempt
+      if (attempt.outcome !== 'OPEN') return { outcome: attempt.outcome }
+      if (attempt.registration.paymentMode !== env.PAYSTACK_MODE)
+        throw conflict('This checkout belongs to an earlier payment environment.')
       await verify(reference)
       return prisma.paymentAttempt.findUniqueOrThrow({
         where: { reference },
@@ -317,9 +329,10 @@ export const paymentRoutes: FastifyPluginAsyncZod = async (app) => {
           const reference = message.data.reference!
           const entry = await prisma.paymentAttempt.findUnique({
             where: { reference },
-            select: { outcome: true },
+            select: { outcome: true, registration: { select: { paymentMode: true } } },
           })
-          if (entry?.outcome === 'OPEN') await verify(reference)
+          if (entry?.outcome === 'OPEN' && entry.registration.paymentMode === env.PAYSTACK_MODE)
+            await verify(reference)
         }
         return reply.code(200).send({ ok: true })
       },

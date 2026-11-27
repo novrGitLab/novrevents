@@ -197,7 +197,7 @@ export interface paths {
                         /** @enum {boolean} */
                         acceptTerms: true;
                         /** @enum {string} */
-                        policyVersion: "2026-11-27";
+                        policyVersion: "2026-11-27.2";
                     };
                 };
             };
@@ -1170,7 +1170,7 @@ export interface paths {
                         /** @enum {boolean} */
                         acceptTerms: true;
                         /** @enum {string} */
-                        policyVersion: "2026-11-27";
+                        policyVersion: "2026-11-27.2";
                     };
                 };
             };
@@ -3074,13 +3074,28 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
+                        guestInfo?: {
+                            /** @default null */
+                            doorsBeforeMinutes?: number | null;
+                            /** @default null */
+                            minimumAge?: number | null;
+                            /** @default  */
+                            accessibility?: string;
+                            /** @default  */
+                            parking?: string;
+                            /** @default [] */
+                            faqs?: {
+                                question: string;
+                                answer: string;
+                            }[];
+                        };
                         title: string;
                         summary?: string | null;
                         description?: string;
                         /** Format: uuid */
                         categoryId?: string | null;
                         /** @enum {string} */
-                        eventType?: "CONFERENCE" | "WORKSHOP" | "CTF" | "MEETUP" | "WEBINAR" | "TRAINING" | "HACKATHON" | "SUMMIT" | "PANEL" | "OTHER";
+                        eventType?: "CONFERENCE" | "WORKSHOP" | "CTF" | "MEETUP" | "WEBINAR" | "TRAINING" | "HACKATHON" | "CONCERT" | "FESTIVAL" | "EXHIBITION" | "CELEBRATION" | "SUMMIT" | "PANEL" | "OTHER";
                         /** @enum {string} */
                         mode?: "IN_PERSON" | "VIRTUAL" | "HYBRID";
                         /** Format: date-time */
@@ -3256,13 +3271,28 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
+                        guestInfo?: {
+                            /** @default null */
+                            doorsBeforeMinutes?: number | null;
+                            /** @default null */
+                            minimumAge?: number | null;
+                            /** @default  */
+                            accessibility?: string;
+                            /** @default  */
+                            parking?: string;
+                            /** @default [] */
+                            faqs?: {
+                                question: string;
+                                answer: string;
+                            }[];
+                        };
                         title?: string;
                         summary?: string | null;
                         description?: string;
                         /** Format: uuid */
                         categoryId?: string | null;
                         /** @enum {string} */
-                        eventType?: "CONFERENCE" | "WORKSHOP" | "CTF" | "MEETUP" | "WEBINAR" | "TRAINING" | "HACKATHON" | "SUMMIT" | "PANEL" | "OTHER";
+                        eventType?: "CONFERENCE" | "WORKSHOP" | "CTF" | "MEETUP" | "WEBINAR" | "TRAINING" | "HACKATHON" | "CONCERT" | "FESTIVAL" | "EXHIBITION" | "CELEBRATION" | "SUMMIT" | "PANEL" | "OTHER";
                         /** @enum {string} */
                         mode?: "IN_PERSON" | "VIRTUAL" | "HYBRID";
                         /** Format: date-time */
@@ -4115,7 +4145,7 @@ export interface paths {
                     category?: string;
                     /** @description Discovery mode. "cybersecurity" lists only events in a cybersecurity category. */
                     scope?: "cybersecurity" | "general";
-                    type?: "CONFERENCE" | "WORKSHOP" | "CTF" | "MEETUP" | "WEBINAR" | "TRAINING" | "HACKATHON" | "SUMMIT" | "PANEL" | "OTHER";
+                    type?: "CONFERENCE" | "WORKSHOP" | "CTF" | "MEETUP" | "WEBINAR" | "TRAINING" | "HACKATHON" | "CONCERT" | "FESTIVAL" | "EXHIBITION" | "CELEBRATION" | "SUMMIT" | "PANEL" | "OTHER";
                     /** @description Event format. */
                     mode?: "IN_PERSON" | "VIRTUAL" | "HYBRID";
                     price?: "free" | "paid";
@@ -11301,7 +11331,7 @@ export interface components {
             title: string;
             summary: string | null;
             /** @enum {string} */
-            eventType: "CONFERENCE" | "WORKSHOP" | "CTF" | "MEETUP" | "WEBINAR" | "TRAINING" | "HACKATHON" | "SUMMIT" | "PANEL" | "OTHER";
+            eventType: "CONFERENCE" | "WORKSHOP" | "CTF" | "MEETUP" | "WEBINAR" | "TRAINING" | "HACKATHON" | "CONCERT" | "FESTIVAL" | "EXHIBITION" | "CELEBRATION" | "SUMMIT" | "PANEL" | "OTHER";
             /** @enum {string} */
             mode: "IN_PERSON" | "VIRTUAL" | "HYBRID";
             /** @enum {string} */
@@ -11373,7 +11403,7 @@ export interface components {
             title: string;
             summary: string | null;
             /** @enum {string} */
-            eventType: "CONFERENCE" | "WORKSHOP" | "CTF" | "MEETUP" | "WEBINAR" | "TRAINING" | "HACKATHON" | "SUMMIT" | "PANEL" | "OTHER";
+            eventType: "CONFERENCE" | "WORKSHOP" | "CTF" | "MEETUP" | "WEBINAR" | "TRAINING" | "HACKATHON" | "CONCERT" | "FESTIVAL" | "EXHIBITION" | "CELEBRATION" | "SUMMIT" | "PANEL" | "OTHER";
             /** @enum {string} */
             mode: "IN_PERSON" | "VIRTUAL" | "HYBRID";
             /** @enum {string} */
@@ -11405,6 +11435,21 @@ export interface components {
                 } | null;
             };
             registration: components["schemas"]["RegistrationStateInput"];
+            guestInfo: {
+                /** @default null */
+                doorsBeforeMinutes: number | null;
+                /** @default null */
+                minimumAge: number | null;
+                /** @default  */
+                accessibility: string;
+                /** @default  */
+                parking: string;
+                /** @default [] */
+                faqs: {
+                    question: string;
+                    answer: string;
+                }[];
+            };
             description: string;
             address: string | null;
             /** @enum {string} */
@@ -11433,6 +11478,21 @@ export interface components {
             };
         };
         EventManageInput: {
+            guestInfo: {
+                /** @default null */
+                doorsBeforeMinutes: number | null;
+                /** @default null */
+                minimumAge: number | null;
+                /** @default  */
+                accessibility: string;
+                /** @default  */
+                parking: string;
+                /** @default [] */
+                faqs: {
+                    question: string;
+                    answer: string;
+                }[];
+            };
             /** Format: uuid */
             id: string;
             slug: string;
@@ -11442,7 +11502,7 @@ export interface components {
             /** Format: uuid */
             categoryId: string | null;
             /** @enum {string} */
-            eventType: "CONFERENCE" | "WORKSHOP" | "CTF" | "MEETUP" | "WEBINAR" | "TRAINING" | "HACKATHON" | "SUMMIT" | "PANEL" | "OTHER";
+            eventType: "CONFERENCE" | "WORKSHOP" | "CTF" | "MEETUP" | "WEBINAR" | "TRAINING" | "HACKATHON" | "CONCERT" | "FESTIVAL" | "EXHIBITION" | "CELEBRATION" | "SUMMIT" | "PANEL" | "OTHER";
             /** @enum {string} */
             mode: "IN_PERSON" | "VIRTUAL" | "HYBRID";
             startsAt: unknown;
@@ -11508,7 +11568,7 @@ export interface components {
             slug: string;
             title: string;
             /** @enum {string} */
-            eventType: "CONFERENCE" | "WORKSHOP" | "CTF" | "MEETUP" | "WEBINAR" | "TRAINING" | "HACKATHON" | "SUMMIT" | "PANEL" | "OTHER";
+            eventType: "CONFERENCE" | "WORKSHOP" | "CTF" | "MEETUP" | "WEBINAR" | "TRAINING" | "HACKATHON" | "CONCERT" | "FESTIVAL" | "EXHIBITION" | "CELEBRATION" | "SUMMIT" | "PANEL" | "OTHER";
             /** @enum {string} */
             mode: "IN_PERSON" | "VIRTUAL" | "HYBRID";
             startsAt: unknown;
@@ -11837,6 +11897,7 @@ export interface components {
                 onlineUrl: string | null;
             };
             amountKobo: number | null;
+            testPayment: boolean;
             paymentDueAt: unknown;
             canCancel: boolean;
             certificateCode: string | null;
@@ -12460,7 +12521,7 @@ export interface components {
             title: string;
             summary: string | null;
             /** @enum {string} */
-            eventType: "CONFERENCE" | "WORKSHOP" | "CTF" | "MEETUP" | "WEBINAR" | "TRAINING" | "HACKATHON" | "SUMMIT" | "PANEL" | "OTHER";
+            eventType: "CONFERENCE" | "WORKSHOP" | "CTF" | "MEETUP" | "WEBINAR" | "TRAINING" | "HACKATHON" | "CONCERT" | "FESTIVAL" | "EXHIBITION" | "CELEBRATION" | "SUMMIT" | "PANEL" | "OTHER";
             /** @enum {string} */
             mode: "IN_PERSON" | "VIRTUAL" | "HYBRID";
             /** @enum {string} */
@@ -12536,7 +12597,7 @@ export interface components {
             title: string;
             summary: string | null;
             /** @enum {string} */
-            eventType: "CONFERENCE" | "WORKSHOP" | "CTF" | "MEETUP" | "WEBINAR" | "TRAINING" | "HACKATHON" | "SUMMIT" | "PANEL" | "OTHER";
+            eventType: "CONFERENCE" | "WORKSHOP" | "CTF" | "MEETUP" | "WEBINAR" | "TRAINING" | "HACKATHON" | "CONCERT" | "FESTIVAL" | "EXHIBITION" | "CELEBRATION" | "SUMMIT" | "PANEL" | "OTHER";
             /** @enum {string} */
             mode: "IN_PERSON" | "VIRTUAL" | "HYBRID";
             /** @enum {string} */
@@ -12570,6 +12631,21 @@ export interface components {
                 } | null;
             };
             registration: components["schemas"]["RegistrationState"];
+            guestInfo: {
+                /** @default null */
+                doorsBeforeMinutes: number | null;
+                /** @default null */
+                minimumAge: number | null;
+                /** @default  */
+                accessibility: string;
+                /** @default  */
+                parking: string;
+                /** @default [] */
+                faqs: {
+                    question: string;
+                    answer: string;
+                }[];
+            };
             description: string;
             address: string | null;
             /** @enum {string} */
@@ -12599,6 +12675,21 @@ export interface components {
             };
         };
         EventManage: {
+            guestInfo: {
+                /** @default null */
+                doorsBeforeMinutes: number | null;
+                /** @default null */
+                minimumAge: number | null;
+                /** @default  */
+                accessibility: string;
+                /** @default  */
+                parking: string;
+                /** @default [] */
+                faqs: {
+                    question: string;
+                    answer: string;
+                }[];
+            };
             /** Format: uuid */
             id: string;
             slug: string;
@@ -12608,7 +12699,7 @@ export interface components {
             /** Format: uuid */
             categoryId: string | null;
             /** @enum {string} */
-            eventType: "CONFERENCE" | "WORKSHOP" | "CTF" | "MEETUP" | "WEBINAR" | "TRAINING" | "HACKATHON" | "SUMMIT" | "PANEL" | "OTHER";
+            eventType: "CONFERENCE" | "WORKSHOP" | "CTF" | "MEETUP" | "WEBINAR" | "TRAINING" | "HACKATHON" | "CONCERT" | "FESTIVAL" | "EXHIBITION" | "CELEBRATION" | "SUMMIT" | "PANEL" | "OTHER";
             /** @enum {string} */
             mode: "IN_PERSON" | "VIRTUAL" | "HYBRID";
             /** Format: date-time */
@@ -12681,7 +12772,7 @@ export interface components {
             slug: string;
             title: string;
             /** @enum {string} */
-            eventType: "CONFERENCE" | "WORKSHOP" | "CTF" | "MEETUP" | "WEBINAR" | "TRAINING" | "HACKATHON" | "SUMMIT" | "PANEL" | "OTHER";
+            eventType: "CONFERENCE" | "WORKSHOP" | "CTF" | "MEETUP" | "WEBINAR" | "TRAINING" | "HACKATHON" | "CONCERT" | "FESTIVAL" | "EXHIBITION" | "CELEBRATION" | "SUMMIT" | "PANEL" | "OTHER";
             /** @enum {string} */
             mode: "IN_PERSON" | "VIRTUAL" | "HYBRID";
             /** Format: date-time */
@@ -13034,6 +13125,7 @@ export interface components {
                 onlineUrl: string | null;
             };
             amountKobo: number | null;
+            testPayment: boolean;
             /** Format: date-time */
             paymentDueAt: string | null;
             canCancel: boolean;

@@ -96,12 +96,30 @@ test.describe('demo walkthrough', () => {
     await page.getByLabel('Venue name').fill('Rehearsal Hall')
     await page.getByLabel('City', { exact: true }).fill('Lagos')
     await page.getByLabel('Visibility').selectOption('UNLISTED')
+    await page.getByText('Guest information & FAQs', { exact: true }).click()
+    await page.getByLabel('Minimum age').fill('18')
+    await page.getByLabel('Accessibility information').fill('Step-free entry at the east gate.')
+    await page.getByRole('button', { name: 'Add a guest question' }).click()
+    await page.getByLabel('Question 1').fill('Where is the cloakroom?')
+    await page.getByLabel('Answer 1').fill('Inside the east entrance.')
     await page.getByRole('button', { name: 'Create draft' }).click()
     await expect(page.getByRole('heading', { name: title })).toBeVisible()
     await page.getByRole('button', { name: 'Publish' }).click()
     await expect(page.getByText('Published', { exact: true })).toBeVisible()
 
-    // Volunteer form from the event workspace.
+    const publicUrl = await page.getByRole('link', { name: 'Public page' }).getAttribute('href')
+    expect(publicUrl).toBeTruthy()
+    const guest = await browser.newPage()
+    try {
+      await guest.goto(new URL(publicUrl!, page.url()).href)
+      await expect(guest.getByText('Ages 18 and over')).toBeVisible()
+      await expect(guest.getByText('Step-free entry at the east gate.')).toBeVisible()
+      await guest.getByText('Where is the cloakroom?').click()
+      await expect(guest.getByText('Inside the east entrance.')).toBeVisible()
+    } finally {
+      await guest.close()
+    }
+
     await page
       .getByRole('navigation', { name: 'Event sections' })
       .getByRole('link', { name: 'Forms', exact: true })

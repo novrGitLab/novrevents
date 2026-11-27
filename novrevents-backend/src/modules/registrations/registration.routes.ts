@@ -70,6 +70,7 @@ const myRegistrationSchema = registrationSchema
       onlineUrl: z.string().nullable(),
     }),
     amountKobo: z.number().int().nullable(),
+    testPayment: z.boolean(),
     paymentDueAt: z.date().nullable(),
     canCancel: z.boolean(),
     certificateCode: z.string().nullable(),

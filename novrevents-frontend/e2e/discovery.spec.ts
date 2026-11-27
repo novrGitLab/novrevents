@@ -65,7 +65,7 @@ test.describe('discovery', () => {
   test('the homepage makes no featured or closing-soon claims', async ({ page }) => {
     await page.goto('/', { waitUntil: 'networkidle' })
     await expect(
-      page.getByRole('heading', { level: 1, name: /Find your\s*people\./i }),
+      page.getByRole('heading', { level: 1, name: /The art of\s*going out\./i }),
     ).toBeVisible()
     await expect(page.getByText(/featured|closing soon/i)).toHaveCount(0)
   })

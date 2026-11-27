@@ -1,3 +1,4 @@
+import { guestInformation } from './guest-information.js'
 import { z } from 'zod'
 import {
   emailField,
@@ -19,6 +20,10 @@ export const EVENT_TYPES = [
   'WEBINAR',
   'TRAINING',
   'HACKATHON',
+  'CONCERT',
+  'FESTIVAL',
+  'EXHIBITION',
+  'CELEBRATION',
   'SUMMIT',
   'PANEL',
   'OTHER',
@@ -47,6 +52,7 @@ const optionalEmail = z
   .transform((value) => (value ? value : null))
 
 const eventFields = {
+  guestInfo: guestInformation,
   title: requiredText(3, 140),
   summary: optionalText(240),
   description: z.string().trim().max(20_000),
@@ -75,7 +81,7 @@ const eventFields = {
   capacity: z.number().int().min(1).max(1_000_000).nullable(),
   registrationDeadline: isoDateTime.nullable(),
   isPaid: z.boolean(),
-  /** Free-text price information for paid events. NOVR Events does not process payments. */
+  /** Displayed admission details, including payment at the door. Online ticket amounts are set in kobo per ticket type. */
   priceInfo: optionalText(200),
   visibility: eventVisibilitySchema,
   /** Optional organisation workspace that publishes the event. */
@@ -260,6 +266,7 @@ export const publicTicketTypeSchema = z.object({
 export const eventDetailSchema = z
   .object({
     ...eventCardFields,
+    guestInfo: guestInformation,
     description: z.string(),
     address: z.string().nullable(),
     visibility: eventVisibilitySchema,
@@ -284,6 +291,7 @@ export const eventDetailSchema = z
 
 export const eventManageSchema = z
   .object({
+    guestInfo: guestInformation,
     id: z.uuid(),
     slug: z.string(),
     title: z.string(),

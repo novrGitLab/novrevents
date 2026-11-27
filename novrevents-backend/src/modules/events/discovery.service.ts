@@ -1,3 +1,4 @@
+import { presentGuestInformation } from './guest-information.js'
 import type { z } from 'zod'
 import { appUrl } from '../../config/env.js'
 import { audit } from '../../lib/audit.js'
@@ -213,6 +214,7 @@ export async function getEventPage(slug: string, viewerId: string | null, key: s
 
   return {
     ...toEventSummary(event, now),
+    guestInfo: presentGuestInformation(event.guestInfo, event.mode),
     description: event.description,
     address: event.address,
     visibility: event.visibility,

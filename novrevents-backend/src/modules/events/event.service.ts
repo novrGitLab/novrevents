@@ -1,3 +1,4 @@
+import { presentGuestInformation } from './guest-information.js'
 import type { z } from 'zod'
 import { appUrl } from '../../config/env.js'
 import { randomToken } from '../../lib/crypto.js'
@@ -66,6 +67,7 @@ export async function toManagedEvent(event: EventWithCard, role: EventRole) {
     byStatus.find((row) => row.status === status)?._count._all ?? 0
   return {
     ...event,
+    guestInfo: presentGuestInformation(event.guestInfo, event.mode),
     bannerUrl: publicFileUrl(event.bannerKey),
     logoUrl: publicFileUrl(event.logoKey),
     effectiveStatus: effectiveStatus(event),
@@ -151,6 +153,7 @@ export async function createEvent(userId: string, input: CreateInput) {
     endsAt: input.endsAt,
     timezone: input.timezone,
     venueName: input.venueName ?? null,
+    guestInfo: presentGuestInformation(input.guestInfo, input.mode ?? 'IN_PERSON'),
     address: input.address ?? null,
     city: input.city ?? null,
     region: input.region ?? null,
@@ -218,7 +221,12 @@ export async function updateEvent(userId: string, eventId: string, patch: Update
     startsAt.getTime() !== event.startsAt.getTime() || endsAt.getTime() !== event.endsAt.getTime()
 
   await prisma.$transaction(async (tx) => {
-    const updated = await tx.event.update({ where: { id: eventId }, data: patch })
+    const updated = await tx.event.update({ where: { id: eventId }, data: {
+      ...patch,
+      ...(patch.guestInfo || patch.mode === 'VIRTUAL'
+        ? { guestInfo: presentGuestInformation(patch.guestInfo ?? event.guestInfo, patch.mode ?? event.mode) }
+        : {}),
+    } })
     if (rescheduled && (updated.status === 'PUBLISHED' || updated.status === 'ONGOING')) {
       await runHooks('rescheduled', tx, updated)
     }
@@ -447,6 +455,7 @@ export async function duplicateEvent(userId: string, eventId: string) {
         endsAt: event.endsAt,
         timezone: event.timezone,
         venueName: event.venueName,
+        guestInfo: presentGuestInformation(event.guestInfo, event.mode),
         address: event.address,
         city: event.city,
         region: event.region,

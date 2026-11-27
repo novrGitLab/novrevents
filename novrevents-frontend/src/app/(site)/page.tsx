@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: { absolute: 'NovrEvents | Discover events, workshops and conferences' },
   description: 'Find conferences, workshops and cultural events. Explore the programme, reserve a place or bring your own gathering to life with NovrEvents.',
   alternates: { canonical: '/' },
-  openGraph: { images: ['/photography/opening-1440.webp'] },
+  openGraph: { images: ['/photography/highlife-1440.webp'] },
 }
 
 export default function HomePage() {
