@@ -123,7 +123,7 @@ async function startCheckout(token: string) {
       registration.paymentMode !== env.PAYSTACK_MODE ||
       (registration.paymentMode === 'test' && event.visibility === 'PUBLIC') ||
       !registration.amountKobo ||
-      !registration.checkoutSubaccount ||
+      (registration.paymentMode === 'live' && !registration.checkoutSubaccount) ||
       registration.status !== 'PENDING' ||
       registration.paidReference ||
       !registration.paymentDueAt ||
@@ -153,7 +153,7 @@ async function startCheckout(token: string) {
       email: order.email,
       amount: order.amount,
       currency: 'NGN',
-      subaccount: order.subaccount,
+      ...(order.subaccount ? { subaccount: order.subaccount } : {}),
       callback_url: appUrl + '/checkout/return',
     }),
   )

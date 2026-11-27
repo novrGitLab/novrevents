@@ -150,7 +150,7 @@ export async function createRegistration(
     env.PAYSTACK_MODE === 'test' ? payout?.payoutTestSubaccount : payout?.payoutSubaccount
   if (amount > 0 && env.PAYSTACK_MODE === 'test' && input.event.visibility === 'PUBLIC')
     throw conflict('Online ticket sales are not open for this event.', 'CHECKOUT_UNAVAILABLE')
-  if (amount > 0 && (!env.PAYSTACK_SECRET_KEY || !account))
+  if (amount > 0 && (!env.PAYSTACK_SECRET_KEY || (env.PAYSTACK_MODE === 'live' && !account)))
     throw conflict('Online checkout is unavailable for this ticket.', 'CHECKOUT_UNAVAILABLE')
   const registration = await tx.registration.create({
     data: {

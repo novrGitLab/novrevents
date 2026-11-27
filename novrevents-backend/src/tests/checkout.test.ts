@@ -133,3 +133,15 @@ it('verifies a sandbox payment once, releases its hold and never issues admissio
     env.PAYSTACK_MODE = 'live'
   }
 })
+
+it('accepts an unsplit test checkout without an organizer payout account', async () => {
+  env.PAYSTACK_MODE = 'test'
+  try {
+    await prisma.user.update({ where: { id: organizer.id }, data: { payoutTestSubaccount: null } })
+    const { reg } = await held(false)
+    expect(reg.paymentMode).toBe('test')
+    expect(reg.checkoutSubaccount).toBeNull()
+  } finally {
+    env.PAYSTACK_MODE = 'live'
+  }
+})
