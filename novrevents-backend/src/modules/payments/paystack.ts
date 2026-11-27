@@ -53,6 +53,55 @@ async function verify(reference: string) {
     await provider('/transaction/verify/' + encodeURIComponent(reference)),
   )
   await recordCharge(reference, data)
+  return data.status
+}
+
+/** Recover payments when the buyer closes checkout or the merchant's webhook serves another app. */
+export async function verifyPendingPayments(now: Date) {
+  if (!env.PAYSTACK_SECRET_KEY) return
+  const attempts = await prisma.paymentAttempt.findMany({
+    where: { outcome: 'OPEN', nextCheckAt: { lte: now } },
+    select: { reference: true, createdAt: true, nextCheckAt: true },
+    orderBy: { nextCheckAt: 'asc' },
+    take: 60,
+  })
+  for (let i = 0; i < attempts.length; i += 6) {
+    await Promise.all(
+      attempts.slice(i, i + 6).map(async (attempt) => {
+        const age = now.getTime() - attempt.createdAt.getTime()
+        const overdue = age >= 7 * 86400000
+        const nextCheckAt = new Date(now.getTime() + (age < 3600000 ? 300000 : 3600000))
+        const claimed = await prisma.paymentAttempt.updateMany({
+          where: {
+            reference: attempt.reference,
+            outcome: 'OPEN',
+            nextCheckAt: attempt.nextCheckAt,
+          },
+          data: { nextCheckAt },
+        })
+        if (!claimed.count) return
+        let status: string
+        try {
+          status = await verify(attempt.reference)
+        } catch {
+          if (!overdue) return
+          status = 'unknown'
+        }
+        if (status === 'success') return
+        const outcome =
+          status === 'failed' || (overdue && status === 'abandoned')
+            ? 'CLOSED'
+            : status === 'reversed' || overdue
+              ? 'RECONCILE'
+              : undefined
+        if (outcome)
+          await prisma.paymentAttempt.updateMany({
+            where: { reference: attempt.reference, outcome: 'OPEN' },
+            data: { outcome },
+          })
+      }),
+    )
+  }
 }
 async function startCheckout(token: string) {
   const id = await registrationIdForToken(token)
@@ -91,18 +140,16 @@ async function startCheckout(token: string) {
     }
   })
   if (order.url) return { reference: order.reference, url: order.url }
-  const data = z
-    .object({ authorization_url: z.url(), reference: referenceSchema })
-    .parse(
-      await provider('/transaction/initialize', {
-        reference: order.reference,
-        email: order.email,
-        amount: order.amount,
-        currency: 'NGN',
-        subaccount: order.subaccount,
-        callback_url: appUrl + '/checkout/return',
-      }),
-    )
+  const data = z.object({ authorization_url: z.url(), reference: referenceSchema }).parse(
+    await provider('/transaction/initialize', {
+      reference: order.reference,
+      email: order.email,
+      amount: order.amount,
+      currency: 'NGN',
+      subaccount: order.subaccount,
+      callback_url: appUrl + '/checkout/return',
+    }),
+  )
   if (
     data.reference !== order.reference ||
     new URL(data.authorization_url).origin !== 'https://checkout.paystack.com'

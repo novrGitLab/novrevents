@@ -35,7 +35,7 @@ test.describe('public site', () => {
 
 test.describe('accounts', () => {
   test('register, verify, sign out and sign back in', async ({ page }) => {
-    const { email } = await registerViaUi(page)
+    const { email, username } = await registerViaUi(page)
     await verifyViaEmail(page, email)
     await page.getByRole('button', { name: 'Skip for now' }).click()
     await expect(page).toHaveURL(/\/dashboard/)
@@ -48,8 +48,9 @@ test.describe('accounts', () => {
     await page.getByLabel('Email').fill(email)
     await page.getByLabel('Password').fill('wrong-password-123')
     await page.getByRole('button', { name: 'Sign in' }).click()
-    await expect(page.getByText('Incorrect email or password.')).toBeVisible()
+    await expect(page.getByText('Incorrect sign-in details.')).toBeVisible()
 
+    await page.getByLabel('Email or username').fill(username)
     await page.getByLabel('Password').fill(PASSWORD)
     await page.getByRole('button', { name: 'Sign in' }).click()
     await expect(page).toHaveURL(/\/dashboard/)

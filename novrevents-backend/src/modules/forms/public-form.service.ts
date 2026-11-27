@@ -286,7 +286,7 @@ function resultFor(
           ? 'Your place is held. Complete payment to receive your ticket.'
           : confirmed
             ? (form.confirmationMessage ??
-              'You are registered. Your ticket has been emailed to you.')
+              'Your registration is confirmed. Open your ticket below.')
             : 'Your registration has been received and is awaiting review by the organiser.',
       registration: {
         paymentDue: !confirmed && Boolean(registration.paymentDueAt),

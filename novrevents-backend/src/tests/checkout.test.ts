@@ -1,5 +1,6 @@
+import { verifyPendingPayments } from '../modules/payments/paystack.js'
 import type { FastifyInstance } from 'fastify'
-import { afterAll, beforeAll, expect, it } from 'vitest'
+import { afterAll, beforeAll, expect, it, vi } from 'vitest'
 import { env } from '../config/env.js'
 import { prisma } from '../lib/db.js'
 import {
@@ -85,4 +86,21 @@ it('retains a mismatched payment for reconciliation and releases an expired seat
   expect(await prisma.event.findUnique({ where: { id: event.id } })).toMatchObject({
     registeredCount: 0,
   })
+})
+
+it('recovers a paid checkout without a webhook or returning browser', async () => {
+  const { reg, ref, data } = await held(false)
+  const fake = vi.spyOn(globalThis, 'fetch').mockImplementation(async (url) => {
+    if (String(url).endsWith('/' + ref)) return Response.json({ status: true, data })
+    throw new Error('No fixture for this reference')
+  })
+  try {
+    await verifyPendingPayments(new Date(Date.now() + 500))
+    expect(await prisma.paymentAttempt.findUnique({ where: { reference: ref } })).toMatchObject({
+      outcome: 'PAID',
+    })
+    expect(await prisma.ticket.count({ where: { registrationId: reg.id } })).toBe(1)
+  } finally {
+    fake.mockRestore()
+  }
 })

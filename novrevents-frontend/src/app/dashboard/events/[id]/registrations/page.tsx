@@ -18,11 +18,12 @@ import { api, toQuery, unwrap } from '@/lib/api/client'
 import { errorMessage } from '@/lib/api/errors'
 import { keys } from '@/lib/api/keys'
 import { enumLabel, formatDateTime, formatNumber } from '@/lib/format'
-import { emailDeliveryEnabled } from '@/lib/site'
+import { useAuthProviders } from '@/lib/auth-providers'
 
 type Status = 'PENDING' | 'CONFIRMED' | 'DECLINED' | 'CANCELLED'
 
 export default function RegistrationsPage() {
+  const emailDeliveryEnabled = useAuthProviders().data?.emailDelivery === true
   const { event } = useManagedEvent()
   const queryClient = useQueryClient()
   const { confirm, dialog } = useConfirm()

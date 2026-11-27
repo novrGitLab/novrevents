@@ -61,3 +61,46 @@ test.describe('organiser attendee drawer', () => {
     })
   })
 })
+
+test('publishes a flyer from five layouts with a printable page and ticket destination', async ({ page, browser }) => {
+  await signIn(page)
+  const event = await page.request.get(`/api/v1/public/events/${SUMMIT_SLUG}`)
+  test.skip(!event.ok(), 'The seeded summit is required for the flyer walkthrough.')
+  const { id } = await event.json()
+  await page.goto(`/dashboard/events/${id}/flyer`, { waitUntil: 'networkidle' })
+  await page.getByRole('button', { name: 'Essential only' }).click()
+  const template = page.getByLabel('Template', { exact: true })
+  const photography = page.getByLabel('Photography')
+  const shared = page.getByLabel('Enable public flyer link')
+  const original = { template: await template.inputValue(), photo: await photography.inputValue(), shared: await shared.isChecked() }
+  const flyer = page.getByRole('article', { name: 'Event flyer' })
+  const guest = await browser.newContext()
+  try {
+    for (const style of ['marquee', 'programme', 'invitation', 'afterhours', 'studio']) {
+      await template.selectOption(style)
+      await expect(flyer).toHaveClass(new RegExp('flyer-' + style))
+    }
+    await photography.selectOption('cyber')
+    await shared.check()
+    await page.getByRole('button', { name: 'Save design' }).click()
+    await expect(page.getByRole('status').filter({ hasText: 'Flyer saved.' })).toBeVisible()
+    const poster = await guest.newPage()
+    await poster.goto(`/events/${SUMMIT_SLUG}/flyer`, { waitUntil: 'networkidle' })
+    const publicFlyer = poster.getByRole('article', { name: 'Event flyer' })
+    await expect(publicFlyer).toHaveClass(/flyer-studio/)
+    await expect(publicFlyer.getByRole('img', { name: 'QR code linking to event registration' })).toHaveJSProperty('complete', true)
+    const pdf = await poster.pdf({ printBackground: true, preferCSSPageSize: true })
+    expect(pdf.toString('ascii', 0, 5)).toBe('%PDF-')
+    expect(pdf.toString('latin1').match(/\/Type\s*\/Page\b/g)).toHaveLength(1)
+    await publicFlyer.getByRole('link', { name: /registration/i }).click()
+    await expect(poster).toHaveURL(/\/f\//)
+    await expect(poster.getByRole('heading', { name: 'Register for the Summit' })).toBeVisible()
+  } finally {
+    await guest.close()
+    await template.selectOption(original.template)
+    await photography.selectOption(original.photo)
+    await shared.setChecked(original.shared)
+    await page.getByRole('button', { name: 'Save design' }).click()
+    await expect(page.getByRole('status').filter({ hasText: 'Flyer saved.' })).toBeVisible()
+  }
+})

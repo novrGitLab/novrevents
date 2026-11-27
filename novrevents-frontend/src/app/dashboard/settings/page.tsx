@@ -16,7 +16,7 @@ import { api, unwrap } from '@/lib/api/client'
 import { errorMessage } from '@/lib/api/errors'
 import { keys } from '@/lib/api/keys'
 import { formatDateTime, relativeTime } from '@/lib/format'
-import { emailDeliveryEnabled } from '@/lib/site'
+import { useAuthProviders } from '@/lib/auth-providers'
 
 const SECTIONS = [
   { id: 'email', label: 'Email address' },
@@ -84,6 +84,7 @@ export default function SettingsPage() {
 }
 
 function EmailCard() {
+  const emailDeliveryEnabled = useAuthProviders().data?.emailDelivery === true
   const { user } = useSession()
   const queryClient = useQueryClient()
   const [email, setEmail] = React.useState('')

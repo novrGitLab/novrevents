@@ -18,9 +18,10 @@ import { errorMessage } from '@/lib/api/errors'
 import { keys } from '@/lib/api/keys'
 import { cn } from '@/lib/utils'
 import { formatDate, relativeTime } from '@/lib/format'
-import { emailDeliveryEnabled } from '@/lib/site'
+import { useAuthProviders } from '@/lib/auth-providers'
 
 export default function AdminUsersPage() {
+  const emailDeliveryEnabled = useAuthProviders().data?.emailDelivery === true
   const { user: me } = useSession()
   const queryClient = useQueryClient()
   const { confirm, dialog } = useConfirm()

@@ -65,6 +65,14 @@ model User {
   @@map("users")
 }
 
+model AdminAccessInvitation {
+  email     String   @id
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  expiresAt DateTime @map("expires_at") @db.Timestamptz(3)
+
+  @@map("admin_access_invitations")
+}
+
 model Session {
   id         String    @id @default(uuid(7)) @db.Uuid
   userId     String    @map("user_id") @db.Uuid
@@ -820,10 +828,12 @@ model PaymentAttempt {
   registrationId String @map("registration_id") @db.Uuid
   registration Registration @relation(fields: [registrationId], references: [id], onDelete: Restrict)
   checkoutUrl String? @map("checkout_url")
+  nextCheckAt DateTime @default(now()) @map("next_check_at") @db.Timestamptz(3)
   outcome String @default("OPEN")
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   @@index([registrationId, createdAt])
   @@index([outcome])
+  @@index([outcome, nextCheckAt])
   @@map("payment_attempts")
 }
 

@@ -73,10 +73,11 @@ export const registerBody = z.object({
 
 export const resendByEmailBody = z.object({ email: emailField })
 
-export const loginBody = z.object({
-  email: emailField,
-  password: z.string().min(1).max(200),
-})
+const loginPassword = z.string().min(1).max(200)
+export const loginBody = z.union([
+  z.object({ identifier: z.union([emailField, usernameField]), password: loginPassword }).strict(),
+  z.object({ email: emailField, password: loginPassword }),
+])
 
 export const tokenBody = z.object({ token: z.string().min(20).max(200) })
 

@@ -63,7 +63,7 @@ test.describe('personal dashboard', () => {
     await page.goto('/dashboard/profile', { waitUntil: 'networkidle' })
     await expect(page.getByRole('heading', { name: 'Public preview' })).toBeVisible()
     await expect(page.getByText('This is what visitors see on your profile.')).toBeVisible()
-    await expect(page.getByRole('link', { name: /Open public profile/ })).toHaveAttribute(
+    await expect(page.getByRole('link', { name: /View public profile/ })).toHaveAttribute(
       'href',
       /\/u\/tunde-bakare/,
     )

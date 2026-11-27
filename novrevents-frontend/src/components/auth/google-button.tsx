@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useAuthProviders } from '@/lib/auth-providers'
 import { Button } from '@/components/ui/button'
 import { api, ensureCsrfToken, unwrap } from '@/lib/api/client'
 import { errorMessage } from '@/lib/api/errors'
@@ -11,14 +11,10 @@ export function GoogleButton({
   mode,
   consent = false,
 }: {
-  mode: 'login' | 'register' | 'link'
+  mode: 'login' | 'register' | 'link' | 'admin'
   consent?: boolean
 }) {
-  const providers = useQuery({
-    queryKey: ['auth', 'providers'],
-    queryFn: () => unwrap(api.GET('/api/v1/auth/providers')),
-    staleTime: 300000,
-  })
+  const providers = useAuthProviders()
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   if (!providers.data?.google) return null

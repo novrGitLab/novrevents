@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/
 import { useSession } from '@/hooks/use-session'
 import { api, ensureCsrfToken, unwrap } from '@/lib/api/client'
 import { errorMessage } from '@/lib/api/errors'
-import { emailDeliveryEnabled } from '@/lib/site'
+import { useAuthProviders } from '@/lib/auth-providers'
 
 export default function CheckEmailPage() {
   return (
@@ -20,6 +20,7 @@ export default function CheckEmailPage() {
 }
 
 function CheckEmail() {
+  const emailDeliveryEnabled = useAuthProviders().data?.emailDelivery === true
   const param = useSearchParams().get('email')?.trim() ?? ''
   const { user } = useSession()
   const email = param || user?.email || ''
@@ -38,7 +39,7 @@ function CheckEmail() {
         tone: 'success',
         text: emailDeliveryEnabled
           ? 'If this address still needs verifying, a new link is on its way. Check your inbox and spam folder.'
-          : 'Request recorded. Verification emails are not delivered yet, so no message will arrive.',
+          : 'Request recorded. Email verification is unavailable, so no message will arrive.',
       })
     } catch (error) {
       setNotice({ tone: 'error', text: errorMessage(error) })
@@ -53,22 +54,21 @@ function CheckEmail() {
         <h1 className="text-headline-lg">Check your email</h1>
         <CardDescription className="text-body-lg mt-2">
           {!emailDeliveryEnabled ? (
-            'Your account is created. Verifying your email address unlocks publishing events and forms and sending messages.'
+            <>{email && <span className="block font-medium">{email}</span>}Your account is ready. Verification is required to publish events and forms.</>
           ) : email ? (
             <>
-              We sent a verification link to <span className="text-foreground font-medium">{email}</span>.
+              A verification link was requested for <span className="text-foreground font-medium">{email}</span>.
               Open it to activate your account.
             </>
           ) : (
-            'We sent you a verification link. Open it to activate your account.'
+            'Open the verification link in your inbox to activate your account.'
           )}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4 px-0">
         {!emailDeliveryEnabled && (
-          <Notice tone="warning" title="Verification emails are not delivered yet">
-            Email delivery is not switched on for NOVR Events yet, so the verification link cannot reach your
-            inbox. You can still sign in, browse events and register for them.
+          <Notice tone="warning" title="Email verification is unavailable">
+            You can sign in, browse events and reserve tickets. Publishing requires a verified address.
           </Notice>
         )}
         {notice && <Notice tone={notice.tone === 'success' ? 'success' : 'error'}>{notice.text}</Notice>}

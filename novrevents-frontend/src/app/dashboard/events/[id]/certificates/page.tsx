@@ -14,7 +14,7 @@ import { Input, Textarea } from '@/components/ui/input'
 import { api, unwrap, type Schema } from '@/lib/api/client'
 import { errorMessage } from '@/lib/api/errors'
 import { keys } from '@/lib/api/keys'
-import { emailDeliveryEnabled } from '@/lib/site'
+import { useAuthProviders } from '@/lib/auth-providers'
 import { formatDate } from '@/lib/format'
 
 type Template = Schema<'CertificateTemplate'>
@@ -158,6 +158,7 @@ function TemplateEditor({ eventId, template }: { eventId: string; template: Temp
 }
 
 function Issued({ eventId, draft }: { eventId: string; draft: boolean }) {
+  const emailDeliveryEnabled = useAuthProviders().data?.emailDelivery === true
   const queryClient = useQueryClient()
   const { confirm, dialog } = useConfirm()
   const [sendEmail, setSendEmail] = React.useState(true)

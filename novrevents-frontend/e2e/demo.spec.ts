@@ -15,6 +15,7 @@ async function signIn(browser: Browser, email: string) {
   const context = await browser.newContext()
   const page = await context.newPage()
   await page.goto('/login', { waitUntil: 'networkidle' })
+  await page.getByRole('button', { name: 'Essential only' }).click()
   await page.getByLabel('Email').fill(email)
   await page.getByLabel('Password').fill(PASSWORD)
   await page.getByRole('button', { name: 'Sign in' }).click()
@@ -34,8 +35,7 @@ test.describe('demo walkthrough', () => {
   }) => {
     test.setTimeout(120_000)
     // Discover → event page → registration form, as a signed-out guest.
-    await page.goto('/', { waitUntil: 'networkidle' })
-    await page.getByRole('link', { name: 'Cybernovr Security Summit 2026' }).first().click()
+    await page.goto('/events/cybernovr-security-summit-2026', { waitUntil: 'networkidle' })
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Cybernovr Security Summit 2026')
     await page.getByRole('link', { name: 'Register' }).click()
     await expect(page.getByRole('heading', { name: 'Register for the Summit' })).toBeVisible()
@@ -45,7 +45,7 @@ test.describe('demo walkthrough', () => {
     await page.getByLabel('Email address').fill(email)
     await page.getByLabel('Which best describes your role?').selectOption({ label: 'SOC analyst' })
     await page.getByRole('button', { name: 'Register' }).click()
-    await page.getByRole('link', { name: 'View my ticket' }).click()
+    await page.getByRole('link', { name: 'View ticket', exact: true }).click()
 
     // The ticket page shows the real QR image and offers the PDF.
     await expect(page.getByRole('img', { name: /QR code for ticket/ })).toBeVisible({ timeout: 45_000 })

@@ -87,6 +87,7 @@ test.describe('expired verification links', () => {
     await page.getByLabel('Email').fill('nobody-at-all@example.test')
     await page.getByRole('button', { name: 'Send a new verification link' }).click()
     // The same reply whether or not the address has an unverified account.
-    await expect(page.getByRole('status').filter({ hasText: 'Check your inbox' })).toBeVisible()
+    const settings = await (await page.request.get('/api/v1/auth/providers')).json()
+    await expect(page.getByRole('status').filter({ hasText: settings.emailDelivery ? 'Check your inbox' : 'Request recorded' })).toBeVisible()
   })
 })

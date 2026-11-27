@@ -8,6 +8,12 @@ import type { REGISTRATION_REASONS } from './event.schemas.js'
 
 /** Relations needed to render an event card or page. */
 export const eventCardInclude = {
+  ticketTypes: {
+    where: { isActive: true, priceKobo: { gt: 0 } },
+    select: { priceKobo: true },
+    orderBy: { priceKobo: 'asc' },
+    take: 1,
+  },
   category: { select: { slug: true, name: true } },
   owner: {
     select: {
@@ -144,7 +150,7 @@ export function toEventSummary(event: EventWithCard, now: Date = new Date()) {
     bannerUrl: publicFileUrl(event.bannerKey),
     logoUrl: publicFileUrl(event.logoKey),
     accentColor: event.accentColor,
-    isPaid: event.isPaid,
+    isPaid: event.isPaid || event.ticketTypes.length > 0,
     priceInfo: event.priceInfo,
     category: event.category,
     organizer: organizerOf(event),

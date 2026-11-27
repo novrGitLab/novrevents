@@ -14,7 +14,7 @@ import { keys } from '@/lib/api/keys'
 import type { FieldError, FormDefinition } from '@/lib/form-engine'
 import { formatEventRange } from '@/lib/format'
 import { uuid } from '@/lib/utils'
-import { emailDeliveryEnabled } from '@/lib/site'
+import { useAuthProviders } from '@/lib/auth-providers'
 
 type Result = Schema<'SubmissionResult'>
 
@@ -229,6 +229,7 @@ export default function PublicFormPage() {
 }
 
 function SubmissionDone({ result, calendarHref }: { result: Result; calendarHref: string | null }) {
+  const emailDeliveryEnabled = useAuthProviders().data?.emailDelivery === true
   return (
     <div className="space-y-4 text-center" role="status">
       <CheckCircle2 className="text-success mx-auto size-12" aria-hidden />
@@ -238,7 +239,7 @@ function SubmissionDone({ result, calendarHref }: { result: Result; calendarHref
           {result.registration.status === 'CONFIRMED' && (
             <p className="text-muted-foreground text-sm">
               {emailDeliveryEnabled
-                ? 'We’ve emailed your ticket. You can also open it now.'
+                ? 'Your ticket is ready. Open it here or check your inbox.'
                 : 'Open your ticket now and keep the link: it is how you return to this registration.'}
             </p>
           )}

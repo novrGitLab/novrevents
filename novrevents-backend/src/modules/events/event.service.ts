@@ -470,6 +470,7 @@ export async function duplicateEvent(userId: string, eventId: string) {
             : [
                 {
                   name: 'General Admission',
+                  priceKobo: 0,
                   description: null,
                   capacity: null,
                   sortOrder: 0,
@@ -478,6 +479,7 @@ export async function duplicateEvent(userId: string, eventId: string) {
               ]
           ).map((type) => ({
             name: type.name,
+            priceKobo: type.priceKobo,
             description: type.description,
             capacity: type.capacity,
             sortOrder: type.sortOrder,

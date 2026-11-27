@@ -17,7 +17,7 @@ import { api, unwrap, type Schema } from '@/lib/api/client'
 import { errorMessage } from '@/lib/api/errors'
 import { keys } from '@/lib/api/keys'
 import { enumLabel, formatDateTime, fromLocalInput } from '@/lib/format'
-import { emailDeliveryEnabled } from '@/lib/site'
+import { useAuthProviders } from '@/lib/auth-providers'
 
 type Campaign = Schema<'Campaign'>
 type CampaignType = 'ANNOUNCEMENT' | 'UPDATE' | 'REMINDER' | 'SPEAKER_INVITATION' | 'VOLUNTEER_INVITATION'
@@ -40,6 +40,7 @@ const STATUS_VARIANT = {
 } as const
 
 export default function CommunicationsPage() {
+  const emailDeliveryEnabled = useAuthProviders().data?.emailDelivery === true
   const { event } = useManagedEvent()
   const live = event.status === 'PUBLISHED' || event.status === 'ONGOING' || event.status === 'COMPLETED'
   return (

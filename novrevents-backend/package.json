@@ -46,7 +46,8 @@
     "fastify": "^5.12.8",
     "fastify-type-provider-zod": "^7.0.0",
     "file-type": "^22.3.0",
-    "jose": "^6.2.18",
+    "nodemailer": "^10.6.1",
+    "openid-client": "^6.9.1",
     "pdfkit": "^0.20.2",
     "pg": "^8.23.1",
     "prisma": "^7.10.1",
@@ -57,6 +58,7 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/node": "^24.19.2",
+    "@types/nodemailer": "^8.0.2",
     "@types/pdfkit": "^0.17.7",
     "@types/pg": "^8.23.1",
     "@types/qrcode": "^1.5.6",

@@ -55,7 +55,8 @@ const schema = z
     S3_SECRET_ACCESS_KEY: z.string().optional(),
     S3_FORCE_PATH_STYLE: flag(true),
 
-    EMAIL_DRIVER: z.enum(['log', 'brevo']).default('log'),
+    GMAIL_APP_PASSWORD: z.string().length(16).optional(),
+    EMAIL_DRIVER: z.enum(['log', 'brevo', 'gmail']).default('log'),
     BREVO_API_KEY: z.string().optional(),
     BREVO_WEBHOOK_TOKEN: z.string().optional(),
     EMAIL_FROM_ADDRESS: z.email().default('events@example.com'),
@@ -78,6 +79,16 @@ const schema = z
           })
         }
       }
+    }
+    if (
+      value.EMAIL_DRIVER === 'gmail' &&
+      (!value.GMAIL_APP_PASSWORD || !value.EMAIL_FROM_ADDRESS.toLowerCase().endsWith('@gmail.com'))
+    ) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['EMAIL_DRIVER'],
+        message: 'Gmail delivery requires a Gmail sender address and its app password.',
+      })
     }
     if (value.EMAIL_DRIVER === 'brevo' && !value.BREVO_API_KEY) {
       ctx.addIssue({

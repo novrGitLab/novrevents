@@ -47,6 +47,12 @@ const nextConfig: NextConfig = {
   output: 'standalone',
   async redirects() {
     return [
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'novrevents\\.vercel\\.app' }],
+        destination: 'https://event.cybernovr.com/:path*',
+        permanent: true,
+      },
       { source: '/login', destination: '/auth/login', permanent: true },
       { source: '/register', destination: '/auth/register', permanent: true },
       { source: '/check-email', destination: '/auth/check-email', permanent: true },

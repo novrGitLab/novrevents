@@ -18,7 +18,7 @@ import { errorMessage } from '@/lib/api/errors'
 import { safeNextPath } from '@/lib/utils'
 
 const schema = z.object({
-  email: z.email('Enter a valid email address.'),
+  identifier: z.string().trim().min(1, 'Enter your email or username.').max(254),
   password: z.string().min(1, 'Enter your password.'),
 })
 type Values = z.infer<typeof schema>
@@ -38,7 +38,7 @@ function LoginForm() {
   const next = safeNextPath(searchParams.get('next'))
   const applySession = useApplySession()
   const [error, setError] = React.useState<string | null>(null)
-  const form = useForm<Values>({ resolver: zodResolver(schema), defaultValues: { email: '', password: '' } })
+  const form = useForm<Values>({ resolver: zodResolver(schema), defaultValues: { identifier: '', password: '' } })
   const { errors, isSubmitting } = form.formState
 
   const onSubmit = form.handleSubmit(async (values) => {
@@ -72,15 +72,15 @@ function LoginForm() {
             Google in Settings.
           </Notice>
         )}
-        {!admin && <GoogleButton mode="login" />}
+        <GoogleButton mode={admin ? 'admin' : 'login'} />
         <form onSubmit={onSubmit} noValidate className="space-y-4">
           {error && <Notice tone="error">{error}</Notice>}
-          <Field label="Email" htmlFor="email" error={errors.email?.message}>
+          <Field label="Email or username" htmlFor="identifier" error={errors.identifier?.message}>
             <Input
-              {...fieldAria('email', errors.email?.message)}
-              type="email"
-              autoComplete="email"
-              {...form.register('email')}
+              {...fieldAria('identifier', errors.identifier?.message)}
+              type="text"
+              autoComplete="username"
+              {...form.register('identifier')}
             />
           </Field>
           <Field label="Password" htmlFor="password" error={errors.password?.message}>

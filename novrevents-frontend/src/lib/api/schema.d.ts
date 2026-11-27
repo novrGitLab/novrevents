@@ -257,6 +257,9 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
+                        identifier: string;
+                        password: string;
+                    } | {
                         email: string;
                         password: string;
                     };
@@ -1102,6 +1105,7 @@ export interface paths {
                     content: {
                         "application/json": {
                             google: boolean;
+                            emailDelivery: boolean;
                         };
                     };
                 };
@@ -1154,6 +1158,9 @@ export interface paths {
                     "application/json": {
                         /** @enum {string} */
                         mode: "login";
+                    } | {
+                        /** @enum {string} */
+                        mode: "admin";
                     } | {
                         /** @enum {string} */
                         mode: "link";
@@ -7730,11 +7737,9 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
-                        /** @default 0 */
                         priceKobo?: number;
                         name?: string;
                         description?: string | null;
-                        /** @default null */
                         capacity?: number | null;
                         isActive?: boolean;
                         sortOrder?: number;
@@ -11412,6 +11417,7 @@ export interface components {
             speakers: components["schemas"]["SpeakerInput"][];
             sessions: components["schemas"]["AgendaSessionInput"][];
             ticketTypes: {
+                priceKobo: number;
                 /** Format: uuid */
                 id: string;
                 name: string;
@@ -12577,6 +12583,7 @@ export interface components {
             speakers: components["schemas"]["Speaker"][];
             sessions: components["schemas"]["AgendaSession"][];
             ticketTypes: {
+                priceKobo: number;
                 /** Format: uuid */
                 id: string;
                 name: string;

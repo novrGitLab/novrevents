@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import type { Schema } from '@/lib/api/client'
 import { formatDateTime } from '@/lib/format'
-import { emailDeliveryEnabled } from '@/lib/site'
+import { useAuthProviders } from '@/lib/auth-providers'
 
 export type MyRegistration = Schema<'MyRegistration'>
 
@@ -37,6 +37,7 @@ export function TicketView({
   onCancel?: () => void
   cancelling?: boolean
 }) {
+  const emailDeliveryEnabled = useAuthProviders().data?.emailDelivery === true
   const { event, ticket } = registration
   const payable =
     registration.status === 'PENDING' && !!registration.amountKobo && !!registration.paymentDueAt

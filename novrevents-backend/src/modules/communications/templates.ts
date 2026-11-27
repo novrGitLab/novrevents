@@ -22,8 +22,6 @@ const eventFacts = (event: EventEmailInfo): EmailBlock => ({
 
 const greeting = (name?: string | null) => (name ? `Hi ${name},` : 'Hello,')
 
-// ─── Account ─────────────────────────────────────────────────────────────────
-
 export function verifyEmailContent(input: { name: string; url: string }): EmailContent {
   return {
     subject: 'Verify your email address',
@@ -31,7 +29,7 @@ export function verifyEmailContent(input: { name: string; url: string }): EmailC
     blocks: [
       {
         kind: 'text',
-        text: `${greeting(input.name)}\nConfirm this address to finish setting up your NOVR Events account.`,
+        text: `${greeting(input.name)}\nConfirm this address to finish setting up your NovrEvents account.`,
       },
       { kind: 'button', label: 'Verify email address', url: input.url },
       {
@@ -39,7 +37,7 @@ export function verifyEmailContent(input: { name: string; url: string }): EmailC
         text: 'This link expires in 24 hours. If you did not create an account, you can ignore this message.',
       },
     ],
-    reason: 'You are receiving this because this address was used to create a NOVR Events account.',
+    reason: 'You are receiving this because this address was used to create a NovrEvents account.',
   }
 }
 
@@ -50,7 +48,7 @@ export function passwordResetContent(input: { name: string; url: string }): Emai
     blocks: [
       {
         kind: 'text',
-        text: `${greeting(input.name)}\nWe received a request to reset the password for your NOVR Events account.`,
+        text: `${greeting(input.name)}\nUse the link below to set a new password for your NovrEvents account.`,
       },
       { kind: 'button', label: 'Choose a new password', url: input.url },
       {
@@ -77,11 +75,9 @@ export function accountNoticeContent(input: {
         text: 'If this was not you, reset your password immediately and review your active sessions.',
       },
     ],
-    reason: 'You are receiving this security notice because it concerns your NOVR Events account.',
+    reason: 'You are receiving this security notice because it concerns your NovrEvents account.',
   }
 }
-
-// ─── Forms and registration ──────────────────────────────────────────────────
 
 /**
  * Neutral acknowledgement. It is sent for qualifying and excluded submissions alike, so it states
@@ -93,7 +89,7 @@ export function submissionReceiptContent(input: {
   accent?: string | null
 }): EmailContent {
   return {
-    subject: `We received your response: ${input.formTitle}`,
+    subject: `Response received: ${input.formTitle}`,
     heading: 'Your response was received',
     accent: input.accent,
     blocks: [
@@ -106,7 +102,7 @@ export function submissionReceiptContent(input: {
         text: 'This message confirms receipt only. The organiser will contact you if anything further is needed.',
       },
     ],
-    reason: 'You are receiving this because this address was entered on a NOVR Events form.',
+    reason: 'You are receiving this because this address was entered on a NovrEvents form.',
   }
 }
 
@@ -155,7 +151,7 @@ export function registrationPendingContent(input: {
     blocks: [
       {
         kind: 'text',
-        text: `${greeting(input.attendeeName)}\nWe received your registration for ${input.event.title}. The organiser reviews registrations for this event, so it is not confirmed yet.`,
+        text: `${greeting(input.attendeeName)}\nYour registration for ${input.event.title} is with the organiser for approval.`,
       },
       eventFacts(input.event),
       { kind: 'button', label: 'View registration status', url: input.manageUrl },
@@ -211,8 +207,6 @@ export function registrationCancelledContent(input: {
     reason: `You are receiving this because you were registered for ${input.event.title}.`,
   }
 }
-
-// ─── Event communications ────────────────────────────────────────────────────
 
 export function eventReminderContent(input: {
   event: EventEmailInfo
@@ -315,7 +309,7 @@ export function invitationContent(input: {
         text: `The button opens “${input.formTitle}”. You do not need an account to respond.`,
       },
     ],
-    reason: `${input.event.organizerName} invited this address to take part in ${input.event.title} as a ${input.role}. If you would rather not hear from event organisers on NOVR Events, use the link below.`,
+    reason: `${input.event.organizerName} invited this address to take part in ${input.event.title} as a ${input.role}. If you would rather not hear from event organisers on NovrEvents, use the link below.`,
   }
 }
 

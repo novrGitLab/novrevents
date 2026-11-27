@@ -140,6 +140,29 @@ describe('registration', () => {
   })
 })
 
+describe('administrator enrollment', () => {
+  it('binds enrollment to the invited mailbox and revokes existing sessions on claim', async () => {
+    const invited = await createUser(app)
+    const other = await createUser(app)
+    await prisma.adminAccessInvitation.create({
+      data: { email: invited.email, expiresAt: new Date(Date.now() + 60000) },
+    })
+    for (const account of [other, invited]) {
+      const guest = new TestClient(app)
+      await guest.post('/api/v1/auth/forgot-password', { email: account.email })
+      const token = await latestEmailToken(account.email, 'PASSWORD_RESET')
+      const result = await guest.post('/api/v1/auth/reset-password', {
+        token, password: 'a-new-private-password-42',
+      })
+      expect(result.status).toBe(200)
+      const user = await prisma.user.findUniqueOrThrow({ where: { id: account.id } })
+      expect(user.role).toBe(account === invited ? 'ADMIN' : 'USER')
+    }
+    expect(await prisma.adminAccessInvitation.findUnique({ where: { email: invited.email } })).toBeNull()
+    expect((await invited.client.get<SessionBody>('/api/v1/auth/session')).body.authenticated).toBe(false)
+  })
+})
+
 describe('login and logout', () => {
   it('signs in with correct credentials and rejects wrong ones identically', async () => {
     const user = await createUser(app)

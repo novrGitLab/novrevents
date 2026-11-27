@@ -41,7 +41,7 @@ import { api, unwrap, type Schema } from '@/lib/api/client'
 import { errorMessage, isApiError } from '@/lib/api/errors'
 import { keys } from '@/lib/api/keys'
 import { formatDate, formatEventRange, formatTime } from '@/lib/format'
-import { emailDeliveryEnabled } from '@/lib/site'
+import { useAuthProviders } from '@/lib/auth-providers'
 import { cn } from '@/lib/utils'
 
 type EventDetailData = Schema<'EventDetail'>
@@ -370,6 +370,7 @@ function EventView({
 }
 
 function RegistrationPanel({ event }: { event: EventDetailData }) {
+  const emailDeliveryEnabled = useAuthProviders().data?.emailDelivery === true
   const { registration, viewer } = event
   return (
     <div className="bg-card rounded-lg border shadow-xs">
@@ -393,7 +394,7 @@ function RegistrationPanel({ event }: { event: EventDetailData }) {
                 className={cn('rounded-sm border px-3 py-2.5', !ticketType.available && 'bg-muted')}
               >
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-sm font-medium">{ticketType.name}</p>
+                  <p className="text-sm font-medium">{ticketType.name}{ticketType.priceKobo > 0 && <span className="ml-2 tabular-nums">{new Intl.NumberFormat('en-NG',{style:'currency',currency:'NGN'}).format(ticketType.priceKobo / 100)}</span>}</p>
                   {!ticketType.available && (
                     <span className="text-muted-foreground text-xs">Unavailable</span>
                   )}

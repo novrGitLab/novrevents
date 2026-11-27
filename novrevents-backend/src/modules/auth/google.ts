@@ -1,5 +1,6 @@
-import { createHash, randomBytes } from 'node:crypto'
-import { createRemoteJWKSet, jwtVerify } from 'jose'
+import { randomBytes } from 'node:crypto'
+import * as oidc from 'openid-client'
+import { claimAdminInvitation } from './admin-invitation.js'
 import { z } from 'zod'
 import type { FastifyRequest } from 'fastify'
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod'
@@ -13,7 +14,25 @@ import { limits } from '../../plugins/rate-limit.js'
 import { getSettings } from '../admin/settings.service.js'
 import { createSession, sessionMaxAgeSeconds } from './auth.service.js'
 
-const googleKeys = createRemoteJWKSet(new URL('https://www.googleapis.com/oauth2/v3/certs'))
+let googleConfiguration: Promise<oidc.Configuration> | undefined
+
+function googleClient() {
+  if (!googleConfiguration) {
+    googleConfiguration = oidc
+      .discovery(
+        new URL('https://accounts.google.com'),
+        env.GOOGLE_CLIENT_ID!,
+        { client_secret: env.GOOGLE_CLIENT_SECRET!, id_token_signed_response_alg: 'RS256' },
+        oidc.ClientSecretPost(),
+        { execute: [oidc.enableNonRepudiationChecks], timeout: 10 },
+      )
+      .catch((error: unknown) => {
+        googleConfiguration = undefined
+        throw error
+      })
+  }
+  return googleConfiguration
+}
 const callback = appUrl + '/api/v1/auth/google/callback'
 const flowCookie = 'novr_google_flow'
 const cookie = {
@@ -27,7 +46,7 @@ const flowSchema = z.object({
   nonce: z.string(),
   verifier: z.string(),
   expires: z.number(),
-  mode: z.enum(['login', 'register', 'link']),
+  mode: z.enum(['login', 'register', 'link', 'admin']),
   session: z.string().nullable(),
   policy: z.string().nullable(),
 })
@@ -35,6 +54,7 @@ const enabled = () => Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET)
 const random = () => randomBytes(32).toString('base64url')
 const start = z.discriminatedUnion('mode', [
   z.object({ mode: z.literal('login') }),
+  z.object({ mode: z.literal('admin') }),
   z.object({ mode: z.literal('link') }),
   z.object({
     mode: z.literal('register'),
@@ -63,7 +83,7 @@ async function signIn(
   return prisma.$transaction(async (tx) => {
     let user = await tx.user.findUnique({
       where: { googleSubject: profile.sub },
-      select: { id: true, status: true },
+      select: { id: true, status: true, role: true },
     })
     if (flow.mode === 'link') {
       const account = request.auth
@@ -103,10 +123,13 @@ async function signIn(
             create: { displayName: name, username: 'member-' + randomBytes(7).toString('hex') },
           },
         },
-        select: { id: true, status: true },
+        select: { id: true, status: true, role: true },
       })
     }
     if (user?.status !== 'ACTIVE') throw forbidden('Sign-in is unavailable.')
+    const claimed = await claimAdminInvitation(tx, user.id, email)
+    if (flow.mode === 'admin' && user.role !== 'ADMIN' && !claimed)
+      throw forbidden('Administrator access required.')
     await tx.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } })
     return createSession(tx, user.id, meta)
   })
@@ -115,8 +138,16 @@ async function signIn(
 export const googleRoutes: FastifyPluginAsyncZod = async (app) => {
   app.get(
     '/auth/providers',
-    { schema: { tags: ['Auth'], response: responses({ 200: z.object({ google: z.boolean() }) }) } },
-    async () => ({ google: enabled() }),
+    {
+      schema: {
+        tags: ['Auth'],
+        response: responses({ 200: z.object({ google: z.boolean(), emailDelivery: z.boolean() }) }),
+      },
+    },
+    async () => ({
+      google: enabled(),
+      emailDelivery: env.EMAIL_DRIVER !== 'log' && env.JOBS_ENABLED,
+    }),
   )
   app.post(
     '/auth/google/start',
@@ -133,9 +164,9 @@ export const googleRoutes: FastifyPluginAsyncZod = async (app) => {
       if (request.body.mode === 'link' && !request.auth?.emailVerified)
         throw forbidden('Verify your email to link Google.')
       const flow = {
-        state: random(),
-        nonce: random(),
-        verifier: random(),
+        state: oidc.randomState(),
+        nonce: oidc.randomNonce(),
+        verifier: oidc.randomPKCECodeVerifier(),
         expires: Date.now() + 600000,
         mode: request.body.mode,
         session: request.auth?.sessionId ?? null,
@@ -146,18 +177,16 @@ export const googleRoutes: FastifyPluginAsyncZod = async (app) => {
         signValue('google-flow', Buffer.from(JSON.stringify(flow)).toString('base64url')),
         { ...cookie, maxAge: 600 },
       )
-      const url = new URL('https://accounts.google.com/o/oauth2/v2/auth')
-      url.search = new URLSearchParams({
-        client_id: env.GOOGLE_CLIENT_ID!,
+      const url = oidc.buildAuthorizationUrl(await googleClient(), {
         redirect_uri: callback,
         response_type: 'code',
         scope: 'openid email profile',
         state: flow.state,
         nonce: flow.nonce,
-        code_challenge: createHash('sha256').update(flow.verifier).digest('base64url'),
+        code_challenge: await oidc.calculatePKCECodeChallenge(flow.verifier),
         code_challenge_method: 'S256',
         prompt: 'select_account',
-      }).toString()
+      })
       return { url: url.href }
     },
   )
@@ -177,6 +206,7 @@ export const googleRoutes: FastifyPluginAsyncZod = async (app) => {
     async (request, reply) => {
       reply.header('Cache-Control', 'no-store').header('Referrer-Policy', 'no-referrer')
       reply.clearCookie(flowCookie, cookie)
+      let failurePath = '/auth/login?google=failed'
       try {
         const raw = verifySignedValue('google-flow', request.cookies[flowCookie] ?? '')
         if (!enabled() || !raw || !request.query.code) throw new Error('incomplete')
@@ -187,28 +217,16 @@ export const googleRoutes: FastifyPluginAsyncZod = async (app) => {
           flow.session !== (request.auth?.sessionId ?? null)
         )
           throw new Error('state')
-        const response = await fetch('https://oauth2.googleapis.com/token', {
-          method: 'POST',
-          signal: AbortSignal.timeout(10000),
-          body: new URLSearchParams({
-            code: request.query.code,
-            client_id: env.GOOGLE_CLIENT_ID!,
-            client_secret: env.GOOGLE_CLIENT_SECRET!,
-            redirect_uri: callback,
-            grant_type: 'authorization_code',
-            code_verifier: flow.verifier,
-          }),
+        if (flow.mode === 'admin') failurePath = '/admin/auth/login?google=failed'
+        const currentUrl = new URL(callback)
+        currentUrl.search = new URL(request.raw.url!, appUrl).search
+        const tokens = await oidc.authorizationCodeGrant(await googleClient(), currentUrl, {
+          expectedState: flow.state,
+          expectedNonce: flow.nonce,
+          pkceCodeVerifier: flow.verifier,
+          idTokenExpected: true,
         })
-        if (!response.ok) throw new Error('exchange')
-        const { id_token } = z.object({ id_token: z.string() }).parse(await response.json())
-        const token = await jwtVerify(id_token, googleKeys, {
-          issuer: ['https://accounts.google.com', 'accounts.google.com'],
-          audience: env.GOOGLE_CLIENT_ID!,
-          algorithms: ['RS256'],
-          requiredClaims: ['iat', 'exp', 'sub'],
-        })
-        const profile = claims.parse(token.payload)
-        if (profile.nonce !== flow.nonce) throw new Error('nonce')
+        const profile = claims.parse(tokens.claims())
         const session = await signIn(profile, flow, request)
         if (session)
           reply.setCookie(env.SESSION_COOKIE_NAME, session, {
@@ -225,10 +243,12 @@ export const googleRoutes: FastifyPluginAsyncZod = async (app) => {
               ? '/dashboard/settings'
               : flow.mode === 'register'
                 ? '/auth/welcome'
-                : '/dashboard'),
+                : flow.mode === 'admin'
+                  ? '/admin'
+                  : '/dashboard'),
         )
       } catch {
-        return reply.redirect(appUrl + '/auth/login?google=failed')
+        return reply.redirect(appUrl + failurePath)
       }
     },
   )

@@ -15,7 +15,7 @@ import { Input } from '@/components/ui/input'
 import { api, ensureCsrfToken, unwrap } from '@/lib/api/client'
 import { errorMessage } from '@/lib/api/errors'
 import { keys } from '@/lib/api/keys'
-import { emailDeliveryEnabled } from '@/lib/site'
+import { useAuthProviders } from '@/lib/auth-providers'
 
 const resendSchema = z.object({ email: z.email('Enter the email address you signed up with.') })
 type ResendValues = z.infer<typeof resendSchema>
@@ -74,8 +74,7 @@ function VerifyEmail() {
         {state === 'error' && (
           <>
             <Notice tone="error">
-              {message} Links expire after 24 hours and can be used once. Enter your email below and we’ll
-              send a new one.
+              {message} Links expire after 24 hours and can be used once. Enter your email to request another link.
             </Notice>
             <ResendForm />
           </>
@@ -93,6 +92,7 @@ function VerifyEmail() {
 
 /** Available without signing in, so an expired link can always be replaced. */
 function ResendForm() {
+  const emailDeliveryEnabled = useAuthProviders().data?.emailDelivery === true
   const [sent, setSent] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
   const form = useForm<ResendValues>({ resolver: zodResolver(resendSchema), defaultValues: { email: '' } })
@@ -118,7 +118,7 @@ function ResendForm() {
       >
         {emailDeliveryEnabled
           ? 'If this address still needs verifying, a new link is on its way.'
-          : 'Verification emails are not delivered yet, so no message will arrive.'}
+          : 'Email verification is unavailable, so no message will arrive.'}
       </Notice>
     )
   }

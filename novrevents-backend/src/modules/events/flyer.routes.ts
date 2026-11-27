@@ -11,7 +11,18 @@ import { getEventPage } from './discovery.service.js'
 
 const design = z.object({
   style: z.enum(['marquee', 'programme', 'invitation', 'afterhours', 'studio']),
-  photograph:z.enum(['none','opening','culture','workshop','cyber','wedding','anniversary','community']).default('none'),
+  photograph: z
+    .enum([
+      'none',
+      'opening',
+      'culture',
+      'workshop',
+      'cyber',
+      'wedding',
+      'anniversary',
+      'community',
+    ])
+    .default('none'),
   headline: requiredText(1, 110),
   note: z.string().trim().max(160),
   shared: z.boolean(),
@@ -33,7 +44,7 @@ type EventInfo = {
   mode: string
 }
 async function present(event: EventInfo, saved: Design) {
-  const destination = appUrl + '/events/' + encodeURIComponent(event.slug) + '#registration'
+  const destination = appUrl + '/events/' + encodeURIComponent(event.slug) + '/register'
   const date = new Intl.DateTimeFormat('en-GB', {
     dateStyle: 'long',
     timeStyle: 'short',
@@ -71,7 +82,13 @@ export const flyerRoutes: FastifyPluginAsyncZod = async (app) => {
         event,
         saved.success
           ? saved.data
-          : { style: 'marquee', photograph:'none', headline: event.title.slice(0, 110), note: '', shared: false },
+          : {
+              style: 'marquee',
+              photograph: 'none',
+              headline: event.title.slice(0, 110),
+              note: '',
+              shared: false,
+            },
       )
     },
   )
