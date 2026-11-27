@@ -1,7 +1,8 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Monitor } from 'lucide-react'
+import { GoogleButton } from '@/components/auth/google-button'
+import { Monitor } from '@/components/ui/icons'
 import * as React from 'react'
 import { toast } from 'sonner'
 import { Field, PageHeader, useConfirm } from '@/components/common'
@@ -74,6 +75,7 @@ export default function SettingsPage() {
       <div>
         <EmailCard />
         <PasswordCard />
+        <GoogleButton mode="link" />
         <PreferencesCard />
         <SessionsCard />
       </div>

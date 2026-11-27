@@ -1,7 +1,7 @@
 'use client'
 
 import jsQR from 'jsqr'
-import { Camera, CameraOff } from 'lucide-react'
+import { Camera, CameraOff } from '@/components/ui/icons'
 import * as React from 'react'
 import { Notice } from '@/components/states'
 import { Button } from '@/components/ui/button'

@@ -6,11 +6,11 @@ export const apiUrl = (process.env.API_URL ?? 'http://127.0.0.1:4000').replace(/
 
 export type PublicEvent = Schema<'EventDetail'>
 
-/** Public event detail as an anonymous visitor sees it, or null. Cached for five minutes. */
+/** Public event detail as an anonymous visitor sees it, or null. Visibility is checked for every request. */
 export async function fetchPublicEvent(slug: string): Promise<PublicEvent | null> {
   try {
     const response = await fetch(`${apiUrl}/api/v1/public/events/${encodeURIComponent(slug)}`, {
-      next: { revalidate: 300 },
+      cache:'no-store',
     })
     return response.ok ? ((await response.json()) as PublicEvent) : null
   } catch {

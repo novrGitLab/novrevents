@@ -69,6 +69,8 @@ const myRegistrationSchema = registrationSchema
       accentColor: z.string().nullable(),
       onlineUrl: z.string().nullable(),
     }),
+    amountKobo:z.number().int().nullable(),
+    paymentDueAt:z.date().nullable(),
     canCancel: z.boolean(),
     certificateCode: z.string().nullable(),
     manageUrl: z.string(),
@@ -87,6 +89,7 @@ const registrationParams = z.object({ id: z.uuid(), registrationId: z.uuid() })
 const ticketTypeParams = z.object({ id: z.uuid(), ticketTypeId: z.uuid() })
 const tokenParams = z.object({ token: z.string().min(40).max(120) })
 const ticketTypeBody = z.object({
+  priceKobo:z.number().int().min(0).max(2000000000).default(0),
   name: requiredText(1, 80),
   description: optionalText(300),
   capacity: z.number().int().min(1).max(1_000_000).nullable().default(null),

@@ -1,7 +1,9 @@
 'use client'
 
+import { Tooltip } from '@/components/ui/tooltip'
+
 import { useQuery } from '@tanstack/react-query'
-import { LayoutGrid, List, Search, ShieldCheck, SlidersHorizontal, X } from 'lucide-react'
+import { LayoutGrid, List, Search, ShieldCheck, SlidersHorizontal, X } from '@/components/ui/icons'
 import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import * as React from 'react'
@@ -15,6 +17,7 @@ import {
 } from '@/components/events/categories'
 import { EventCard, EventRow, useSavedEventIds } from '@/components/events/event-card'
 import { EVENT_MODE_LABELS, EVENT_TYPE_LABELS } from '@/components/events/labels'
+import { EditorialPhoto } from '@/components/marketing/photo'
 import { EmptyState, ErrorState, LoadingState } from '@/components/states'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
@@ -243,7 +246,11 @@ export function DiscoverView({ variant = 'public' }: { variant?: 'public' | 'app
   const selectClass = 'h-10 w-full sm:w-auto sm:min-w-40'
 
   return (
-    <div className={inApp ? undefined : 'mx-auto max-w-[1280px] px-4 py-8 sm:px-6 sm:py-10 lg:px-10'}>
+    <div
+      className={
+        inApp ? undefined : 'directory-spread mx-auto max-w-[1280px] px-4 py-8 sm:px-6 sm:py-10 lg:px-10'
+      }
+    >
       {inApp ? (
         <PageHeader
           title={mode === 'cybersecurity' ? 'Discover cybersecurity' : 'Discover'}
@@ -251,9 +258,31 @@ export function DiscoverView({ variant = 'public' }: { variant?: 'public' | 'app
           className="mb-5 pb-5"
         />
       ) : (
-        <header className="border-b pb-6">
-          <h1 className="page-title">{copy.title}</h1>
-          <p className="text-muted-foreground mt-1.5 max-w-2xl text-sm sm:text-base">{copy.description}</p>
+        <header className="directory-masthead">
+          <div>
+            <h1 className="spread-heading">
+              {mode === 'cybersecurity' ? (
+                <>
+                  Cybersecurity <em>events.</em>
+                </>
+              ) : (
+                <>
+                  Discover <em>events.</em>
+                </>
+              )}
+            </h1>
+            <p>{copy.description}</p>
+          </div>
+          <EditorialPhoto
+            name={mode === 'cybersecurity' ? 'cyber' : 'community'}
+            alt={
+              mode === 'cybersecurity'
+                ? 'A conference speaker addressing the audience'
+                : 'Guests sharing lunch at a community gathering'
+            }
+            sizes="(max-width:640px) 100vw, 40vw"
+            priority
+          />
         </header>
       )}
 
@@ -261,7 +290,12 @@ export function DiscoverView({ variant = 'public' }: { variant?: 'public' | 'app
         <ModeToggle mode={mode} onChange={changeMode} />
       </div>
 
-      <div className={cn('mt-4 flex flex-col gap-3 xl:flex-row xl:items-center', !inApp && 'lg:flex-row lg:items-center')}>
+      <div
+        className={cn(
+          'mt-4 flex flex-col gap-3 xl:flex-row xl:items-center',
+          !inApp && 'lg:flex-row lg:items-center',
+        )}
+      >
         <form
           role="search"
           className="relative min-w-0 flex-1"
@@ -314,7 +348,6 @@ export function DiscoverView({ variant = 'public' }: { variant?: 'public' | 'app
             ) : (
               <>
                 <option value="">All categories</option>
-                {/* Cybersecurity is one category in All events; choosing it switches mode. */}
                 <option value={CYBERSECURITY_MODE}>Cybersecurity</option>
                 {groups.general.map((category) => (
                   <option key={category.id} value={category.slug}>
@@ -375,7 +408,7 @@ export function DiscoverView({ variant = 'public' }: { variant?: 'public' | 'app
       <div
         role="group"
         aria-label="Event type"
-        className="-mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:px-0"
+        className="-mx-4 mt-4 flex [scrollbar-width:none] gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0"
       >
         {chips.map((chip) => {
           const active = value('type') === chip.key
@@ -532,19 +565,20 @@ export function DiscoverView({ variant = 'public' }: { variant?: 'public' | 'app
               ].map((option) => {
                 const active = (value('view') || 'grid') === option.value
                 return (
-                  <button
-                    key={option.value}
-                    type="button"
-                    aria-label={option.label}
-                    aria-pressed={active}
-                    onClick={() => setParams({ view: option.value === 'grid' ? '' : option.value })}
-                    className={cn(
-                      'inline-flex size-9 items-center justify-center',
-                      active ? 'bg-brand-soft text-primary' : 'text-muted-foreground hover:text-foreground',
-                    )}
-                  >
-                    <option.icon className="size-4" aria-hidden />
-                  </button>
+                  <Tooltip key={option.value} label={option.label}>
+                    <button
+                      type="button"
+                      aria-label={option.label}
+                      aria-pressed={active}
+                      onClick={() => setParams({ view: option.value === 'grid' ? '' : option.value })}
+                      className={cn(
+                        'inline-flex size-9 items-center justify-center',
+                        active ? 'bg-brand-soft text-primary' : 'text-muted-foreground hover:text-foreground',
+                      )}
+                    >
+                      <option.icon className="size-4" aria-hidden />
+                    </button>
+                  </Tooltip>
                 )
               })}
             </div>

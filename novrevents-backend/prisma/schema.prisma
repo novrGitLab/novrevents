@@ -26,6 +26,8 @@ enum UserStatus {
 model User {
   id              String     @id @default(uuid(7)) @db.Uuid
   email           String     @unique
+  payoutSubaccount String? @map("payout_subaccount")
+  googleSubject   String?    @unique @map("google_subject")
   passwordHash    String     @map("password_hash")
   role            UserRole   @default(USER)
   status          UserStatus @default(ACTIVE)
@@ -259,6 +261,7 @@ model EventCategory {
 }
 
 model Event {
+  flyer Json?
   id             String  @id @default(uuid(7)) @db.Uuid
   slug           String  @unique
   ownerId        String  @map("owner_id") @db.Uuid
@@ -738,6 +741,7 @@ model SubmissionAnswer {
 // ─── Registration, tickets, attendance ───────────────────────────────────────
 
 model TicketType {
+  priceKobo Int @default(0) @map("price_kobo")
   id          String   @id @default(uuid(7)) @db.Uuid
   eventId     String   @map("event_id") @db.Uuid
   name        String
@@ -773,6 +777,11 @@ enum CancelledBy {
 }
 
 model Registration {
+  amountKobo Int? @map("amount_kobo")
+  checkoutSubaccount String? @map("checkout_subaccount")
+  paymentDueAt DateTime? @map("payment_due_at") @db.Timestamptz(3)
+  paidReference String? @unique @map("paid_reference")
+  attempts PaymentAttempt[]
   id           String  @id @default(uuid(7)) @db.Uuid
   eventId      String  @map("event_id") @db.Uuid
   ticketTypeId String  @map("ticket_type_id") @db.Uuid
@@ -804,6 +813,18 @@ model Registration {
   @@index([userId, createdAt])
   @@index([ticketTypeId, status])
   @@map("registrations")
+}
+
+model PaymentAttempt {
+  reference String @id
+  registrationId String @map("registration_id") @db.Uuid
+  registration Registration @relation(fields: [registrationId], references: [id], onDelete: Restrict)
+  checkoutUrl String? @map("checkout_url")
+  outcome String @default("OPEN")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  @@index([registrationId, createdAt])
+  @@index([outcome])
+  @@map("payment_attempts")
 }
 
 enum TicketStatus {
@@ -1193,4 +1214,25 @@ model Job {
 
   @@index([status, runAt])
   @@map("jobs")
+}
+
+enum PlanningStatus {
+  NEW
+  CONTACTED
+  CLOSED
+}
+
+model PlanningRequest {
+  id String @id @default(uuid(7)) @db.Uuid
+  name String
+  email String
+  occasion String
+  location String
+  date String?
+  guests Int?
+  details String
+  status PlanningStatus @default(NEW)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  @@index([status, createdAt])
+  @@map("planning_requests")
 }

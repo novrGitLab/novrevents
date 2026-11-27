@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Bell, ChevronsUpDown, LayoutDashboard, LogOut, Settings, Shield, Ticket, User } from 'lucide-react'
+import { Bell, ChevronsUpDown, LayoutDashboard, LogOut, Settings, Shield, Ticket, User } from '@/components/ui/icons'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'

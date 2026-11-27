@@ -1,6 +1,6 @@
 'use client'
 
-import { ChevronRight, Menu, MoreHorizontal, type LucideIcon } from 'lucide-react'
+import { ChevronRight, Menu, MoreHorizontal, type EventIcon } from '@/components/ui/icons'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import * as React from 'react'
@@ -18,7 +18,7 @@ import { NotificationBell, UserMenu } from './user-menu'
 export interface NavItem {
   href: string
   label: string
-  icon: LucideIcon
+  icon: EventIcon
   /** Match only the exact path (for index pages). */
   exact?: boolean
 }
@@ -198,7 +198,7 @@ export function AppShell({
 
   React.useEffect(() => {
     if (isLoading) return
-    if (!isAuthenticated) router.replace(`/login?next=${encodeURIComponent(pathname)}`)
+    if (!isAuthenticated) router.replace(`${requireAdmin ? '/admin/auth/login' : '/auth/login'}?next=${encodeURIComponent(pathname)}`)
     else if (requireAdmin && user?.role !== 'ADMIN') router.replace('/dashboard')
   }, [isLoading, isAuthenticated, requireAdmin, user, router, pathname])
 
@@ -214,7 +214,7 @@ export function AppShell({
   const wide = WIDE.some((pattern) => pattern.test(pathname))
 
   return (
-    <div className="bg-background min-h-dvh">
+    <div className="workspace-shell bg-background min-h-dvh">
       <aside className="bg-card fixed inset-y-0 left-0 z-30 hidden w-[240px] flex-col border-r lg:flex">
         <div className="flex h-16 shrink-0 items-center border-b px-5">
           <SidebarBrand admin={requireAdmin} />

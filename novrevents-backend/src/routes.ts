@@ -1,3 +1,8 @@
+import { writingRoutes } from './modules/events/writing.routes.js'
+import { paymentRoutes } from './modules/payments/paystack.js'
+import { googleRoutes } from './modules/auth/google.js'
+import { flyerRoutes } from './modules/events/flyer.routes.js'
+import { planningRoutes } from './modules/planning/planning.routes.js'
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod'
 import { adminRoutes } from './modules/admin/admin.routes.js'
 import { analyticsRoutes } from './modules/analytics/analytics.routes.js'
@@ -23,12 +28,16 @@ import { taskRoutes } from './modules/tasks/task.routes.js'
 export const apiRoutes: FastifyPluginAsyncZod = async (app) => {
   await app.register(systemRoutes)
   await app.register(authRoutes)
+  await app.register(googleRoutes)
+  await app.register(paymentRoutes)
   await app.register(profileRoutes)
   await app.register(followRoutes)
   await app.register(organizationFollowRoutes)
   await app.register(notificationRoutes)
   await app.register(organizationRoutes)
   await app.register(eventRoutes)
+  await app.register(flyerRoutes)
+  await app.register(writingRoutes)
   await app.register(discoveryRoutes)
   await app.register(scheduleRoutes)
   await app.register(taskRoutes)
@@ -39,5 +48,6 @@ export const apiRoutes: FastifyPluginAsyncZod = async (app) => {
   await app.register(communicationRoutes)
   await app.register(analyticsRoutes)
   await app.register(certificateRoutes)
+  await app.register(planningRoutes)
   await app.register(adminRoutes)
 }

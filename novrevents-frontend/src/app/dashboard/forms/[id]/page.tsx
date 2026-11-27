@@ -14,7 +14,7 @@ import {
   Share2,
   SlidersHorizontal,
   Trash2,
-} from 'lucide-react'
+} from '@/components/ui/icons'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import * as React from 'react'

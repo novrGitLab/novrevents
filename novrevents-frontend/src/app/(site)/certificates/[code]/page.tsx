@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { BadgeCheck, Download, ShieldX } from 'lucide-react'
+import { BadgeCheck, Download, ShieldX } from '@/components/ui/icons'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { ErrorState, LoadingState } from '@/components/states'

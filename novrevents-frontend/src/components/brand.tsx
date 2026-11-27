@@ -33,8 +33,8 @@ export function Wordmark({
       className={cn('group inline-flex items-center gap-2.5 rounded-sm', className)}
       aria-label="NOVR Events by Cybernovr, home"
     >
-      <span className="text-foreground text-[15px] leading-none font-semibold tracking-[-0.01em]">
-        NOVR <span className="font-normal">Events</span>
+      <span className="event-wordmark">
+        novr<em>events</em>
       </span>
       {endorsement && (
         <span className="text-muted-foreground hidden items-center gap-1.5 text-[11px] leading-none sm:inline-flex">

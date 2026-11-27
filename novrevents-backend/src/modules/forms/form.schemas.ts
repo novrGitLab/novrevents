@@ -309,6 +309,7 @@ export const publicFormSchema = z
     requiresApproval: z.boolean(),
     ticketTypes: z.array(
       z.object({
+        priceKobo:z.number().int(),
         id: z.uuid(),
         name: z.string(),
         description: z.string().nullable(),
@@ -370,6 +371,7 @@ export const submissionResultSchema = z
     registration: z
       .object({
         status: z.enum(['PENDING', 'CONFIRMED']),
+        paymentDue:z.boolean(),
         /** Private link for viewing the ticket or cancelling. Also emailed to the attendee. */
         manageUrl: z.string(),
       })

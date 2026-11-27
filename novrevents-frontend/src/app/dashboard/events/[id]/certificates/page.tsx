@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Award, ExternalLink, FileText } from 'lucide-react'
+import { Award, ExternalLink, FileText } from '@/components/ui/icons'
 import * as React from 'react'
 import { toast } from 'sonner'
 import { Field, useConfirm } from '@/components/common'

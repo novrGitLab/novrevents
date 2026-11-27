@@ -42,3 +42,12 @@ AGENTS.md
 .DS_Store
 Thumbs.db
 desktop.ini
+
+!/DESIGN.md
+!/MOTION.md
+!/WORKFLOWS.md
+!/DEPLOYMENT.md
+!/.github/
+!/deploy/
+
+!/.gitattributes

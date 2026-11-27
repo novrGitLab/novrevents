@@ -18,7 +18,7 @@ export function Closing() {
               <Link href="/dashboard/events/new">Host an event</Link>
             </Button>
             <Button asChild size="lg" variant="outline">
-              <Link href="/explore">Discover events</Link>
+              <Link href="/events">Discover events</Link>
             </Button>
           </div>
         </div>

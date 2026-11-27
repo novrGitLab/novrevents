@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Search } from 'lucide-react'
+import { Search } from '@/components/ui/icons'
 import Link from 'next/link'
 import * as React from 'react'
 import { toast } from 'sonner'

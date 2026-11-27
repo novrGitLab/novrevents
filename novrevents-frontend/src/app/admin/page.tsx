@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { ArrowRight, Building2, CalendarDays, Flag, ScrollText, Settings, Users } from 'lucide-react'
+import { ArrowRight, Building2, CalendarDays, Flag, ScrollText, Settings, Users } from '@/components/ui/icons'
 import Link from 'next/link'
 import { TrendChart } from '@/components/charts'
 import { PageHeader } from '@/components/common'

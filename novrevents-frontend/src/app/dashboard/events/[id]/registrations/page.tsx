@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Check, FileDown, Plus, Search, Trash2, X } from 'lucide-react'
+import { Check, FileDown, Plus, Search, Trash2, X } from '@/components/ui/icons'
 import * as React from 'react'
 import { toast } from 'sonner'
 import { Field, Pagination, useConfirm } from '@/components/common'
@@ -398,6 +398,7 @@ function TicketTypes({ eventId }: { eventId: string }) {
   const queryClient = useQueryClient()
   const [name, setName] = React.useState('')
   const [capacity, setCapacity] = React.useState('')
+  const [price,setPrice] = React.useState('')
   const [description, setDescription] = React.useState('')
   const queryKey = keys.eventPart(eventId, 'ticket-types')
   const query = useQuery({
@@ -410,12 +411,13 @@ function TicketTypes({ eventId }: { eventId: string }) {
       unwrap(
         api.POST('/api/v1/events/{id}/ticket-types', {
           params: { path: { id: eventId } },
-          body: { name, description: description || null, capacity: capacity ? Number(capacity) : null },
+          body: { name, priceKobo: Math.round(Number(price || 0)*100), description: description || null, capacity: capacity ? Number(capacity) : null },
         }),
       ),
     onSuccess: async () => {
       setName('')
       setCapacity('')
+      setPrice('')
       setDescription('')
       await refresh()
     },
@@ -454,7 +456,7 @@ function TicketTypes({ eventId }: { eventId: string }) {
             {query.data.items.map((type) => (
               <li key={type.id} className="flex flex-wrap items-center gap-3 p-3 text-sm">
                 <div className="min-w-0 flex-1">
-                  <p className="font-medium">{type.name}</p>
+                  <p className="font-medium">{type.name}</p>{type.priceKobo>0 && <span>{new Intl.NumberFormat('en-NG',{style:'currency',currency:'NGN'}).format(type.priceKobo/100)}</span>}
                   {type.description && <p className="text-muted-foreground text-xs">{type.description}</p>}
                 </div>
                 <span className="text-muted-foreground tabular-nums">
@@ -494,7 +496,7 @@ function TicketTypes({ eventId }: { eventId: string }) {
           </ul>
         )}
         <form
-          className="grid gap-3 sm:grid-cols-[1fr_1fr_140px_auto] sm:items-end"
+          className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_110px_100px_auto] sm:items-end"
           onSubmit={(formEvent) => {
             formEvent.preventDefault()
             create.mutate()
@@ -518,6 +520,7 @@ function TicketTypes({ eventId }: { eventId: string }) {
               maxLength={300}
             />
           </Field>
+          <Field label="Online price (NGN)" htmlFor="tt-price"><Input id="tt-price" type="number" min="0" max="20000000" step="0.01" value={price} onChange={e=>setPrice(e.target.value)} /></Field>
           <Field label="Capacity" htmlFor="tt-capacity">
             <Input
               id="tt-capacity"

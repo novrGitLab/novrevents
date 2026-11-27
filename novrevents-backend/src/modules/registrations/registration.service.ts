@@ -1,3 +1,4 @@
+import { env } from '../../config/env.js'
 import { LOCKING_TX, prisma, type Prisma, type Tx } from '../../lib/db.js'
 import { AppError, conflict, notFound } from '../../lib/errors.js'
 import type {
@@ -137,6 +138,16 @@ export async function createRegistration(
   tx: Tx,
   input: NewRegistration,
 ): Promise<{ registration: Registration; ticket: Ticket | null }> {
+  const amount = input.ticketType.priceKobo
+  const payout =
+    amount > 0
+      ? await tx.user.findUnique({
+          where: { id: input.event.ownerId },
+          select: { payoutSubaccount: true },
+        })
+      : null
+  if (amount > 0 && (!env.PAYSTACK_SECRET_KEY || !payout?.payoutSubaccount))
+    throw conflict('Online checkout is unavailable for this ticket.', 'CHECKOUT_UNAVAILABLE')
   const registration = await tx.registration.create({
     data: {
       eventId: input.event.id,
@@ -145,7 +156,10 @@ export async function createRegistration(
       userId: input.userId,
       attendeeName: input.attendeeName,
       attendeeEmail: input.attendeeEmail,
-      status: input.confirmed ? 'CONFIRMED' : 'PENDING',
+      amountKobo: amount || null,
+      checkoutSubaccount: payout?.payoutSubaccount ?? null,
+      paymentDueAt: amount && input.confirmed ? checkoutDeadline(input.event.endsAt) : null,
+      status: input.confirmed && !amount ? 'CONFIRMED' : 'PENDING',
     },
   })
   await tx.event.update({
@@ -157,6 +171,10 @@ export async function createRegistration(
     data: { registeredCount: { increment: 1 } },
   })
 
+  if (amount && input.confirmed) {
+    await paymentInvitation(tx, input.event, registration)
+    return { registration, ticket: null }
+  }
   if (!input.confirmed) {
     await queueEmail(tx, {
       type: 'REGISTRATION_PENDING',
@@ -223,6 +241,21 @@ export async function approveRegistration(
     if (event.status === 'CANCELLED')
       throw conflict('This event has been cancelled.', 'EVENT_CANCELLED')
 
+    if (registration.amountKobo && !registration.paidReference) {
+      if (registration.paymentDueAt)
+        throw conflict('The attendee is awaiting payment.', 'PAYMENT_DUE')
+      const held = await tx.registration.update({
+        where: { id: registrationId },
+        data: { paymentDueAt: checkoutDeadline(event.endsAt) },
+      })
+      if (held.submissionId)
+        await tx.formSubmission.update({
+          where: { id: held.submissionId },
+          data: { decision: 'ACCEPTED', decidedAt: new Date(), decidedById },
+        })
+      await paymentInvitation(tx, event, held)
+      return held
+    }
     const updated = await tx.registration.update({
       where: { id: registrationId },
       data: { status: 'CONFIRMED' },
@@ -382,4 +415,115 @@ export function toRegistration(registration: RegistrationWithTicket) {
     cancellationReason: registration.cancellationReason,
     createdAt: registration.createdAt,
   }
+}
+
+function checkoutDeadline(endsAt: Date) {
+  return new Date(Math.min(endsAt.getTime(), Date.now() + 30 * 60000))
+}
+
+async function paymentInvitation(tx: Tx, event: Event, registration: Registration) {
+  await queueEmail(tx, {
+    type: 'REGISTRATION_PENDING',
+    to: { email: registration.attendeeEmail, name: registration.attendeeName },
+    userId: registration.userId,
+    eventId: event.id,
+    registrationId: registration.id,
+    content: () => ({
+      subject: 'Complete payment for ' + event.title,
+      heading: 'Your ticket is on hold',
+      accent: event.accentColor,
+      blocks: [
+        {
+          kind: 'text',
+          text:
+            'Pay ' +
+            new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(
+              registration.amountKobo! / 100,
+            ) +
+            ' before ' +
+            registration.paymentDueAt!.toISOString() +
+            ' to confirm your place.',
+        },
+        { kind: 'button', label: 'Pay for ticket', url: manageUrlFor(registration) },
+      ],
+    }),
+  })
+}
+
+export async function recordCharge(
+  reference: string,
+  received: {
+    reference: string
+    amount: number
+    currency: string
+    status: string
+    customer: { email: string }
+    paid_at: string | null
+  },
+) {
+  if (received.reference !== reference || received.status !== 'success') return
+  const attempt = await prisma.paymentAttempt.findUnique({ where: { reference } })
+  if (!attempt) return
+  await prisma.$transaction(async (tx) => {
+    const { event, registration } = await loadForChange(tx, attempt.registrationId)
+    if (registration.paidReference === reference) return
+    const paidAt = received.paid_at ? new Date(received.paid_at).getTime() : NaN
+    const eligible =
+      registration.status === 'PENDING' &&
+      !registration.paidReference &&
+      event.status !== 'CANCELLED' &&
+      event.moderationStatus !== 'REMOVED' &&
+      registration.amountKobo === received.amount &&
+      received.currency === 'NGN' &&
+      received.customer.email.toLowerCase() === registration.attendeeEmail.toLowerCase() &&
+      registration.paymentDueAt &&
+      Number.isFinite(paidAt) &&
+      paidAt <= registration.paymentDueAt.getTime()
+    await tx.paymentAttempt.update({
+      where: { reference },
+      data: { outcome: eligible ? 'PAID' : 'RECONCILE' },
+    })
+    if (!eligible) return
+    const updated = await tx.registration.update({
+      where: { id: registration.id },
+      data: { status: 'CONFIRMED', paidReference: reference },
+    })
+    const ticket = await issueTicket(tx, updated)
+    await queueConfirmation(tx, event, updated, ticket, registration.ticketType.name)
+  }, LOCKING_TX)
+}
+
+export async function expireCheckouts(now: Date) {
+  const holds = await prisma.registration.findMany({
+    where: { status: 'PENDING', paymentDueAt: { lt: now }, paidReference: null },
+    select: { id: true },
+    take: 200,
+    orderBy: { paymentDueAt: 'asc' },
+  })
+  for (const hold of holds)
+    await prisma.$transaction(async (tx) => {
+      const { registration } = await loadForChange(tx, hold.id)
+      if (
+        registration.status !== 'PENDING' ||
+        !registration.paymentDueAt ||
+        registration.paymentDueAt >= now ||
+        registration.paidReference
+      )
+        return
+      await tx.registration.update({
+        where: { id: hold.id },
+        data: {
+          status: 'CANCELLED',
+          cancelledBy: 'SYSTEM',
+          cancelledAt: now,
+          cancellationReason: 'The payment window expired.',
+        },
+      })
+      await releaseSeat(tx, registration)
+      if (registration.submissionId)
+        await tx.formSubmission.update({
+          where: { id: registration.submissionId },
+          data: { duplicateHash: null },
+        })
+    }, LOCKING_TX)
 }

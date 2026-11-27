@@ -53,11 +53,11 @@ export function Trust() {
             </a>
             <p className="text-muted-foreground">
               Read the{' '}
-              <Link href="/privacy" className="text-brand-text font-medium hover:underline">
+              <Link href="/legal/privacy-policy" className="text-brand-text font-medium hover:underline">
                 privacy policy
               </Link>{' '}
               and{' '}
-              <Link href="/terms" className="text-brand-text font-medium hover:underline">
+              <Link href="/legal/terms-of-use" className="text-brand-text font-medium hover:underline">
                 terms of use
               </Link>
               .

@@ -5,21 +5,21 @@ test.describe('public site', () => {
   test('home and explore load real data and filters work @mobile', async ({ page }) => {
     await page.goto('/', { waitUntil: 'networkidle' })
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(
-      'Discover events. Bring communities together.',
+      /Find your\s*people\./i,
     )
-    await page.getByRole('main').getByRole('link', { name: 'Discover events' }).first().click()
-    await expect(page).toHaveURL(/\/explore/)
-    await page.getByLabel('Search', { exact: true }).fill('summit')
-    await page.getByRole('button', { name: 'Search' }).first().click()
-    await expect(page).toHaveURL(/\/explore\?q=summit/)
-    await expect(page.getByRole('heading', { level: 1, name: 'Discover events', exact: true })).toBeVisible()
+    await page.getByRole('main').getByRole('link', { name: 'Browse all events' }).first().click()
+    await expect(page).toHaveURL(/\/events/)
+    await page.getByRole('searchbox', { name: 'Search events', exact: true }).fill('summit')
+    await page.getByRole('searchbox', {name:'Search events'}).press('Enter')
+    await expect(page).toHaveURL(/q=summit/)
+    await expect(page.getByRole('heading', { level: 1, name: /Discover events/i })).toBeVisible()
     // The result count comes from the API and is always rendered.
     await expect(page.getByText(/\d+ events?/)).toBeVisible()
   })
 
   test('legal pages are reachable from the footer', async ({ page }) => {
     await page.goto('/', { waitUntil: 'networkidle' })
-    await page.getByRole('link', { name: 'Privacy policy' }).click()
+    await page.getByRole('contentinfo').getByRole('link', { name: 'Privacy policy' }).click()
     await expect(page.getByRole('heading', { name: 'Privacy policy' })).toBeVisible()
     await page.goto('/terms')
     await expect(page.getByRole('heading', { name: 'Terms of use' })).toBeVisible()

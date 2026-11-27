@@ -238,6 +238,7 @@ export const agendaSessionSchema = z
 
 export const ticketTypeSchema = z
   .object({
+    priceKobo:z.number().int(),
     id: z.uuid(),
     name: z.string(),
     description: z.string().nullable(),

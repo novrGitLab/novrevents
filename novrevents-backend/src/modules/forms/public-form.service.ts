@@ -171,6 +171,7 @@ export async function getPublicForm(slug: string, viewerId: string | null) {
             id: type.id,
             name: type.name,
             description: type.description,
+            priceKobo: type.priceKobo,
             available: type.capacity === null || type.registeredCount < type.capacity,
           }))
         : [],
@@ -257,7 +258,12 @@ interface StoredFile {
 const NEUTRAL = 'Thank you. Your response has been received.'
 
 type SubmissionWithRegistration = FormSubmission & {
-  registration: { id: string; status: string; accessVersion: number } | null
+  registration: {
+    id: string
+    status: string
+    accessVersion: number
+    paymentDueAt: Date | null
+  } | null
 }
 
 /**
@@ -275,10 +281,15 @@ function resultFor(
     const confirmed = registration.status === 'CONFIRMED'
     return {
       status: 'RECEIVED' as const,
-      message: confirmed
-        ? (form.confirmationMessage ?? 'You are registered. Your ticket has been emailed to you.')
-        : 'Your registration has been received and is awaiting review by the organiser.',
+      message:
+        !confirmed && registration.paymentDueAt
+          ? 'Your place is held. Complete payment to receive your ticket.'
+          : confirmed
+            ? (form.confirmationMessage ??
+              'You are registered. Your ticket has been emailed to you.')
+            : 'Your registration has been received and is awaiting review by the organiser.',
       registration: {
+        paymentDue: !confirmed && Boolean(registration.paymentDueAt),
         status: confirmed ? ('CONFIRMED' as const) : ('PENDING' as const),
         manageUrl: manageUrlFor({ id: registration.id, accessVersion: registration.accessVersion }),
       },
@@ -300,7 +311,9 @@ function resultFor(
 const findByIdempotencyKey = (formId: string, idempotencyKey: string) =>
   prisma.formSubmission.findUnique({
     where: { formId_idempotencyKey: { formId, idempotencyKey } },
-    include: { registration: { select: { id: true, status: true, accessVersion: true } } },
+    include: {
+      registration: { select: { id: true, status: true, accessVersion: true, paymentDueAt: true } },
+    },
   })
 
 function duplicateHashFor(
@@ -573,6 +586,7 @@ export async function submitForm(slug: string, input: SubmitInput, context: Subm
               id: registration.id,
               status: registration.status,
               accessVersion: registration.accessVersion,
+              paymentDueAt: registration.paymentDueAt,
             }
           : null,
       }

@@ -7,16 +7,17 @@ const columns: { label: string; links: FooterLink[] }[] = [
   {
     label: 'Product',
     links: [
-      { href: '/explore', label: 'Discover events' },
-      { href: '/#organisers', label: 'For organisers' },
-      { href: '/#trust', label: 'Privacy and security' },
+      { href: '/events', label: 'Discover events' },
+      { href: '/hosting', label: 'For organisers' },
+      { href: '/help', label: 'Ticket help' },
+      { href: '/planning', label: 'Event planning' },
     ],
   },
   {
     label: 'Account',
     links: [
-      { href: '/login', label: 'Sign in' },
-      { href: '/register', label: 'Create an account' },
+      { href: '/auth/login', label: 'Sign in' },
+      { href: '/auth/register', label: 'Create an account' },
       { href: '/dashboard/events/new', label: 'Host an event' },
       { href: '/dashboard', label: 'Dashboard' },
     ],
@@ -24,8 +25,9 @@ const columns: { label: string; links: FooterLink[] }[] = [
   {
     label: 'Company',
     links: [
-      { href: '/privacy', label: 'Privacy policy' },
-      { href: '/terms', label: 'Terms of use' },
+      { href: '/about', label: 'About NovrEvents' },
+      { href: '/legal/privacy-policy', label: 'Privacy policy' },
+      { href: '/legal/terms-of-use', label: 'Terms of use' },
       { href: 'https://cybernovr.com', label: 'Cybernovr', external: true },
     ],
   },

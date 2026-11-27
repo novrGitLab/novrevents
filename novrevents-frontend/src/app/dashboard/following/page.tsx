@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { Compass } from 'lucide-react'
+import { Compass } from '@/components/ui/icons'
 import Link from 'next/link'
 import * as React from 'react'
 import { PageHeader, Pagination } from '@/components/common'

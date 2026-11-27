@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { Info } from 'lucide-react'
+import { Info } from '@/components/ui/icons'
 import * as React from 'react'
 import { BarsChart, TrendChart } from '@/components/charts'
 import { useManagedEvent } from '@/components/events/event-context'

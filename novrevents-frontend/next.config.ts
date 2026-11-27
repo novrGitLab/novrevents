@@ -6,27 +6,8 @@ const apiUrl = (process.env.API_URL ?? 'http://127.0.0.1:4000').replace(/\/$/, '
 const isProduction = process.env.NODE_ENV === 'production'
 
 if (isProduction && !process.env.API_URL && process.env.VERCEL) {
-  throw new Error('API_URL must be set for production builds (for example https://api.novrevents.com).')
+  throw new Error('API_URL must be set for production builds (for example https://api.event.cybernovr.com).')
 }
-
-/**
- * Content Security Policy. Next.js inlines its bootstrap scripts, so scripts allow 'unsafe-inline'
- * (no nonces, which would force every page to render dynamically). Everything else is same-origin:
- * uploaded images and the API are served through /api on this origin.
- */
-const contentSecurityPolicy = [
-  "default-src 'self'",
-  "script-src 'self' 'unsafe-inline'",
-  "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob:",
-  "font-src 'self'",
-  "connect-src 'self'",
-  "media-src 'self' blob:",
-  "object-src 'none'",
-  "base-uri 'self'",
-  "form-action 'self'",
-  "frame-ancestors 'none'",
-].join('; ')
 
 const securityHeaders = [
   { key: 'X-Content-Type-Options', value: 'nosniff' },
@@ -36,7 +17,6 @@ const securityHeaders = [
   { key: 'Permissions-Policy', value: 'camera=(self), microphone=(), geolocation=()' },
   ...(isProduction
     ? [
-        { key: 'Content-Security-Policy', value: contentSecurityPolicy },
         { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains' },
       ]
     : []),
@@ -45,7 +25,9 @@ const securityHeaders = [
 /** Personal, account and tool pages are never indexed, whatever robots.txt says. */
 const noIndex = [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }]
 const privatePaths = [
+  '/checkout/:path*',
   '/dashboard/:path*',
+  '/auth/:path*',
   '/admin/:path*',
   '/login',
   '/register',
@@ -62,6 +44,21 @@ const privatePaths = [
 ]
 
 const nextConfig: NextConfig = {
+  output: 'standalone',
+  async redirects() {
+    return [
+      { source: '/login', destination: '/auth/login', permanent: true },
+      { source: '/register', destination: '/auth/register', permanent: true },
+      { source: '/check-email', destination: '/auth/check-email', permanent: true },
+      { source: '/verify-email', destination: '/auth/verify-email', permanent: true },
+      { source: '/forgot-password', destination: '/auth/forgot-password', permanent: true },
+      { source: '/reset-password', destination: '/auth/reset-password', permanent: true },
+      { source: '/welcome', destination: '/auth/welcome', permanent: true },
+      { source: '/privacy', destination: '/legal/privacy-policy', permanent: true },
+      { source: '/terms', destination: '/legal/terms-of-use', permanent: true },
+      { source: '/explore', destination: '/events', permanent: true },
+    ]
+  },
   poweredByHeader: false,
   // The floating dev badge overlaps page content during local demos.
   devIndicators: false,

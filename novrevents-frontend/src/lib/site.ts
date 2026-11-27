@@ -4,7 +4,7 @@
  */
 export const siteUrl = (
   process.env.NEXT_PUBLIC_APP_URL ??
-  (process.env.NODE_ENV === 'production' ? 'https://novrevents.com' : 'http://localhost:3100')
+  (process.env.NODE_ENV === 'production' ? 'https://event.cybernovr.com' : 'http://localhost:3100')
 ).replace(/\/$/, '')
 
 /**

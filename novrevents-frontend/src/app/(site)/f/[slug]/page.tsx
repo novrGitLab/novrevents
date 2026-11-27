@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { ArrowLeft, CalendarDays, CheckCircle2, Lock, MapPin } from 'lucide-react'
+import { ArrowLeft, CalendarDays, CheckCircle2, Lock, MapPin } from '@/components/ui/icons'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import * as React from 'react'
@@ -214,7 +214,7 @@ export default function PublicFormPage() {
                 <Lock className="mt-px size-3.5 shrink-0" aria-hidden />
                 <span>
                   No account needed. Your answers are shared only with the organiser of this form. See our{' '}
-                  <Link href="/privacy" className="underline">
+                  <Link href="/legal/privacy-policy" className="underline">
                     privacy policy
                   </Link>
                   .
@@ -244,7 +244,7 @@ function SubmissionDone({ result, calendarHref }: { result: Result; calendarHref
           )}
           <Button asChild>
             <a href={result.registration.manageUrl}>
-              {result.registration.status === 'CONFIRMED' ? 'View my ticket' : 'View registration'}
+              {result.registration.paymentDue ? 'Continue to payment' : result.registration.status === 'CONFIRMED' ? 'View ticket' : 'View registration'}
             </a>
           </Button>
           {calendarHref && result.registration.status === 'CONFIRMED' && (

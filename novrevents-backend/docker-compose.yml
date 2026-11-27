@@ -13,7 +13,7 @@ services:
       POSTGRES_PASSWORD: novr_dev_password
       POSTGRES_DB: novrevents
     ports:
-      - '5432:5432'
+      - '127.0.0.1:5432:5432'
     volumes:
       - novrevents_pgdata:/var/lib/postgresql/data
       - ./docker/initdb:/docker-entrypoint-initdb.d:ro
@@ -34,8 +34,8 @@ services:
       MINIO_ROOT_USER: novr_minio
       MINIO_ROOT_PASSWORD: novr_minio_password
     ports:
-      - '9000:9000'
-      - '9001:9001'
+      - '127.0.0.1:9000:9000'
+      - '127.0.0.1:9001:9001'
     volumes:
       - novrevents_minio:/data
 

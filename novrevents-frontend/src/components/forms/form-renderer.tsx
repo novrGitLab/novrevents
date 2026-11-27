@@ -1,6 +1,6 @@
 'use client'
 
-import { ChevronLeft, ChevronRight, Paperclip, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Paperclip, X } from '@/components/ui/icons'
 import * as React from 'react'
 import { fieldAria } from '@/components/common'
 import { Notice } from '@/components/states'
@@ -28,6 +28,7 @@ export interface RendererSubmit {
 }
 
 interface TicketTypeOption {
+  priceKobo?: number
   id: string
   name: string
   description: string | null
@@ -204,7 +205,7 @@ export function FormRenderer({
         ))}
       </div>
 
-      {isLast && ticketTypes.length > 1 && (
+      {isLast && (ticketTypes.length > 1 || Boolean(ticketTypes[0]?.priceKobo)) && (
         <div className="space-y-1.5">
           <Label htmlFor="ticket-type">Ticket type</Label>
           <NativeSelect
@@ -215,7 +216,7 @@ export function FormRenderer({
           >
             {ticketTypes.map((type) => (
               <option key={type.id} value={type.id} disabled={!type.available}>
-                {type.name}
+                {type.name}{type.priceKobo ? ' · '+new Intl.NumberFormat('en-NG',{style:'currency',currency:'NGN'}).format(type.priceKobo / 100) : ''}
                 {!type.available ? ' — sold out' : ''}
               </option>
             ))}

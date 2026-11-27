@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowDown, ArrowUp, Copy, Plus, Trash2 } from 'lucide-react'
+import { ArrowDown, ArrowUp, Copy, Plus, Trash2 } from '@/components/ui/icons'
 import * as React from 'react'
 import { Button } from '@/components/ui/button'
 import { Input, Label, NativeSelect, Textarea } from '@/components/ui/input'

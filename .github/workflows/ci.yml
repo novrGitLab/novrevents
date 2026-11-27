@@ -1,0 +1,75 @@
+name: NovrEvents
+on:
+  pull_request:
+  push:
+    branches: [main, 'feature/**']
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:18-bookworm
+        env:
+          POSTGRES_USER: novr
+          POSTGRES_PASSWORD: ci-password
+          POSTGRES_DB: novrevents_test
+        ports: ['5432:5432']
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 15
+    env:
+      TEST_DATABASE_URL: postgresql://novr:ci-password@localhost:5432/novrevents_test
+    steps:
+      - uses: actions/checkout@v4
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: '**/package-lock.json'
+      - name: Verify API
+        working-directory: novrevents-backend
+        run: |
+          npm ci
+          npm run db:generate
+          npm run build
+          npm run lint
+          npm test
+          npm audit --omit=dev --audit-level=high
+          npm run openapi:generate
+      - name: Verify web app and API contract
+        working-directory: novrevents-frontend
+        run: |
+          npm ci
+          npm run api:sync
+          git diff --exit-code -- ../novrevents-backend/docs/openapi.json openapi/openapi.json src/lib/api/schema.d.ts
+          npm run lint
+          npm test
+          npm run build
+          npm audit --omit=dev --audit-level=high
+  deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: verify
+    environment: production
+    concurrency: novrevents-production
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with: { persist-credentials: false }
+      - name: Deploy verified revision
+        env:
+          READ_TOKEN: ${{ github.token }}
+          DEPLOY_KEY: ${{ secrets.VPS_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+          VPS_HOST: ${{ vars.VPS_HOST }}
+          VPS_USER: ${{ vars.VPS_USER }}
+        run: |
+          set -euo pipefail
+          umask 077
+          test -n "$DEPLOY_KEY" && test -n "$KNOWN_HOSTS"
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/events
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          printf '%s\n' "$READ_TOKEN" | ssh -T -o BatchMode=yes -o StrictHostKeyChecking=yes -o IdentitiesOnly=yes -i ~/.ssh/events "$VPS_USER@$VPS_HOST" "release $GITHUB_SHA"

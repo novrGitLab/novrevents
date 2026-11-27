@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next'
 import { apiUrl } from '@/lib/server-api'
+import { guides } from '@/components/marketing/guides'
 import { siteUrl } from '@/lib/site'
 
 export const revalidate = 3600
@@ -36,14 +37,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ] as string[]
   return [
     { url: `${siteUrl}/`, changeFrequency: 'weekly', priority: 1 },
-    { url: `${siteUrl}/explore`, changeFrequency: 'daily', priority: 0.9 },
+    { url: `${siteUrl}/events`, changeFrequency: 'daily', priority: 0.9 },
+    ...['/hosting', '/planning', '/help', '/about', ...guides.map(g => '/guides/' + g.slug)].map(path => ({ url: siteUrl + path })),
     ...events.map((event) => ({
       url: `${siteUrl}/events/${event.slug}`,
       changeFrequency: 'daily' as const,
       priority: 0.7,
     })),
     ...organizations.map((slug) => ({ url: `${siteUrl}/o/${slug}`, changeFrequency: 'weekly' as const })),
-    { url: `${siteUrl}/privacy`, changeFrequency: 'yearly', priority: 0.2 },
-    { url: `${siteUrl}/terms`, changeFrequency: 'yearly', priority: 0.2 },
+    { url: `${siteUrl}/legal/privacy-policy`, changeFrequency: 'yearly', priority: 0.2 },
+    { url: `${siteUrl}/legal/terms-of-use`, changeFrequency: 'yearly', priority: 0.2 },
   ]
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowLeft, ExternalLink } from 'lucide-react'
+import { ArrowLeft, ExternalLink } from '@/components/ui/icons'
 import Link from 'next/link'
 import { useParams, usePathname, useRouter } from 'next/navigation'
 import { EventHeaderActions } from '@/components/events/event-actions'
@@ -28,6 +28,7 @@ const GROUPS: { label: string; items: { href: string; label: string; level: Leve
     items: [
       { href: '', label: 'Overview', level: 'checkin' },
       { href: '/edit', label: 'Details & branding', level: 'manage' },
+      { href: '/flyer', label: 'Flyer studio', level: 'manage' },
       { href: '/agenda', label: 'Agenda', level: 'manage' },
     ],
   },
@@ -134,8 +135,6 @@ export default function EventWorkspaceLayout({ children }: { children: React.Rea
           <EventHeaderActions event={event} />
         </div>
       </header>
-
-      {/* Desktop: one compact row of grouped links. Phones: a native select. */}
       <nav aria-label="Event sections" className="mt-5 mb-7 border-b">
         <ul className="hidden items-end gap-x-5 overflow-x-auto md:flex">
           {groups.map((group) => (

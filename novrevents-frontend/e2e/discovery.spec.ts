@@ -86,7 +86,7 @@ test.describe('discovery', () => {
     await page.goto('/explore?mode=VIRTUAL', { waitUntil: 'networkidle' })
     await expect(page.getByLabel('Format')).toHaveValue('VIRTUAL')
     await page.getByRole('button', { name: 'Clear all filters' }).click()
-    await expect(page).toHaveURL(/\/explore$/)
+    await expect(page).toHaveURL(/\/events$/)
     await expect(page.getByLabel('Format')).toHaveValue('')
   })
 

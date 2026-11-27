@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Archive, ArchiveRestore, Ban, Copy, EyeOff, MoreHorizontal, Rocket, Trash2 } from 'lucide-react'
+import { Archive, ArchiveRestore, Ban, Copy, EyeOff, MoreHorizontal, Rocket, Trash2 } from '@/components/ui/icons'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import * as React from 'react'

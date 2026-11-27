@@ -1,8 +1,9 @@
 'use client'
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Search } from 'lucide-react'
+import { Search } from '@/components/ui/icons'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import * as React from 'react'
 import { toast } from 'sonner'
 import { PageHeader, Pagination, useConfirm } from '@/components/common'
@@ -20,20 +21,21 @@ type Moderation = 'CLEAR' | 'FLAGGED' | 'REMOVED'
 const MODERATION_VARIANT = { CLEAR: 'outline', FLAGGED: 'warning', REMOVED: 'destructive' } as const
 
 export default function AdminEventsPage() {
+  return <React.Suspense fallback={<LoadingState />}><EventSearch /></React.Suspense>
+}
+
+function EventSearch() {
+  const initial = useSearchParams().get('q') ?? ''
+  return <EventResults key={initial} initial={initial} />
+}
+
+function EventResults({ initial }: { initial: string }) {
   const queryClient = useQueryClient()
   const { confirm, dialog } = useConfirm()
-  const [q, setQ] = React.useState('')
-  const [search, setSearch] = React.useState('')
+  const [q, setQ] = React.useState(initial)
+  const [search, setSearch] = React.useState(initial)
   const [moderation, setModeration] = React.useState<Moderation | ''>('')
   const [page, setPage] = React.useState(1)
-  // "Moderate event" on the Reports page links here with ?q=<title>.
-  React.useEffect(() => {
-    const initial = new URLSearchParams(window.location.search).get('q')
-    if (initial) {
-      setQ(initial)
-      setSearch(initial)
-    }
-  }, [])
   const params = { page, pageSize: 25, q: search || undefined, moderation: moderation || undefined }
   const query = useQuery({
     queryKey: keys.admin('events', params),

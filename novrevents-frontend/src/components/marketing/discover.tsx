@@ -1,4 +1,4 @@
-import { Bookmark, Search } from 'lucide-react'
+import { Bookmark, Search } from '@/components/ui/icons'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { SAMPLE_LISTINGS } from './sample'
@@ -37,10 +37,10 @@ export function Discover() {
           </dl>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Button asChild variant="outline">
-              <Link href="/explore">Browse the directory</Link>
+              <Link href="/events">Browse the directory</Link>
             </Button>
             <Button asChild variant="outline">
-              <Link href="/explore?mode=cybersecurity">Explore cybersecurity events</Link>
+              <Link href="/events?mode=cybersecurity">Explore cybersecurity events</Link>
             </Button>
           </div>
         </div>

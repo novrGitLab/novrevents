@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Search } from 'lucide-react'
+import { Search } from '@/components/ui/icons'
 import Link from 'next/link'
 import * as React from 'react'
 import { toast } from 'sonner'
@@ -10,6 +10,7 @@ import { EmptyState, ErrorState, LoadingState } from '@/components/states'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input, NativeSelect } from '@/components/ui/input'
+import { PayoutAccount } from '@/components/admin/payout-account'
 import { Avatar } from '@/components/ui/primitives'
 import { useSession } from '@/hooks/use-session'
 import { api, unwrap } from '@/lib/api/client'
@@ -145,6 +146,7 @@ export default function AdminUsersPage() {
                   </div>
                 </dl>
                 <div className="flex flex-wrap items-center gap-2 pl-12 lg:w-[220px] lg:shrink-0 lg:justify-end lg:pl-0">
+                  <PayoutAccount id={user.id} name={user.displayName} />
                   {user.id === me?.id && <span className="text-muted-foreground text-xs">This is you</span>}
                   {user.id !== me?.id && (
                     <>

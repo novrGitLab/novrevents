@@ -1,4 +1,4 @@
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight } from '@/components/ui/icons'
 import Link from 'next/link'
 import { EventCard, type EventSummary } from '@/components/events/event-card'
 import { apiUrl } from '@/lib/server-api'
@@ -36,7 +36,7 @@ export async function Upcoming() {
             </h2>
           </div>
           <Link
-            href="/explore"
+            href="/events"
             className="text-primary hover:text-primary-hover inline-flex items-center gap-1 text-sm font-medium"
           >
             Explore all events <ArrowRight className="size-4" aria-hidden />

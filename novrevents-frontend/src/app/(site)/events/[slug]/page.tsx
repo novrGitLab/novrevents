@@ -1,3 +1,4 @@
+import { headers } from 'next/headers'
 import type { Metadata } from 'next'
 import { fetchPublicEvent, type PublicEvent } from '@/lib/server-api'
 import { siteUrl } from '@/lib/site'
@@ -85,18 +86,19 @@ function structuredData(event: PublicEvent) {
 export default async function EventPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const event = await fetchPublicEvent(slug)
+  const nonce=(await headers()).get('x-novr-nonce') ?? undefined
   return (
     <>
       {event && indexable(event) && (
         <script
           type="application/ld+json"
-          // JSON.stringify output with "<" escaped cannot close the script element.
+          nonce={nonce}
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(structuredData(event)).replace(/</g, '\\u003c'),
           }}
         />
       )}
-      <EventDetail slug={slug} />
+      <EventDetail slug={slug} initial={event ?? undefined} />
     </>
   )
 }

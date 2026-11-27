@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { ArrowRight, CalendarDays, Compass, Download, MapPin, Plus, QrCode } from 'lucide-react'
+import { ArrowRight, CalendarDays, Compass, Download, MapPin, Plus, QrCode } from '@/components/ui/icons'
 import Link from 'next/link'
 import { PageHeader } from '@/components/common'
 import { EventCard, EventRow, useSavedEventIds } from '@/components/events/event-card'
@@ -131,7 +131,6 @@ function NextUpCard({ registration }: { registration: MyRegistration }) {
         <div className="flex flex-col items-center justify-center gap-3 border-t border-dashed p-5 sm:p-6 lg:border-t-0 lg:border-l">
           {showTicket ? (
             <>
-              {/* QR codes stay black on white so every scanner can read them. */}
               <img
                 src={`${ticketBase}?format=svg`}
                 alt={`QR code for ticket ${ticket?.code}`}

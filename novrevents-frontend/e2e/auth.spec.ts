@@ -15,7 +15,7 @@ test.describe('sign-up, verification and welcome', () => {
 
     // Choosing a destination records completion and navigates.
     await page.getByRole('button', { name: /Explore events/ }).click()
-    await expect(page).toHaveURL(/\/explore/)
+    await expect(page).toHaveURL(/\/events/)
 
     // Returning: signing out and back in lands on the normal page, not the welcome.
     await page.getByRole('button', { name: 'Account menu' }).click()

@@ -1,6 +1,6 @@
 'use client'
 
-import { X } from 'lucide-react'
+import { X } from '@/components/ui/icons'
 import { Dialog as DialogPrimitive } from 'radix-ui'
 import * as React from 'react'
 import { cn } from '@/lib/utils'

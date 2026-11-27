@@ -1,35 +1,31 @@
 @import 'tailwindcss';
 
-/*
- * NOVR Events design tokens, from the Stitch "Editorial Precision" system.
- * Pure white surfaces, Cybernovr purple #662F8E, Inter only, light mode only.
- * Depth comes from 1px #E5E7EB hairlines and micro-shadows, never from blur or gradients.
- */
 
-/* `dark:` only applies under an explicit .dark ancestor, which the app never sets. */
+
+
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
   color-scheme: light;
 
-  /* Official Cybernovr colours. */
-  --cn-purple: #662f8e;
+
+  --cn-purple: #632d8a;
   --cn-purple-dark: #4e216d;
   --cn-purple-tint: #f5eff9;
-  --cn-blue: #4451a2;
-  --cn-red: #eb2027;
+  --cn-blue: #4353a3;
+  --cn-red: #e3192a;
 
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #faf8f4;
+  --foreground: #221b23;
   --card: #ffffff;
   --card-foreground: #171717;
   --popover: #ffffff;
   --popover-foreground: #171717;
 
-  /* Neutral wash for skeletons, track fills and quiet panels. */
+
   --muted: #f7f7f8;
   --muted-foreground: #667085;
-  --subtle-foreground: #98a2b3;
+  --subtle-foreground: #676074;
 
   --primary: var(--cn-purple);
   --primary-hover: var(--cn-purple-dark);
@@ -43,7 +39,7 @@
   --brand-soft: var(--cn-purple-tint);
   --brand-text: var(--cn-purple-dark);
 
-  /* Hover and selected fill: the purple tint. */
+
   --accent: var(--cn-purple-tint);
   --accent-foreground: var(--cn-purple-dark);
 
@@ -57,13 +53,13 @@
 
   --border: #e5e7eb;
   --input: #e5e7eb;
-  --ring: var(--cn-purple);
+  --ring: var(--cn-blue);
 
-  --chart-1: #662f8e;
-  --chart-2: #4451a2;
+  --chart-1: #632d8a;
+  --chart-2: #4353a3;
   --chart-3: #98a2b3;
   --chart-4: #b48fd0;
-  --chart-5: #eb2027;
+  --chart-5: #e3192a;
 
   --shadow-hairline: 0 1px 2px rgb(16 24 40 / 0.05);
   --shadow-float: 0 4px 12px rgb(16 24 40 / 0.08);
@@ -71,7 +67,7 @@
 
 @theme inline {
   --font-sans:
-    var(--font-inter), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+    'DM Sans Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, 'Cascadia Mono', Menlo, Consolas, monospace;
 
   --color-background: var(--background);
@@ -110,11 +106,11 @@
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
 
-  /* 4px controls, 8px containers, 12px hero surfaces. No pills except status dots and avatars. */
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 8px;
-  --radius-xl: 12px;
+
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
   --radius-2xl: 12px;
 
   --shadow-xs: var(--shadow-hairline);
@@ -122,10 +118,7 @@
   --shadow-md: var(--shadow-float);
   --shadow-lg: var(--shadow-float);
 
-  /*
-   * Named Stitch type roles. Tailwind's default scale (text-xs … text-5xl) is left untouched so
-   * existing pages keep their sizes; these add `text-display`, `text-headline-lg`, `text-label-sm` etc.
-   */
+
   --text-display: 3rem;
   --text-display--line-height: 3.5rem;
   --text-display--font-weight: 700;
@@ -170,7 +163,7 @@
   }
   html {
     -webkit-text-size-adjust: 100%;
-    /* In-page anchors land below the 64px sticky public header. */
+
     scroll-padding-top: 4.5rem;
     font-feature-settings: 'cv11', 'ss01';
     background: var(--background);
@@ -193,7 +186,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Page title: 24px on phones, 32px from tablet up. */
+
 @utility page-title {
   font-size: 1.5rem;
   line-height: 1.875rem;
@@ -212,7 +205,7 @@
   letter-spacing: -0.015em;
 }
 
-/* Uppercase micro-label for table headers, time zones and classification meta. Use sparingly. */
+
 @utility eyebrow {
   font-size: 0.6875rem;
   line-height: 0.875rem;
@@ -222,7 +215,7 @@
   color: var(--muted-foreground);
 }
 
-/* Marketing hero: 32px on phones up to 48px on desktop. */
+
 @utility marketing-hero {
   font-size: 2rem;
   line-height: 2.375rem;
@@ -246,7 +239,7 @@
   }
 }
 
-/* A card that is a link or button: border turns purple on hover, no lift or zoom. */
+
 @utility card-interactive {
   transition:
     border-color 150ms,
@@ -257,7 +250,7 @@
   }
 }
 
-/* Data tables: white sticky-style headers, uppercase micro-labels, 48px rows, tinted hover. */
+
 @utility data-table {
   width: 100%;
   font-size: 0.8125rem;

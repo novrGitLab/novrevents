@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { AlertTriangle, CheckCircle2, Copy, Search, XCircle } from 'lucide-react'
+import { AlertTriangle, CheckCircle2, Copy, Search, XCircle } from '@/components/ui/icons'
 import * as React from 'react'
 import { QrScanner } from '@/components/attendance/qr-scanner'
 import { useManagedEvent } from '@/components/events/event-context'

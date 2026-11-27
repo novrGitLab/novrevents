@@ -1,0 +1,14 @@
+event.cybernovr.com {
+    encode zstd gzip
+    handle /api/* {
+        reverse_proxy events-api:4000
+    }
+    handle {
+        reverse_proxy events-web:3100
+    }
+}
+api.event.cybernovr.com {
+    encode zstd gzip
+    header X-Robots-Tag "noindex, nofollow"
+    reverse_proxy events-api:4000
+}

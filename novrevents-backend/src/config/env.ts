@@ -30,6 +30,12 @@ const schema = z
     APP_URL: z.url().default('http://localhost:3100'),
     CORS_ORIGINS: z.string().default('http://localhost:3100'),
 
+    NHAAI_BASE_URL: z.url({ protocol: /^https$/ }).optional(),
+    NHAAI_MODEL: z.string().min(1).optional(),
+    NHAAI_API_KEY: z.string().min(1).optional(),
+    PAYSTACK_SECRET_KEY: z.string().min(1).optional(),
+    GOOGLE_CLIENT_ID: z.string().min(1).optional(),
+    GOOGLE_CLIENT_SECRET: z.string().min(1).optional(),
     SESSION_SECRET: z.string().min(32, 'SESSION_SECRET must be at least 32 characters'),
     SESSION_COOKIE_NAME: z.string().min(1).default('novr_session'),
     SESSION_TTL_DAYS: z.coerce.number().int().min(1).max(365).default(30),

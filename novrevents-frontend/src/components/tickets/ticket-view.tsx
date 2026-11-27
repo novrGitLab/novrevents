@@ -1,7 +1,10 @@
 'use client'
 
-import { Award, CalendarDays, Download, Globe, MapPin } from 'lucide-react'
+import { Award, CalendarDays, Download, Globe, MapPin } from '@/components/ui/icons'
 import Link from 'next/link'
+import { useMutation } from '@tanstack/react-query'
+import { api, ensureCsrfToken, unwrap } from '@/lib/api/client'
+import { errorMessage } from '@/lib/api/errors'
 import { REGISTRATION_STATUS_VARIANT } from '@/components/events/labels'
 import { Notice } from '@/components/states'
 import { Badge } from '@/components/ui/badge'
@@ -35,6 +38,20 @@ export function TicketView({
   cancelling?: boolean
 }) {
   const { event, ticket } = registration
+  const payable =
+    registration.status === 'PENDING' && !!registration.amountKobo && !!registration.paymentDueAt
+  const pay = useMutation({
+    mutationFn: async () => {
+      const path = new URL(registration.manageUrl).pathname
+      const token = path.split('/').pop()!
+      await ensureCsrfToken()
+      const checkout = await unwrap(
+        api.POST('/api/v1/public/registrations/{token}/checkout', { params: { path: { token } } }),
+      )
+      sessionStorage.setItem('ticket:' + checkout.reference, path)
+      window.location.assign(checkout.url)
+    },
+  })
   const showTicket = registration.status === 'CONFIRMED' && ticket?.status === 'VALID'
   return (
     <article className="bg-card overflow-hidden rounded-xl border shadow-xs">
@@ -57,7 +74,7 @@ export function TicketView({
               </h2>
               <div className="mt-2 flex flex-wrap items-center gap-2">
                 <Badge variant={REGISTRATION_STATUS_VARIANT[registration.status]}>
-                  {STATUS_TEXT[registration.status]}
+                  {payable ? 'Payment due' : STATUS_TEXT[registration.status]}
                 </Badge>
                 {registration.checkedInAt && <Badge variant="success">Checked in</Badge>}
                 {event.status === 'CANCELLED' && <Badge variant="destructive">Event cancelled</Badge>}
@@ -101,7 +118,7 @@ export function TicketView({
           </dl>
 
           <div className="mt-4 space-y-3 empty:hidden">
-            {registration.status === 'PENDING' && (
+            {registration.status === 'PENDING' && !payable && (
               <Notice tone="info">
                 {emailDeliveryEnabled
                   ? 'The organiser is reviewing your registration. Your ticket will be emailed if it is approved.'
@@ -116,6 +133,20 @@ export function TicketView({
           </div>
 
           <div className="mt-4 flex flex-wrap gap-2 empty:hidden">
+            {payable && (
+              <div>
+                <p className="mb-2 text-sm">
+                  Held until {formatDateTime(registration.paymentDueAt!, event.timezone)}.
+                </p>
+                <Button onClick={() => pay.mutate()} loading={pay.isPending}>
+                  Pay{' '}
+                  {new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(
+                    registration.amountKobo! / 100,
+                  )}
+                </Button>
+                {pay.isError && <p role="alert">{errorMessage(pay.error)}</p>}
+              </div>
+            )}
             {event.onlineUrl && registration.status === 'CONFIRMED' && (
               <Button asChild variant="outline" size="sm">
                 <a href={event.onlineUrl} target="_blank" rel="noopener noreferrer">
@@ -146,7 +177,6 @@ export function TicketView({
 
         {showTicket && (
           <div className="bg-brand-soft/40 relative flex flex-col items-center justify-center gap-3 border-t border-dashed p-5 md:border-t-0 md:border-l">
-            {/* QR codes stay black on white in both themes so every scanner can read them. */}
             <img
               src={`${ticketBase}?format=svg`}
               alt={`QR code for ticket ${ticket?.code}`}
