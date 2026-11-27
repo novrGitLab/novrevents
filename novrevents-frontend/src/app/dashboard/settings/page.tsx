@@ -61,7 +61,10 @@ export default function SettingsPage() {
   return (
     <>
       <PageHeader title="Settings" description="Account security, sessions and email preferences." />
-      <nav aria-label="Settings sections" className="-mt-2 mb-6 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">
+      <nav
+        aria-label="Settings sections"
+        className="-mt-2 mb-6 flex [scrollbar-width:none] gap-2 overflow-x-auto pb-1"
+      >
         {SECTIONS.map((section) => (
           <a
             key={section.id}
@@ -122,43 +125,39 @@ function EmailCard() {
         </>
       }
     >
-        <form
-          className="space-y-4"
-          onSubmit={(event) => {
-            event.preventDefault()
-            setError(null)
-            change.mutate()
-          }}
-        >
-          {error && <Notice tone="error">{error}</Notice>}
-          <Field label="New email" htmlFor="new-email">
-            <Input
-              id="new-email"
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-            />
-          </Field>
-          <Field
-            label="Current password"
-            htmlFor="email-password"
-            description="Required to change your email."
-          >
-            <Input
-              id="email-password"
-              type="password"
-              autoComplete="current-password"
-              required
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-            />
-          </Field>
-          <Button type="submit" loading={change.isPending}>
-            Change email
-          </Button>
-        </form>
+      <form
+        className="space-y-4"
+        onSubmit={(event) => {
+          event.preventDefault()
+          setError(null)
+          change.mutate()
+        }}
+      >
+        {error && <Notice tone="error">{error}</Notice>}
+        <Field label="New email" htmlFor="new-email">
+          <Input
+            id="new-email"
+            type="email"
+            autoComplete="email"
+            required
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+          />
+        </Field>
+        <Field label="Current password" htmlFor="email-password" description="Required to change your email.">
+          <Input
+            id="email-password"
+            type="password"
+            autoComplete="current-password"
+            required
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+          />
+        </Field>
+        <Button type="submit" loading={change.isPending}>
+          Change email
+        </Button>
+      </form>
     </SettingsSection>
   )
 }
@@ -183,40 +182,40 @@ function PasswordCard() {
       title="Password"
       description="Changing your password signs out your other devices."
     >
-        <form
-          className="space-y-4"
-          onSubmit={(event) => {
-            event.preventDefault()
-            setError(null)
-            if (newPassword.length < 10) return setError('Use at least 10 characters.')
-            change.mutate()
-          }}
-        >
-          {error && <Notice tone="error">{error}</Notice>}
-          <Field label="Current password" htmlFor="current-password">
-            <Input
-              id="current-password"
-              type="password"
-              autoComplete="current-password"
-              required
-              value={currentPassword}
-              onChange={(event) => setCurrent(event.target.value)}
-            />
-          </Field>
-          <Field label="New password" htmlFor="new-password" description="At least 10 characters.">
-            <Input
-              id="new-password"
-              type="password"
-              autoComplete="new-password"
-              required
-              value={newPassword}
-              onChange={(event) => setNew(event.target.value)}
-            />
-          </Field>
-          <Button type="submit" loading={change.isPending}>
-            Change password
-          </Button>
-        </form>
+      <form
+        className="space-y-4"
+        onSubmit={(event) => {
+          event.preventDefault()
+          setError(null)
+          if (newPassword.length < 10) return setError('Use at least 10 characters.')
+          change.mutate()
+        }}
+      >
+        {error && <Notice tone="error">{error}</Notice>}
+        <Field label="Current password" htmlFor="current-password">
+          <Input
+            id="current-password"
+            type="password"
+            autoComplete="current-password"
+            required
+            value={currentPassword}
+            onChange={(event) => setCurrent(event.target.value)}
+          />
+        </Field>
+        <Field label="New password" htmlFor="new-password" description="At least 10 characters.">
+          <Input
+            id="new-password"
+            type="password"
+            autoComplete="new-password"
+            required
+            value={newPassword}
+            onChange={(event) => setNew(event.target.value)}
+          />
+        </Field>
+        <Button type="submit" loading={change.isPending}>
+          Change password
+        </Button>
+      </form>
     </SettingsSection>
   )
 }
@@ -242,17 +241,17 @@ function PreferencesCard() {
       title="Email preferences"
       description="Choose which optional emails you receive. Messages about your tickets and account security are not optional."
     >
-        {query.isPending ? (
-          <LoadingState rows={2} />
-        ) : query.isError ? (
-          <ErrorState error={query.error} />
-        ) : (
-          <EmailPreferenceSwitches
-            value={query.data}
-            disabled={update.isPending}
-            onChange={(patch) => update.mutate(patch)}
-          />
-        )}
+      {query.isPending ? (
+        <LoadingState rows={2} />
+      ) : query.isError ? (
+        <ErrorState error={query.error} />
+      ) : (
+        <EmailPreferenceSwitches
+          value={query.data}
+          disabled={update.isPending}
+          onChange={(patch) => update.mutate(patch)}
+        />
+      )}
     </SettingsSection>
   )
 }
@@ -289,48 +288,48 @@ function SessionsCard() {
         </Button>
       }
     >
-        {query.isPending ? (
-          <LoadingState rows={2} />
-        ) : query.isError ? (
-          <ErrorState error={query.error} />
-        ) : (
-          <ul className="-my-3 divide-y">
-            {query.data.items.map((session) => (
-              <li key={session.id} className="flex items-start gap-3 py-3">
-                <span className="bg-muted text-muted-foreground flex size-8 shrink-0 items-center justify-center rounded-sm">
-                  <Monitor className="size-4" aria-hidden />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">
-                    {describeAgent(session.userAgent)}{' '}
-                    {session.current && <Badge variant="success">This device</Badge>}
-                  </p>
-                  <p className="text-muted-foreground text-xs" title={formatDateTime(session.lastUsedAt)}>
-                    {session.ipAddress ?? 'Unknown network'} · active {relativeTime(session.lastUsedAt)}
-                  </p>
-                </div>
-                {!session.current && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={async () => {
-                      try {
-                        await unwrap(
-                          api.DELETE('/api/v1/auth/sessions/{id}', { params: { path: { id: session.id } } }),
-                        )
-                        await refresh()
-                      } catch (error) {
-                        toast.error(errorMessage(error))
-                      }
-                    }}
-                  >
-                    Sign out
-                  </Button>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
+      {query.isPending ? (
+        <LoadingState rows={2} />
+      ) : query.isError ? (
+        <ErrorState error={query.error} />
+      ) : (
+        <ul className="-my-3 divide-y">
+          {query.data.items.map((session) => (
+            <li key={session.id} className="flex items-start gap-3 py-3">
+              <span className="text-primary flex size-8 shrink-0 items-center justify-center rounded-sm">
+                <Monitor className="size-4" aria-hidden />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium">
+                  {describeAgent(session.userAgent)}{' '}
+                  {session.current && <Badge variant="success">This device</Badge>}
+                </p>
+                <p className="text-muted-foreground text-xs" title={formatDateTime(session.lastUsedAt)}>
+                  {session.ipAddress ?? 'Unknown network'} · active {relativeTime(session.lastUsedAt)}
+                </p>
+              </div>
+              {!session.current && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={async () => {
+                    try {
+                      await unwrap(
+                        api.DELETE('/api/v1/auth/sessions/{id}', { params: { path: { id: session.id } } }),
+                      )
+                      await refresh()
+                    } catch (error) {
+                      toast.error(errorMessage(error))
+                    }
+                  }}
+                >
+                  Sign out
+                </Button>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
       {dialog}
     </SettingsSection>
   )

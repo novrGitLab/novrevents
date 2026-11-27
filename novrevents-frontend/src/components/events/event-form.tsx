@@ -22,15 +22,10 @@ import { EVENT_MODE_LABELS, EVENT_TYPE_LABELS, VISIBILITY_LABELS } from './label
 type ManagedEvent = Schema<'EventManage'>
 
 /** Numbered section heading: the form is filled in this order. */
+const sections = ['Basics', 'Date and time', 'Location', 'Registration', 'Organiser and branding'] as const
 function SectionTitle({ number, children }: { number: number; children: React.ReactNode }) {
   return (
-    <h2 className="text-headline-sm flex items-center gap-3">
-      <span
-        aria-hidden
-        className="bg-primary text-primary-foreground flex size-6 shrink-0 items-center justify-center rounded-sm text-xs tabular-nums"
-      >
-        {String(number).padStart(2, '0')}
-      </span>
+    <h2 id={'event-section-' + number} tabIndex={-1} className="event-section-title">
       {children}
     </h2>
   )
@@ -177,7 +172,8 @@ function toPayload(values: Values) {
   return {
     title: values.title,
     summary: values.summary || null,
-    guestInfo: { ...values.guestInfo,
+    guestInfo: {
+      ...values.guestInfo,
       doorsBeforeMinutes: values.mode === 'VIRTUAL' ? null : values.guestInfo.doorsBeforeMinutes,
       parking: values.mode === 'VIRTUAL' ? '' : values.guestInfo.parking,
     },
@@ -268,7 +264,14 @@ export function EventForm({
         </Notice>
       )}
       {formError && <Notice tone="error">{formError}</Notice>}
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+      <nav className="event-sections" aria-label="Event form sections">
+        {sections.map((name, i) => (
+          <a key={name} href={'#event-section-' + (i + 1)}>
+            {name}
+          </a>
+        ))}
+      </nav>
+      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
         <fieldset disabled={readOnly || isSubmitting} className="min-w-0 space-y-6">
           <Card>
             <CardHeader>
