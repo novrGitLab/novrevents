@@ -10,6 +10,7 @@
 
 # ── Safety net, applied inside both applications ────────────────────────────
 node_modules/
+docs/
 .next/
 dist/
 coverage/
