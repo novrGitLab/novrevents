@@ -155,7 +155,7 @@ export function Hero() {
                 name="location"
                 autoComplete="address-level2"
                 maxLength={100}
-                placeholder="Enter a city or venue"
+                placeholder="City or venue"
                 aria-label="City or venue"
               />
             </span>
