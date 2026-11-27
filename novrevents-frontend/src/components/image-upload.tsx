@@ -1,6 +1,6 @@
 'use client'
 
-import { ImageUp, Trash2 } from 'lucide-react'
+import { ImageUp, Trash2 } from '@/components/ui/icons'
 import * as React from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'

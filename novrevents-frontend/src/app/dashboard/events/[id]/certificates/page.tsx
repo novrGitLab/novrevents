@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Award, ExternalLink, FileText } from 'lucide-react'
+import { Award, ExternalLink, FileText } from '@/components/ui/icons'
 import * as React from 'react'
 import { toast } from 'sonner'
 import { Field, useConfirm } from '@/components/common'
@@ -14,7 +14,7 @@ import { Input, Textarea } from '@/components/ui/input'
 import { api, unwrap, type Schema } from '@/lib/api/client'
 import { errorMessage } from '@/lib/api/errors'
 import { keys } from '@/lib/api/keys'
-import { emailDeliveryEnabled } from '@/lib/site'
+import { useAuthProviders } from '@/lib/auth-providers'
 import { formatDate } from '@/lib/format'
 
 type Template = Schema<'CertificateTemplate'>
@@ -158,6 +158,7 @@ function TemplateEditor({ eventId, template }: { eventId: string; template: Temp
 }
 
 function Issued({ eventId, draft }: { eventId: string; draft: boolean }) {
+  const emailDeliveryEnabled = useAuthProviders().data?.emailDelivery === true
   const queryClient = useQueryClient()
   const { confirm, dialog } = useConfirm()
   const [sendEmail, setSendEmail] = React.useState(true)

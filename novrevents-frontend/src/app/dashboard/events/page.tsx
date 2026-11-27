@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { CalendarDays, Plus } from 'lucide-react'
+import { CalendarDays, Plus } from '@/components/ui/icons'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import * as React from 'react'

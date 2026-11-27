@@ -54,6 +54,35 @@ describe('event creation', () => {
     expect(stored.ticketTypes.map((type) => type.name)).toEqual(['General Admission'])
   })
 
+  it('publishes guest questions and derives venue-only fields from the event format', async () => {
+    const owner = await createUser(app)
+    const guestInfo = {
+      doorsBeforeMinutes: 45,
+      minimumAge: 18,
+      accessibility: 'Step-free entrance',
+      parking: 'Use the north gate',
+      faqs: [{ question: 'Are coats allowed?', answer: 'Yes, a cloakroom is available.' }],
+    }
+    const event = await createPublishedEvent(owner, { guestInfo })
+    const guest = new TestClient(app)
+    const readInfo = async () =>
+      (await guest.get<{ guestInfo: typeof guestInfo }>(`/api/v1/public/events/${event.slug}`)).body
+        .guestInfo
+    expect(await readInfo()).toEqual(guestInfo)
+    expect(
+      (await owner.client.patch(`/api/v1/events/${event.id}`, { mode: 'VIRTUAL' })).status,
+    ).toBe(200)
+    expect(await readInfo()).toMatchObject({
+      doorsBeforeMinutes: null,
+      parking: '',
+      faqs: guestInfo.faqs,
+    })
+    expect(
+      (await owner.client.patch(`/api/v1/events/${event.id}`, { guestInfo: { minimumAge: -1 } }))
+        .status,
+    ).toBe(400)
+  })
+
   it('requires authentication', async () => {
     const response = await new TestClient(app).post('/api/v1/events', await eventPayload())
     expect(response.status).toBe(401)

@@ -30,6 +30,14 @@ const schema = z
     APP_URL: z.url().default('http://localhost:3100'),
     CORS_ORIGINS: z.string().default('http://localhost:3100'),
 
+    NHAAI_BASE_URL: z.url({ protocol: /^https$/ }).optional(),
+    NHAAI_MODEL: z.string().min(1).optional(),
+    NHAAI_API_KEY: z.string().min(1).optional(),
+    PAYSTACK_MODE: z.enum(['test', 'live']).default('test'),
+    PAYSTACK_PUBLIC_KEY: z.string().optional(),
+    PAYSTACK_SECRET_KEY: z.string().optional(),
+    GOOGLE_CLIENT_ID: z.string().min(1).optional(),
+    GOOGLE_CLIENT_SECRET: z.string().min(1).optional(),
     SESSION_SECRET: z.string().min(32, 'SESSION_SECRET must be at least 32 characters'),
     SESSION_COOKIE_NAME: z.string().min(1).default('novr_session'),
     SESSION_TTL_DAYS: z.coerce.number().int().min(1).max(365).default(30),
@@ -49,7 +57,8 @@ const schema = z
     S3_SECRET_ACCESS_KEY: z.string().optional(),
     S3_FORCE_PATH_STYLE: flag(true),
 
-    EMAIL_DRIVER: z.enum(['log', 'brevo']).default('log'),
+    GMAIL_APP_PASSWORD: z.string().length(16).optional(),
+    EMAIL_DRIVER: z.enum(['log', 'brevo', 'gmail']).default('log'),
     BREVO_API_KEY: z.string().optional(),
     BREVO_WEBHOOK_TOKEN: z.string().optional(),
     EMAIL_FROM_ADDRESS: z.email().default('events@example.com'),
@@ -62,6 +71,24 @@ const schema = z
     API_DOCS_ENABLED: flag(false),
   })
   .superRefine((value, ctx) => {
+    if (value.PAYSTACK_SECRET_KEY || value.PAYSTACK_PUBLIC_KEY) {
+      for (const [field, prefix] of [
+        ['PAYSTACK_PUBLIC_KEY', 'pk'],
+        ['PAYSTACK_SECRET_KEY', 'sk'],
+      ] as const) {
+        if (
+          !new RegExp('^' + prefix + '_' + value.PAYSTACK_MODE + '_[A-Za-z0-9]{20,128}$').test(
+            value[field] ?? '',
+          )
+        ) {
+          ctx.addIssue({
+            code: 'custom',
+            path: [field],
+            message: 'A complete key pair for the selected Paystack mode is required.',
+          })
+        }
+      }
+    }
     if (value.STORAGE_DRIVER === 's3') {
       for (const key of ['S3_BUCKET', 'S3_ACCESS_KEY_ID', 'S3_SECRET_ACCESS_KEY'] as const) {
         if (!value[key]) {
@@ -72,6 +99,16 @@ const schema = z
           })
         }
       }
+    }
+    if (
+      value.EMAIL_DRIVER === 'gmail' &&
+      (!value.GMAIL_APP_PASSWORD || !value.EMAIL_FROM_ADDRESS.toLowerCase().endsWith('@gmail.com'))
+    ) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['EMAIL_DRIVER'],
+        message: 'Gmail delivery requires a Gmail sender address and its app password.',
+      })
     }
     if (value.EMAIL_DRIVER === 'brevo' && !value.BREVO_API_KEY) {
       ctx.addIssue({

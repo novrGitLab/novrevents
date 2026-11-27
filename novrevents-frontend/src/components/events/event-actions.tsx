@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Archive, ArchiveRestore, Ban, Copy, EyeOff, MoreHorizontal, Rocket, Trash2 } from 'lucide-react'
+import { Archive, ArchiveRestore, Ban, Copy, EyeOff, MoreHorizontal, Rocket, Trash2 } from '@/components/ui/icons'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import * as React from 'react'
@@ -27,7 +27,7 @@ import { api, unwrap } from '@/lib/api/client'
 import { errorMessage, isApiError, type ErrorDetail } from '@/lib/api/errors'
 import { keys } from '@/lib/api/keys'
 import { canAdminister, canManage, type ManagedEvent } from './event-context'
-import { emailDeliveryEnabled } from '@/lib/site'
+import { useAuthProviders } from '@/lib/auth-providers'
 
 const FIELD_LABELS: Record<string, string> = {
   description: 'Description',
@@ -82,6 +82,7 @@ function useLifecycle(event: ManagedEvent) {
 
 /** Publish button (drafts) and the "more actions" menu shown in the event workspace header. */
 export function EventHeaderActions({ event }: { event: ManagedEvent }) {
+  const emailDeliveryEnabled = useAuthProviders().data?.emailDelivery === true
   const router = useRouter()
   const queryClient = useQueryClient()
   const { confirm, dialog } = useConfirm()

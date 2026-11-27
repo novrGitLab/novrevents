@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { AtSign, Code2, Download, Globe, Lock, QrCode, UserRound } from 'lucide-react'
+import { AtSign, Code2, Download, Globe, Lock, QrCode, UserRound } from '@/components/ui/icons'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import * as React from 'react'

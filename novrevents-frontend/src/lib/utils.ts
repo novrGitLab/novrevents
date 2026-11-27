@@ -42,6 +42,6 @@ export function uuid(): string {
 
 /** Only allow same-site relative paths as post-login redirects. */
 export function safeNextPath(value: string | null | undefined, fallback = '/dashboard'): string {
-  if (!value || !value.startsWith('/') || value.startsWith('//') || value.startsWith('/\\')) return fallback
+  if (!value || !value.startsWith('/') || value.startsWith('//') || value.includes('\\') || Array.from(value).some(char => char.charCodeAt(0) < 32)) return fallback
   return value
 }

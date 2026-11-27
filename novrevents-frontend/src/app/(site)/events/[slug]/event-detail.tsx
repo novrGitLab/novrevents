@@ -1,5 +1,6 @@
 'use client'
 
+import { GuestInformation } from '@/components/events/guest-information'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   ArrowRight,
@@ -15,7 +16,7 @@ import {
   Ticket,
   CalendarPlus,
   Users,
-} from 'lucide-react'
+} from '@/components/ui/icons'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import * as React from 'react'
@@ -41,7 +42,7 @@ import { api, unwrap, type Schema } from '@/lib/api/client'
 import { errorMessage, isApiError } from '@/lib/api/errors'
 import { keys } from '@/lib/api/keys'
 import { formatDate, formatEventRange, formatTime } from '@/lib/format'
-import { emailDeliveryEnabled } from '@/lib/site'
+import { useAuthProviders } from '@/lib/auth-providers'
 import { cn } from '@/lib/utils'
 
 type EventDetailData = Schema<'EventDetail'>
@@ -50,11 +51,21 @@ type EventDetailData = Schema<'EventDetail'>
  * Public event page. With `inApp` it renders inside the signed-in shell (from /dashboard/discover):
  * no page frame of its own, and breadcrumbs and related events stay in the app.
  */
-export function EventDetail({ slug, inApp = false }: { slug: string; inApp?: boolean }) {
+export function EventDetail({
+  slug,
+  inApp = false,
+  initial,
+}: {
+  slug: string
+  inApp?: boolean
+  initial?: EventDetailData
+}) {
   const searchParams = useSearchParams()
   const key = searchParams.get('key') ?? undefined
   const query = useQuery({
     queryKey: keys.publicEvent(slug, key),
+    initialData: key ? undefined : initial,
+    initialDataUpdatedAt: 0,
     queryFn: () =>
       unwrap(api.GET('/api/v1/public/events/{slug}', { params: { path: { slug }, query: { key } } })),
   })
@@ -85,7 +96,7 @@ export function EventDetail({ slug, inApp = false }: { slug: string; inApp?: boo
               It may be private, unpublished, or the link may be incomplete.
             </p>
             <Button asChild className="mt-6">
-              <Link href={inApp ? '/dashboard/discover' : '/explore'}>Explore events</Link>
+              <Link href={inApp ? '/dashboard/discover' : '/events'}>Explore events</Link>
             </Button>
           </div>
         ) : (
@@ -98,10 +109,18 @@ export function EventDetail({ slug, inApp = false }: { slug: string; inApp?: boo
 }
 
 /** Section heading with the Stitch purple rule. */
-function SectionHeading({ id, children, aside }: { id: string; children: React.ReactNode; aside?: React.ReactNode }) {
+function SectionHeading({
+  id,
+  children,
+  aside,
+}: {
+  id: string
+  children: React.ReactNode
+  aside?: React.ReactNode
+}) {
   return (
     <div className="flex items-baseline justify-between gap-3">
-      <h2 id={id} className="text-headline-sm border-primary border-l-[3px] pl-3 sm:text-headline-md">
+      <h2 id={id} className="text-headline-sm border-primary sm:text-headline-md border-l-[3px] pl-3">
         {children}
       </h2>
       {aside}
@@ -109,7 +128,15 @@ function SectionHeading({ id, children, aside }: { id: string; children: React.R
   )
 }
 
-function MetaItem({ icon: Icon, label, children }: { icon: typeof Globe; label: string; children: React.ReactNode }) {
+function MetaItem({
+  icon: Icon,
+  label,
+  children,
+}: {
+  icon: typeof Globe
+  label: string
+  children: React.ReactNode
+}) {
   return (
     <div className="flex min-w-0 gap-3">
       <span className="bg-brand-soft text-primary flex size-9 shrink-0 items-center justify-center rounded-sm">
@@ -132,7 +159,7 @@ function EventView({
   accessKey?: string
   inApp: boolean
 }) {
-  const discoverHref = inApp ? '/dashboard/discover' : '/explore'
+  const discoverHref = inApp ? '/dashboard/discover' : '/events'
   const speakersById = new Map(event.speakers.map((speaker) => [speaker.id, speaker]))
   const sessionsByDay = groupSessions(event)
   const venueLine = [event.venueName, event.address].filter(Boolean).join(', ')
@@ -154,7 +181,10 @@ function EventView({
             <>
               <li aria-hidden>/</li>
               <li>
-                <Link href={`${discoverHref}?category=${event.category.slug}`} className="hover:text-foreground">
+                <Link
+                  href={`${discoverHref}?category=${event.category.slug}`}
+                  className="hover:text-foreground"
+                >
                   {event.category.name}
                 </Link>
               </li>
@@ -180,7 +210,7 @@ function EventView({
             <Badge variant="secondary">{EVENT_MODE_LABELS[event.mode]}</Badge>
             {event.category && <Badge variant="secondary">{event.category.name}</Badge>}
           </div>
-          <h1 className="text-headline-lg sm:text-display mt-3 text-balance">{event.title}</h1>
+          <h1 className="event-detail-title mt-3 text-balance">{event.title}</h1>
           {event.summary && (
             <p className="text-muted-foreground mt-3 max-w-[68ch] text-base leading-7">{event.summary}</p>
           )}
@@ -217,7 +247,10 @@ function EventView({
             sizes="(min-width: 1024px) 820px, 100vw"
             className="mt-6 aspect-[16/9] rounded-xl border"
           />
-          <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+          <div
+            id="registration"
+            className="mt-3 flex scroll-mt-24 flex-wrap items-center justify-between gap-3"
+          >
             <EventActions event={event} accessKey={accessKey} />
             <RegistrationStatus registration={event.registration} status={event.status} />
           </div>
@@ -228,16 +261,18 @@ function EventView({
             </Notice>
           )}
 
-          <div className={inApp ? "mt-8 xl:hidden" : "mt-8 lg:hidden"}>
+          <div className={inApp ? 'mt-8 xl:hidden' : 'mt-8 lg:hidden'}>
             <RegistrationPanel event={event} />
           </div>
 
-          <section aria-labelledby="about" className="mt-12">
-            <SectionHeading id="about">About this event</SectionHeading>
-            <div className="text-foreground/90 mt-5 max-w-[68ch] text-[15px] leading-7 whitespace-pre-line">
-              {event.description || 'No description yet.'}
-            </div>
-          </section>
+          {event.description && (
+            <section aria-labelledby="about" className="mt-12">
+              <SectionHeading id="about">About this event</SectionHeading>
+              <div className="text-foreground/90 mt-5 max-w-[68ch] text-[15px] leading-7 whitespace-pre-line">
+                {event.description}
+              </div>
+            </section>
+          )}
 
           {sessionsByDay.length > 0 && (
             <section aria-labelledby="agenda" className="mt-12">
@@ -253,7 +288,10 @@ function EventView({
                     <h3 className="text-[13px] font-semibold">{day}</h3>
                     <ol className="bg-card mt-2 divide-y rounded-lg border">
                       {sessions.map((session) => (
-                        <li key={session.id} className="grid gap-1 px-4 py-4 sm:grid-cols-[120px_1fr] sm:gap-4">
+                        <li
+                          key={session.id}
+                          className="grid gap-1 px-4 py-4 sm:grid-cols-[120px_1fr] sm:gap-4"
+                        >
                           <span className="text-primary text-[13px] font-medium tabular-nums">
                             {formatTime(session.startsAt, event.timezone)}–
                             {formatTime(session.endsAt, event.timezone)}
@@ -311,14 +349,19 @@ function EventView({
             </section>
           )}
 
+          <GuestInformation event={event} />
           <RelatedEvents event={event} inApp={inApp} />
         </div>
 
         <aside
-          className={inApp ? 'space-y-5 xl:sticky xl:top-20 xl:self-start' : 'space-y-5 lg:sticky lg:top-20 lg:self-start'}
+          className={
+            inApp
+              ? 'space-y-5 xl:sticky xl:top-20 xl:self-start'
+              : 'space-y-5 lg:sticky lg:top-20 lg:self-start'
+          }
           aria-label="Registration and organiser"
         >
-          <div className={inApp ? "hidden xl:block" : "hidden lg:block"}>
+          <div className={inApp ? 'hidden xl:block' : 'hidden lg:block'}>
             <RegistrationPanel event={event} />
           </div>
           <OrganizerPanel event={event} />
@@ -329,6 +372,7 @@ function EventView({
 }
 
 function RegistrationPanel({ event }: { event: EventDetailData }) {
+  const emailDeliveryEnabled = useAuthProviders().data?.emailDelivery === true
   const { registration, viewer } = event
   return (
     <div className="bg-card rounded-lg border shadow-xs">
@@ -352,8 +396,10 @@ function RegistrationPanel({ event }: { event: EventDetailData }) {
                 className={cn('rounded-sm border px-3 py-2.5', !ticketType.available && 'bg-muted')}
               >
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-sm font-medium">{ticketType.name}</p>
-                  {!ticketType.available && <span className="text-muted-foreground text-xs">Unavailable</span>}
+                  <p className="text-sm font-medium">{ticketType.name}{ticketType.priceKobo > 0 && <span className="ml-2 tabular-nums">{new Intl.NumberFormat('en-NG',{style:'currency',currency:'NGN'}).format(ticketType.priceKobo / 100)}</span>}</p>
+                  {!ticketType.available && (
+                    <span className="text-muted-foreground text-xs">Unavailable</span>
+                  )}
                 </div>
                 {ticketType.description && (
                   <p className="text-muted-foreground mt-0.5 text-[13px]">{ticketType.description}</p>
@@ -400,7 +446,9 @@ function RegistrationPanel({ event }: { event: EventDetailData }) {
               {[
                 'No account needed',
                 registration.spotsLeft !== null ? `${registration.spotsLeft} places left` : null,
-                event.registrationDeadline ? `Closes ${formatDate(event.registrationDeadline, event.timezone)}` : null,
+                event.registrationDeadline
+                  ? `Closes ${formatDate(event.registrationDeadline, event.timezone)}`
+                  : null,
               ]
                 .filter(Boolean)
                 .join(' · ')}
@@ -452,7 +500,10 @@ function OrganizerPanel({ event }: { event: EventDetailData }) {
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold">{organizer.organization?.name ?? organizer.name}</p>
           {organizer.organization && organizer.username && (
-            <Link href={`/u/${organizer.username}`} className="text-muted-foreground text-[13px] hover:underline">
+            <Link
+              href={`/u/${organizer.username}`}
+              className="text-muted-foreground text-[13px] hover:underline"
+            >
               {organizer.name === organizer.organization.name ? `@${organizer.username}` : organizer.name}
             </Link>
           )}
@@ -537,7 +588,7 @@ function EventActions({ event, accessKey }: { event: EventDetailData; accessKey?
         onClick={() =>
           isAuthenticated
             ? save.mutate(event.viewer.isSaved)
-            : router.push(`/login?next=/events/${event.slug}`)
+            : router.push(`/auth/login?next=/events/${event.slug}`)
         }
         loading={save.isPending}
         aria-pressed={event.viewer.isSaved}

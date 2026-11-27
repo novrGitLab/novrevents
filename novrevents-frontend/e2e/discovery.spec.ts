@@ -49,8 +49,8 @@ test.describe('organisation following', () => {
     await expect(page.getByRole('button', { name: 'Following', exact: true })).toBeVisible()
 
     await page.goto('/dashboard/following', { waitUntil: 'networkidle' })
-    await page.getByRole('tab', { name: 'Following' }).click()
-    await expect(page.getByRole('heading', { name: 'Organisations' })).toBeVisible()
+    await page.getByRole('tab', { name: 'Organisations' }).click()
+    await expect(page.getByRole('tabpanel')).toBeVisible()
     await expect(page.getByRole('link', { name: 'Cybernovr', exact: true })).toBeVisible()
 
     // Stop following from the list, then confirm on the organisation page.
@@ -65,7 +65,7 @@ test.describe('discovery', () => {
   test('the homepage makes no featured or closing-soon claims', async ({ page }) => {
     await page.goto('/', { waitUntil: 'networkidle' })
     await expect(
-      page.getByRole('heading', { level: 1, name: 'Discover events. Bring communities together.' }),
+      page.getByRole('heading', { level: 1, name: /The art of\s*going out\./i }),
     ).toBeVisible()
     await expect(page.getByText(/featured|closing soon/i)).toHaveCount(0)
   })
@@ -85,8 +85,8 @@ test.describe('discovery', () => {
 
     await page.goto('/explore?mode=VIRTUAL', { waitUntil: 'networkidle' })
     await expect(page.getByLabel('Format')).toHaveValue('VIRTUAL')
-    await page.getByRole('button', { name: 'Clear all filters' }).click()
-    await expect(page).toHaveURL(/\/explore$/)
+    await page.getByRole('button', { name: 'Clear all', exact: true }).click()
+    await expect(page).toHaveURL(/\/events$/)
     await expect(page.getByLabel('Format')).toHaveValue('')
   })
 

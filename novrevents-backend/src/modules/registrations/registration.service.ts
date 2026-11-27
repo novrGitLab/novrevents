@@ -1,3 +1,4 @@
+import { env } from '../../config/env.js'
 import { LOCKING_TX, prisma, type Prisma, type Tx } from '../../lib/db.js'
 import { AppError, conflict, notFound } from '../../lib/errors.js'
 import type {
@@ -137,6 +138,20 @@ export async function createRegistration(
   tx: Tx,
   input: NewRegistration,
 ): Promise<{ registration: Registration; ticket: Ticket | null }> {
+  const amount = input.ticketType.priceKobo
+  const payout =
+    amount > 0
+      ? await tx.user.findUnique({
+          where: { id: input.event.ownerId },
+          select: { payoutSubaccount: true, payoutTestSubaccount: true },
+        })
+      : null
+  const account =
+    env.PAYSTACK_MODE === 'test' ? payout?.payoutTestSubaccount : payout?.payoutSubaccount
+  if (amount > 0 && env.PAYSTACK_MODE === 'test' && input.event.visibility === 'PUBLIC')
+    throw conflict('Online ticket sales are not open for this event.', 'CHECKOUT_UNAVAILABLE')
+  if (amount > 0 && (!env.PAYSTACK_SECRET_KEY || (env.PAYSTACK_MODE === 'live' && !account)))
+    throw conflict('Online checkout is unavailable for this ticket.', 'CHECKOUT_UNAVAILABLE')
   const registration = await tx.registration.create({
     data: {
       eventId: input.event.id,
@@ -145,7 +160,11 @@ export async function createRegistration(
       userId: input.userId,
       attendeeName: input.attendeeName,
       attendeeEmail: input.attendeeEmail,
-      status: input.confirmed ? 'CONFIRMED' : 'PENDING',
+      amountKobo: amount || null,
+      checkoutSubaccount: account ?? null,
+      paymentMode: env.PAYSTACK_MODE,
+      paymentDueAt: amount && input.confirmed ? checkoutDeadline(input.event.endsAt) : null,
+      status: input.confirmed && !amount ? 'CONFIRMED' : 'PENDING',
     },
   })
   await tx.event.update({
@@ -157,6 +176,10 @@ export async function createRegistration(
     data: { registeredCount: { increment: 1 } },
   })
 
+  if (amount && input.confirmed) {
+    await paymentInvitation(tx, input.event, registration)
+    return { registration, ticket: null }
+  }
   if (!input.confirmed) {
     await queueEmail(tx, {
       type: 'REGISTRATION_PENDING',
@@ -223,6 +246,21 @@ export async function approveRegistration(
     if (event.status === 'CANCELLED')
       throw conflict('This event has been cancelled.', 'EVENT_CANCELLED')
 
+    if (registration.amountKobo && !registration.paidReference) {
+      if (registration.paymentDueAt)
+        throw conflict('The attendee is awaiting payment.', 'PAYMENT_DUE')
+      const held = await tx.registration.update({
+        where: { id: registrationId },
+        data: { paymentDueAt: checkoutDeadline(event.endsAt) },
+      })
+      if (held.submissionId)
+        await tx.formSubmission.update({
+          where: { id: held.submissionId },
+          data: { decision: 'ACCEPTED', decidedAt: new Date(), decidedById },
+        })
+      await paymentInvitation(tx, event, held)
+      return held
+    }
     const updated = await tx.registration.update({
       where: { id: registrationId },
       data: { status: 'CONFIRMED' },
@@ -382,4 +420,147 @@ export function toRegistration(registration: RegistrationWithTicket) {
     cancellationReason: registration.cancellationReason,
     createdAt: registration.createdAt,
   }
+}
+
+function checkoutDeadline(endsAt: Date) {
+  return new Date(Math.min(endsAt.getTime(), Date.now() + 30 * 60000))
+}
+
+async function paymentInvitation(tx: Tx, event: Event, registration: Registration) {
+  await queueEmail(tx, {
+    type: 'REGISTRATION_PENDING',
+    to: { email: registration.attendeeEmail, name: registration.attendeeName },
+    userId: registration.userId,
+    eventId: event.id,
+    registrationId: registration.id,
+    content: () => ({
+      subject: 'Complete payment for ' + event.title,
+      heading:
+        registration.paymentMode === 'test' ? 'Test checkout is ready' : 'Your ticket is on hold',
+      accent: event.accentColor,
+      blocks: [
+        {
+          kind: 'text',
+          text:
+            (registration.paymentMode === 'test'
+              ? 'Use Paystack test details to simulate '
+              : 'Pay ') +
+            new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(
+              registration.amountKobo! / 100,
+            ) +
+            ' before ' +
+            registration.paymentDueAt!.toISOString() +
+            (registration.paymentMode === 'test'
+              ? '. A test payment does not admit a guest.'
+              : ' to confirm your place.'),
+        },
+        {
+          kind: 'button',
+          label: registration.paymentMode === 'test' ? 'Open test checkout' : 'Pay for ticket',
+          url: manageUrlFor(registration),
+        },
+      ],
+    }),
+  })
+}
+
+export async function recordCharge(
+  reference: string,
+  received: {
+    reference: string
+    amount: number
+    currency: string
+    domain: string
+    status: string
+    customer: { email: string }
+    paid_at: string | null
+  },
+) {
+  if (received.reference !== reference || received.status !== 'success') return
+  const attempt = await prisma.paymentAttempt.findUnique({ where: { reference } })
+  if (!attempt) return
+  await prisma.$transaction(async (tx) => {
+    const { event, registration } = await loadForChange(tx, attempt.registrationId)
+    if (registration.paidReference === reference) return
+    const current = await tx.paymentAttempt.findUniqueOrThrow({ where: { reference } })
+    if (current.outcome === 'TEST_PAID') return
+    const paidAt = received.paid_at ? new Date(received.paid_at).getTime() : NaN
+    const eligible =
+      registration.status === 'PENDING' &&
+      !registration.paidReference &&
+      event.status !== 'CANCELLED' &&
+      event.moderationStatus !== 'REMOVED' &&
+      registration.amountKobo === received.amount &&
+      received.currency === 'NGN' &&
+      received.domain === registration.paymentMode &&
+      received.customer.email.toLowerCase() === registration.attendeeEmail.toLowerCase() &&
+      registration.paymentDueAt &&
+      Number.isFinite(paidAt) &&
+      paidAt <= registration.paymentDueAt.getTime()
+    if (eligible && registration.paymentMode === 'test') {
+      await tx.paymentAttempt.update({ where: { reference }, data: { outcome: 'TEST_PAID' } })
+      await tx.registration.update({
+        where: { id: registration.id },
+        data: {
+          status: 'CANCELLED',
+          cancelledBy: 'SYSTEM',
+          cancelledAt: new Date(),
+          cancellationReason: 'Test checkout completed. No payment was collected or ticket issued.',
+        },
+      })
+      await releaseSeat(tx, registration)
+      if (registration.submissionId)
+        await tx.formSubmission.update({
+          where: { id: registration.submissionId },
+          data: { duplicateHash: null },
+        })
+      return
+    }
+    await tx.paymentAttempt.update({
+      where: { reference },
+      data: { outcome: eligible ? 'PAID' : 'RECONCILE' },
+    })
+    if (!eligible) return
+    const updated = await tx.registration.update({
+      where: { id: registration.id },
+      data: { status: 'CONFIRMED', paidReference: reference },
+    })
+    const ticket = await issueTicket(tx, updated)
+    await queueConfirmation(tx, event, updated, ticket, registration.ticketType.name)
+  }, LOCKING_TX)
+}
+
+export async function expireCheckouts(now: Date) {
+  const holds = await prisma.registration.findMany({
+    where: { status: 'PENDING', paymentDueAt: { lt: now }, paidReference: null },
+    select: { id: true },
+    take: 200,
+    orderBy: { paymentDueAt: 'asc' },
+  })
+  for (const hold of holds)
+    await prisma.$transaction(async (tx) => {
+      const { registration } = await loadForChange(tx, hold.id)
+      if (
+        registration.status !== 'PENDING' ||
+        !registration.paymentDueAt ||
+        registration.paymentDueAt >= now ||
+        registration.paidReference
+      )
+        return
+      await tx.registration.update({
+        where: { id: hold.id },
+        data: {
+          status: 'CANCELLED',
+          cancelledBy: 'SYSTEM',
+          cancelledAt: now,
+          cancellationReason: 'The payment window expired.',
+        },
+      })
+      await releaseSeat(tx, registration)
+      if (registration.submissionId)
+        await tx.formSubmission.update({
+          where: { id: registration.submissionId },
+          data: { duplicateHash: null },
+        })
+    }, LOCKING_TX)
 }

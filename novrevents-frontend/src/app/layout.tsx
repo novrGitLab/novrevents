@@ -1,30 +1,33 @@
+import { connection } from 'next/server'
 import type { Metadata, Viewport } from 'next'
-import { Inter } from 'next/font/google'
+import '@fontsource-variable/dm-sans/wght.css'
+import '@fontsource/instrument-serif/latin-400-italic.css'
+import { CookieNotice } from '@/components/layout/cookie-notice'
 import './globals.css'
+import './editorial.css'
+import './home.css'
 import { siteUrl } from '@/lib/site'
 import { Providers } from './providers'
 
-// Self-hosted at build time by next/font: no request to Google from the visitor's browser.
-const inter = Inter({ subsets: ['latin'], display: 'swap', variable: '--font-inter' })
 
 const description =
-  'Discover conferences, workshops, webinars and meetups across technology, business, education and more, with a dedicated cybersecurity experience. Organisers create events, build registration forms, issue QR tickets and check attendees in. NOVR Events by Cybernovr.'
+  'Find live music, workshops, conferences and celebrations. Discover events, reserve tickets or host a gathering with NovrEvents by Cybernovr.'
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: { default: 'NOVR Events — Discover and organise events', template: '%s · NOVR Events' },
+  title: { default: 'NovrEvents — Discover and organise events', template: '%s · NovrEvents' },
   description,
-  applicationName: 'NOVR Events',
+  applicationName: 'NovrEvents',
   creator: 'Cybernovr',
   publisher: 'Cybernovr',
   openGraph: {
-    siteName: 'NOVR Events',
+    siteName: 'NovrEvents',
     type: 'website',
     locale: 'en_GB',
-    title: 'NOVR Events — Discover and organise events',
+    title: 'NovrEvents — Discover and organise events',
     description,
   },
-  twitter: { card: 'summary', title: 'NOVR Events — Discover and organise events', description },
+  twitter: { card: 'summary', title: 'NovrEvents — Discover and organise events', description },
 }
 
 export const viewport: Viewport = {
@@ -35,9 +38,10 @@ export const viewport: Viewport = {
   themeColor: '#ffffff',
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  await connection()
   return (
-    <html lang="en" className={inter.variable}>
+    <html lang="en">
       <body className="min-h-dvh">
         <a
           href="#main"
@@ -45,7 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         >
           Skip to content
         </a>
-        <Providers>{children}</Providers>
+        <Providers>{children}<CookieNotice /></Providers>
       </body>
     </html>
   )

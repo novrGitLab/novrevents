@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ListChecks, Plus, Trash2 } from 'lucide-react'
+import { ListChecks, Plus, Trash2 } from '@/components/ui/icons'
 import * as React from 'react'
 import { toast } from 'sonner'
 import { canManage, useManagedEvent } from '@/components/events/event-context'
@@ -26,6 +26,11 @@ export default function TasksPage() {
   const { user } = useSession()
   const queryClient = useQueryClient()
   const manage = canManage(event)
+  const [now, setNow] = React.useState(Date.now)
+  React.useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 60000)
+    return () => window.clearInterval(timer)
+  }, [])
   const [mine, setMine] = React.useState(false)
   const tasks = useQuery({
     queryKey: keys.eventPart(event.id, 'tasks', { mine }),
@@ -104,7 +109,7 @@ export default function TasksPage() {
             {task.dueAt && (
               <span
                 className={cn(
-                  task.status !== 'DONE' && new Date(task.dueAt).getTime() < Date.now() && 'text-destructive font-medium',
+                  task.status !== 'DONE' && new Date(task.dueAt).getTime() < now && 'text-destructive font-medium',
                 )}
               >
                 {' '}
@@ -165,7 +170,7 @@ export default function TasksPage() {
 
   const openTasks = taskItems.filter((task) => task.status !== 'DONE')
   const overdue = items.filter(
-    (task) => task.status !== 'DONE' && task.dueAt && new Date(task.dueAt).getTime() < Date.now(),
+    (task) => task.status !== 'DONE' && task.dueAt && new Date(task.dueAt).getTime() < now,
   ).length
 
   return (

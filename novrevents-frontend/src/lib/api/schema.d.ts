@@ -197,7 +197,7 @@ export interface paths {
                         /** @enum {boolean} */
                         acceptTerms: true;
                         /** @enum {string} */
-                        policyVersion: "2026-11-20";
+                        policyVersion: "2026-11-27.2";
                     };
                 };
             };
@@ -257,6 +257,9 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
+                        identifier: string;
+                        password: string;
+                    } | {
                         email: string;
                         password: string;
                     };
@@ -1069,6 +1072,454 @@ export interface paths {
                     content: {
                         "application/json": components["schemas"]["ErrorResponse"];
                     };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/providers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            google: boolean;
+                            emailDelivery: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Default Response */
+                "5XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/google/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        mode: "login";
+                    } | {
+                        /** @enum {string} */
+                        mode: "admin";
+                    } | {
+                        /** @enum {string} */
+                        mode: "link";
+                    } | {
+                        /** @enum {string} */
+                        mode: "register";
+                        /** @enum {boolean} */
+                        acceptTerms: true;
+                        /** @enum {string} */
+                        policyVersion: "2026-11-27.2";
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uri */
+                            url: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Default Response */
+                "5XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/google/callback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    code?: string;
+                    state?: string;
+                    error?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    page?: number;
+                    pageSize?: number;
+                    outcome: "RECONCILE" | "PAID";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items: {
+                                reference: string;
+                                title: string;
+                                amountKobo: number;
+                            }[];
+                            page: number;
+                            pageSize: number;
+                            total: number;
+                            totalPages: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Default Response */
+                "5XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/users/{id}/payout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        code: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            businessName: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Default Response */
+                "5XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/registrations/{token}/checkout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    token: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uri */
+                            url: string;
+                            reference: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Default Response */
+                "5XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/payments/{reference}/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    reference: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            outcome: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Default Response */
+                "5XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/payments/paystack/webhook": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
                 };
             };
         };
@@ -2623,13 +3074,28 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
+                        guestInfo?: {
+                            /** @default null */
+                            doorsBeforeMinutes?: number | null;
+                            /** @default null */
+                            minimumAge?: number | null;
+                            /** @default  */
+                            accessibility?: string;
+                            /** @default  */
+                            parking?: string;
+                            /** @default [] */
+                            faqs?: {
+                                question: string;
+                                answer: string;
+                            }[];
+                        };
                         title: string;
                         summary?: string | null;
                         description?: string;
                         /** Format: uuid */
                         categoryId?: string | null;
                         /** @enum {string} */
-                        eventType?: "CONFERENCE" | "WORKSHOP" | "CTF" | "MEETUP" | "WEBINAR" | "TRAINING" | "HACKATHON" | "SUMMIT" | "PANEL" | "OTHER";
+                        eventType?: "CONFERENCE" | "WORKSHOP" | "CTF" | "MEETUP" | "WEBINAR" | "TRAINING" | "HACKATHON" | "CONCERT" | "FESTIVAL" | "EXHIBITION" | "CELEBRATION" | "SUMMIT" | "PANEL" | "OTHER";
                         /** @enum {string} */
                         mode?: "IN_PERSON" | "VIRTUAL" | "HYBRID";
                         /** Format: date-time */
@@ -2805,13 +3271,28 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
+                        guestInfo?: {
+                            /** @default null */
+                            doorsBeforeMinutes?: number | null;
+                            /** @default null */
+                            minimumAge?: number | null;
+                            /** @default  */
+                            accessibility?: string;
+                            /** @default  */
+                            parking?: string;
+                            /** @default [] */
+                            faqs?: {
+                                question: string;
+                                answer: string;
+                            }[];
+                        };
                         title?: string;
                         summary?: string | null;
                         description?: string;
                         /** Format: uuid */
                         categoryId?: string | null;
                         /** @enum {string} */
-                        eventType?: "CONFERENCE" | "WORKSHOP" | "CTF" | "MEETUP" | "WEBINAR" | "TRAINING" | "HACKATHON" | "SUMMIT" | "PANEL" | "OTHER";
+                        eventType?: "CONFERENCE" | "WORKSHOP" | "CTF" | "MEETUP" | "WEBINAR" | "TRAINING" | "HACKATHON" | "CONCERT" | "FESTIVAL" | "EXHIBITION" | "CELEBRATION" | "SUMMIT" | "PANEL" | "OTHER";
                         /** @enum {string} */
                         mode?: "IN_PERSON" | "VIRTUAL" | "HYBRID";
                         /** Format: date-time */
@@ -3331,6 +3812,318 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/events/{id}/flyer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            style: "marquee" | "programme" | "invitation" | "afterhours" | "studio";
+                            /**
+                             * @default none
+                             * @enum {string}
+                             */
+                            photograph: "none" | "opening" | "culture" | "workshop" | "cyber" | "wedding" | "anniversary" | "community";
+                            headline: string;
+                            note: string;
+                            shared: boolean;
+                            qr: string;
+                            /** Format: uri */
+                            destination: string;
+                            date: string;
+                            place: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Default Response */
+                "5XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        style: "marquee" | "programme" | "invitation" | "afterhours" | "studio";
+                        /**
+                         * @default none
+                         * @enum {string}
+                         */
+                        photograph?: "none" | "opening" | "culture" | "workshop" | "cyber" | "wedding" | "anniversary" | "community";
+                        headline: string;
+                        note: string;
+                        shared: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            style: "marquee" | "programme" | "invitation" | "afterhours" | "studio";
+                            /**
+                             * @default none
+                             * @enum {string}
+                             */
+                            photograph: "none" | "opening" | "culture" | "workshop" | "cyber" | "wedding" | "anniversary" | "community";
+                            headline: string;
+                            note: string;
+                            shared: boolean;
+                            qr: string;
+                            /** Format: uri */
+                            destination: string;
+                            date: string;
+                            place: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Default Response */
+                "5XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/events/{slug}/flyer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    slug: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            style: "marquee" | "programme" | "invitation" | "afterhours" | "studio";
+                            /**
+                             * @default none
+                             * @enum {string}
+                             */
+                            photograph: "none" | "opening" | "culture" | "workshop" | "cyber" | "wedding" | "anniversary" | "community";
+                            headline: string;
+                            note: string;
+                            shared: boolean;
+                            qr: string;
+                            /** Format: uri */
+                            destination: string;
+                            date: string;
+                            place: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Default Response */
+                "5XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/event-tools/writing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            available: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Default Response */
+                "5XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        notes: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            description: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Default Response */
+                "5XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/public/events": {
         parameters: {
             query?: never;
@@ -3352,7 +4145,7 @@ export interface paths {
                     category?: string;
                     /** @description Discovery mode. "cybersecurity" lists only events in a cybersecurity category. */
                     scope?: "cybersecurity" | "general";
-                    type?: "CONFERENCE" | "WORKSHOP" | "CTF" | "MEETUP" | "WEBINAR" | "TRAINING" | "HACKATHON" | "SUMMIT" | "PANEL" | "OTHER";
+                    type?: "CONFERENCE" | "WORKSHOP" | "CTF" | "MEETUP" | "WEBINAR" | "TRAINING" | "HACKATHON" | "CONCERT" | "FESTIVAL" | "EXHIBITION" | "CELEBRATION" | "SUMMIT" | "PANEL" | "OTHER";
                     /** @description Event format. */
                     mode?: "IN_PERSON" | "VIRTUAL" | "HYBRID";
                     price?: "free" | "paid";
@@ -6861,6 +7654,8 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
+                        /** @default 0 */
+                        priceKobo?: number;
                         name: string;
                         description?: string | null;
                         /** @default null */
@@ -6972,9 +7767,9 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
+                        priceKobo?: number;
                         name?: string;
                         description?: string | null;
-                        /** @default null */
                         capacity?: number | null;
                         isActive?: boolean;
                         sortOrder?: number;
@@ -8853,6 +9648,217 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/public/planning-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name: string;
+                        email: string;
+                        occasion: string;
+                        location: string;
+                        /** Format: date */
+                        date?: string;
+                        guests?: number;
+                        details: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Default Response */
+                "5XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/planning-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    page?: number;
+                    pageSize?: number;
+                    status?: "NEW" | "CONTACTED" | "CLOSED";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items: {
+                                name: string;
+                                /** Format: email */
+                                email: string;
+                                occasion: string;
+                                location: string;
+                                details: string;
+                                /** Format: uuid */
+                                id: string;
+                                date: string | null;
+                                guests: number | null;
+                                /** @enum {string} */
+                                status: "NEW" | "CONTACTED" | "CLOSED";
+                                /** Format: date-time */
+                                createdAt: string;
+                            }[];
+                            page: number;
+                            pageSize: number;
+                            total: number;
+                            totalPages: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Default Response */
+                "5XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/planning-requests/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        status: "NEW" | "CONTACTED" | "CLOSED";
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            ok: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Default Response */
+                "5XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
     "/api/v1/admin/stats": {
         parameters: {
             query?: never;
@@ -9899,6 +10905,71 @@ export interface components {
             /** @enum {boolean} */
             ok: true;
         };
+        SessionUserInput: {
+            /** Format: uuid */
+            id: string;
+            email: string;
+            emailVerified: boolean;
+            /** @enum {string} */
+            role: "USER" | "ADMIN";
+            createdAt: unknown;
+            onboarded: boolean;
+            profile: {
+                username: string;
+                displayName: string;
+                avatarUrl: string | null;
+            };
+        };
+        SessionInput: {
+            authenticated: boolean;
+            user: components["schemas"]["SessionUserInput"] | null;
+            csrfToken: string | null;
+        };
+        SocialLinksInput: {
+            website: string | null;
+            linkedin: string | null;
+            github: string | null;
+            x: string | null;
+        };
+        OwnProfileInput: {
+            /** Format: uuid */
+            userId: string;
+            username: string;
+            displayName: string;
+            headline: string | null;
+            bio: string | null;
+            avatarUrl: string | null;
+            socialLinks: components["schemas"]["SocialLinksInput"];
+            /** @enum {string} */
+            visibility: "PUBLIC" | "PRIVATE";
+            publicFields: ("avatar" | "headline" | "bio" | "socialLinks")[];
+            shareRegistrations: boolean;
+            followerCount: number;
+            followingCount: number;
+            profileUrl: string;
+        };
+        PublicProfileInput: {
+            username: string;
+            displayName: string;
+            avatarUrl: string | null;
+            headline: string | null;
+            bio: string | null;
+            socialLinks: components["schemas"]["SocialLinksInput"] | null;
+            followerCount: number;
+            followingCount: number;
+            organizedEventCount: number;
+            isSelf: boolean;
+            isFollowing: boolean;
+            canSeeRegistrations: boolean;
+        };
+        ProfileCardInput: {
+            username: string;
+            displayName: string;
+            avatarUrl: string | null;
+            headline: string | null;
+            isFollowing: boolean;
+            isSelf: boolean;
+        };
         AdminUserInput: {
             /** Format: uuid */
             id: string;
@@ -10233,71 +11304,6 @@ export interface components {
             invitations: boolean;
             unsubscribedAll: boolean;
         };
-        SessionUserInput: {
-            /** Format: uuid */
-            id: string;
-            email: string;
-            emailVerified: boolean;
-            /** @enum {string} */
-            role: "USER" | "ADMIN";
-            createdAt: unknown;
-            onboarded: boolean;
-            profile: {
-                username: string;
-                displayName: string;
-                avatarUrl: string | null;
-            };
-        };
-        SessionInput: {
-            authenticated: boolean;
-            user: components["schemas"]["SessionUserInput"] | null;
-            csrfToken: string | null;
-        };
-        SocialLinksInput: {
-            website: string | null;
-            linkedin: string | null;
-            github: string | null;
-            x: string | null;
-        };
-        OwnProfileInput: {
-            /** Format: uuid */
-            userId: string;
-            username: string;
-            displayName: string;
-            headline: string | null;
-            bio: string | null;
-            avatarUrl: string | null;
-            socialLinks: components["schemas"]["SocialLinksInput"];
-            /** @enum {string} */
-            visibility: "PUBLIC" | "PRIVATE";
-            publicFields: ("avatar" | "headline" | "bio" | "socialLinks")[];
-            shareRegistrations: boolean;
-            followerCount: number;
-            followingCount: number;
-            profileUrl: string;
-        };
-        PublicProfileInput: {
-            username: string;
-            displayName: string;
-            avatarUrl: string | null;
-            headline: string | null;
-            bio: string | null;
-            socialLinks: components["schemas"]["SocialLinksInput"] | null;
-            followerCount: number;
-            followingCount: number;
-            organizedEventCount: number;
-            isSelf: boolean;
-            isFollowing: boolean;
-            canSeeRegistrations: boolean;
-        };
-        ProfileCardInput: {
-            username: string;
-            displayName: string;
-            avatarUrl: string | null;
-            headline: string | null;
-            isFollowing: boolean;
-            isSelf: boolean;
-        };
         EventCategoryInput: {
             /** Format: uuid */
             id: string;
@@ -10325,7 +11331,7 @@ export interface components {
             title: string;
             summary: string | null;
             /** @enum {string} */
-            eventType: "CONFERENCE" | "WORKSHOP" | "CTF" | "MEETUP" | "WEBINAR" | "TRAINING" | "HACKATHON" | "SUMMIT" | "PANEL" | "OTHER";
+            eventType: "CONFERENCE" | "WORKSHOP" | "CTF" | "MEETUP" | "WEBINAR" | "TRAINING" | "HACKATHON" | "CONCERT" | "FESTIVAL" | "EXHIBITION" | "CELEBRATION" | "SUMMIT" | "PANEL" | "OTHER";
             /** @enum {string} */
             mode: "IN_PERSON" | "VIRTUAL" | "HYBRID";
             /** @enum {string} */
@@ -10380,6 +11386,7 @@ export interface components {
             speakerIds: string[];
         };
         TicketTypeInput: {
+            priceKobo: number;
             /** Format: uuid */
             id: string;
             name: string;
@@ -10396,7 +11403,7 @@ export interface components {
             title: string;
             summary: string | null;
             /** @enum {string} */
-            eventType: "CONFERENCE" | "WORKSHOP" | "CTF" | "MEETUP" | "WEBINAR" | "TRAINING" | "HACKATHON" | "SUMMIT" | "PANEL" | "OTHER";
+            eventType: "CONFERENCE" | "WORKSHOP" | "CTF" | "MEETUP" | "WEBINAR" | "TRAINING" | "HACKATHON" | "CONCERT" | "FESTIVAL" | "EXHIBITION" | "CELEBRATION" | "SUMMIT" | "PANEL" | "OTHER";
             /** @enum {string} */
             mode: "IN_PERSON" | "VIRTUAL" | "HYBRID";
             /** @enum {string} */
@@ -10428,6 +11435,21 @@ export interface components {
                 } | null;
             };
             registration: components["schemas"]["RegistrationStateInput"];
+            guestInfo: {
+                /** @default null */
+                doorsBeforeMinutes: number | null;
+                /** @default null */
+                minimumAge: number | null;
+                /** @default  */
+                accessibility: string;
+                /** @default  */
+                parking: string;
+                /** @default [] */
+                faqs: {
+                    question: string;
+                    answer: string;
+                }[];
+            };
             description: string;
             address: string | null;
             /** @enum {string} */
@@ -10440,6 +11462,7 @@ export interface components {
             speakers: components["schemas"]["SpeakerInput"][];
             sessions: components["schemas"]["AgendaSessionInput"][];
             ticketTypes: {
+                priceKobo: number;
                 /** Format: uuid */
                 id: string;
                 name: string;
@@ -10455,6 +11478,21 @@ export interface components {
             };
         };
         EventManageInput: {
+            guestInfo: {
+                /** @default null */
+                doorsBeforeMinutes: number | null;
+                /** @default null */
+                minimumAge: number | null;
+                /** @default  */
+                accessibility: string;
+                /** @default  */
+                parking: string;
+                /** @default [] */
+                faqs: {
+                    question: string;
+                    answer: string;
+                }[];
+            };
             /** Format: uuid */
             id: string;
             slug: string;
@@ -10464,7 +11502,7 @@ export interface components {
             /** Format: uuid */
             categoryId: string | null;
             /** @enum {string} */
-            eventType: "CONFERENCE" | "WORKSHOP" | "CTF" | "MEETUP" | "WEBINAR" | "TRAINING" | "HACKATHON" | "SUMMIT" | "PANEL" | "OTHER";
+            eventType: "CONFERENCE" | "WORKSHOP" | "CTF" | "MEETUP" | "WEBINAR" | "TRAINING" | "HACKATHON" | "CONCERT" | "FESTIVAL" | "EXHIBITION" | "CELEBRATION" | "SUMMIT" | "PANEL" | "OTHER";
             /** @enum {string} */
             mode: "IN_PERSON" | "VIRTUAL" | "HYBRID";
             startsAt: unknown;
@@ -10530,7 +11568,7 @@ export interface components {
             slug: string;
             title: string;
             /** @enum {string} */
-            eventType: "CONFERENCE" | "WORKSHOP" | "CTF" | "MEETUP" | "WEBINAR" | "TRAINING" | "HACKATHON" | "SUMMIT" | "PANEL" | "OTHER";
+            eventType: "CONFERENCE" | "WORKSHOP" | "CTF" | "MEETUP" | "WEBINAR" | "TRAINING" | "HACKATHON" | "CONCERT" | "FESTIVAL" | "EXHIBITION" | "CELEBRATION" | "SUMMIT" | "PANEL" | "OTHER";
             /** @enum {string} */
             mode: "IN_PERSON" | "VIRTUAL" | "HYBRID";
             startsAt: unknown;
@@ -10735,6 +11773,7 @@ export interface components {
             isRegistrationForm: boolean;
             requiresApproval: boolean;
             ticketTypes: {
+                priceKobo: number;
                 /** Format: uuid */
                 id: string;
                 name: string;
@@ -10771,6 +11810,7 @@ export interface components {
             registration: {
                 /** @enum {string} */
                 status: "PENDING" | "CONFIRMED";
+                paymentDue: boolean;
                 manageUrl: string;
             } | null;
         };
@@ -10856,6 +11896,9 @@ export interface components {
                 accentColor: string | null;
                 onlineUrl: string | null;
             };
+            amountKobo: number | null;
+            testPayment: boolean;
+            paymentDueAt: unknown;
             canCancel: boolean;
             certificateCode: string | null;
             manageUrl: string;
@@ -11020,6 +12063,72 @@ export interface components {
         Ok: {
             /** @enum {boolean} */
             ok: true;
+        };
+        SessionUser: {
+            /** Format: uuid */
+            id: string;
+            email: string;
+            emailVerified: boolean;
+            /** @enum {string} */
+            role: "USER" | "ADMIN";
+            /** Format: date-time */
+            createdAt: string;
+            onboarded: boolean;
+            profile: {
+                username: string;
+                displayName: string;
+                avatarUrl: string | null;
+            };
+        };
+        Session: {
+            authenticated: boolean;
+            user: components["schemas"]["SessionUser"] | null;
+            csrfToken: string | null;
+        };
+        SocialLinks: {
+            website: string | null;
+            linkedin: string | null;
+            github: string | null;
+            x: string | null;
+        };
+        OwnProfile: {
+            /** Format: uuid */
+            userId: string;
+            username: string;
+            displayName: string;
+            headline: string | null;
+            bio: string | null;
+            avatarUrl: string | null;
+            socialLinks: components["schemas"]["SocialLinks"];
+            /** @enum {string} */
+            visibility: "PUBLIC" | "PRIVATE";
+            publicFields: ("avatar" | "headline" | "bio" | "socialLinks")[];
+            shareRegistrations: boolean;
+            followerCount: number;
+            followingCount: number;
+            profileUrl: string;
+        };
+        PublicProfile: {
+            username: string;
+            displayName: string;
+            avatarUrl: string | null;
+            headline: string | null;
+            bio: string | null;
+            socialLinks: components["schemas"]["SocialLinks"] | null;
+            followerCount: number;
+            followingCount: number;
+            organizedEventCount: number;
+            isSelf: boolean;
+            isFollowing: boolean;
+            canSeeRegistrations: boolean;
+        };
+        ProfileCard: {
+            username: string;
+            displayName: string;
+            avatarUrl: string | null;
+            headline: string | null;
+            isFollowing: boolean;
+            isSelf: boolean;
         };
         AdminUser: {
             /** Format: uuid */
@@ -11385,72 +12494,6 @@ export interface components {
             invitations: boolean;
             unsubscribedAll: boolean;
         };
-        SessionUser: {
-            /** Format: uuid */
-            id: string;
-            email: string;
-            emailVerified: boolean;
-            /** @enum {string} */
-            role: "USER" | "ADMIN";
-            /** Format: date-time */
-            createdAt: string;
-            onboarded: boolean;
-            profile: {
-                username: string;
-                displayName: string;
-                avatarUrl: string | null;
-            };
-        };
-        Session: {
-            authenticated: boolean;
-            user: components["schemas"]["SessionUser"] | null;
-            csrfToken: string | null;
-        };
-        SocialLinks: {
-            website: string | null;
-            linkedin: string | null;
-            github: string | null;
-            x: string | null;
-        };
-        OwnProfile: {
-            /** Format: uuid */
-            userId: string;
-            username: string;
-            displayName: string;
-            headline: string | null;
-            bio: string | null;
-            avatarUrl: string | null;
-            socialLinks: components["schemas"]["SocialLinks"];
-            /** @enum {string} */
-            visibility: "PUBLIC" | "PRIVATE";
-            publicFields: ("avatar" | "headline" | "bio" | "socialLinks")[];
-            shareRegistrations: boolean;
-            followerCount: number;
-            followingCount: number;
-            profileUrl: string;
-        };
-        PublicProfile: {
-            username: string;
-            displayName: string;
-            avatarUrl: string | null;
-            headline: string | null;
-            bio: string | null;
-            socialLinks: components["schemas"]["SocialLinks"] | null;
-            followerCount: number;
-            followingCount: number;
-            organizedEventCount: number;
-            isSelf: boolean;
-            isFollowing: boolean;
-            canSeeRegistrations: boolean;
-        };
-        ProfileCard: {
-            username: string;
-            displayName: string;
-            avatarUrl: string | null;
-            headline: string | null;
-            isFollowing: boolean;
-            isSelf: boolean;
-        };
         EventCategory: {
             /** Format: uuid */
             id: string;
@@ -11478,7 +12521,7 @@ export interface components {
             title: string;
             summary: string | null;
             /** @enum {string} */
-            eventType: "CONFERENCE" | "WORKSHOP" | "CTF" | "MEETUP" | "WEBINAR" | "TRAINING" | "HACKATHON" | "SUMMIT" | "PANEL" | "OTHER";
+            eventType: "CONFERENCE" | "WORKSHOP" | "CTF" | "MEETUP" | "WEBINAR" | "TRAINING" | "HACKATHON" | "CONCERT" | "FESTIVAL" | "EXHIBITION" | "CELEBRATION" | "SUMMIT" | "PANEL" | "OTHER";
             /** @enum {string} */
             mode: "IN_PERSON" | "VIRTUAL" | "HYBRID";
             /** @enum {string} */
@@ -11537,6 +12580,7 @@ export interface components {
             speakerIds: string[];
         };
         TicketType: {
+            priceKobo: number;
             /** Format: uuid */
             id: string;
             name: string;
@@ -11553,7 +12597,7 @@ export interface components {
             title: string;
             summary: string | null;
             /** @enum {string} */
-            eventType: "CONFERENCE" | "WORKSHOP" | "CTF" | "MEETUP" | "WEBINAR" | "TRAINING" | "HACKATHON" | "SUMMIT" | "PANEL" | "OTHER";
+            eventType: "CONFERENCE" | "WORKSHOP" | "CTF" | "MEETUP" | "WEBINAR" | "TRAINING" | "HACKATHON" | "CONCERT" | "FESTIVAL" | "EXHIBITION" | "CELEBRATION" | "SUMMIT" | "PANEL" | "OTHER";
             /** @enum {string} */
             mode: "IN_PERSON" | "VIRTUAL" | "HYBRID";
             /** @enum {string} */
@@ -11587,6 +12631,21 @@ export interface components {
                 } | null;
             };
             registration: components["schemas"]["RegistrationState"];
+            guestInfo: {
+                /** @default null */
+                doorsBeforeMinutes: number | null;
+                /** @default null */
+                minimumAge: number | null;
+                /** @default  */
+                accessibility: string;
+                /** @default  */
+                parking: string;
+                /** @default [] */
+                faqs: {
+                    question: string;
+                    answer: string;
+                }[];
+            };
             description: string;
             address: string | null;
             /** @enum {string} */
@@ -11600,6 +12659,7 @@ export interface components {
             speakers: components["schemas"]["Speaker"][];
             sessions: components["schemas"]["AgendaSession"][];
             ticketTypes: {
+                priceKobo: number;
                 /** Format: uuid */
                 id: string;
                 name: string;
@@ -11615,6 +12675,21 @@ export interface components {
             };
         };
         EventManage: {
+            guestInfo: {
+                /** @default null */
+                doorsBeforeMinutes: number | null;
+                /** @default null */
+                minimumAge: number | null;
+                /** @default  */
+                accessibility: string;
+                /** @default  */
+                parking: string;
+                /** @default [] */
+                faqs: {
+                    question: string;
+                    answer: string;
+                }[];
+            };
             /** Format: uuid */
             id: string;
             slug: string;
@@ -11624,7 +12699,7 @@ export interface components {
             /** Format: uuid */
             categoryId: string | null;
             /** @enum {string} */
-            eventType: "CONFERENCE" | "WORKSHOP" | "CTF" | "MEETUP" | "WEBINAR" | "TRAINING" | "HACKATHON" | "SUMMIT" | "PANEL" | "OTHER";
+            eventType: "CONFERENCE" | "WORKSHOP" | "CTF" | "MEETUP" | "WEBINAR" | "TRAINING" | "HACKATHON" | "CONCERT" | "FESTIVAL" | "EXHIBITION" | "CELEBRATION" | "SUMMIT" | "PANEL" | "OTHER";
             /** @enum {string} */
             mode: "IN_PERSON" | "VIRTUAL" | "HYBRID";
             /** Format: date-time */
@@ -11697,7 +12772,7 @@ export interface components {
             slug: string;
             title: string;
             /** @enum {string} */
-            eventType: "CONFERENCE" | "WORKSHOP" | "CTF" | "MEETUP" | "WEBINAR" | "TRAINING" | "HACKATHON" | "SUMMIT" | "PANEL" | "OTHER";
+            eventType: "CONFERENCE" | "WORKSHOP" | "CTF" | "MEETUP" | "WEBINAR" | "TRAINING" | "HACKATHON" | "CONCERT" | "FESTIVAL" | "EXHIBITION" | "CELEBRATION" | "SUMMIT" | "PANEL" | "OTHER";
             /** @enum {string} */
             mode: "IN_PERSON" | "VIRTUAL" | "HYBRID";
             /** Format: date-time */
@@ -11914,6 +12989,7 @@ export interface components {
             isRegistrationForm: boolean;
             requiresApproval: boolean;
             ticketTypes: {
+                priceKobo: number;
                 /** Format: uuid */
                 id: string;
                 name: string;
@@ -11952,6 +13028,7 @@ export interface components {
             registration: {
                 /** @enum {string} */
                 status: "PENDING" | "CONFIRMED";
+                paymentDue: boolean;
                 manageUrl: string;
             } | null;
         };
@@ -12047,6 +13124,10 @@ export interface components {
                 accentColor: string | null;
                 onlineUrl: string | null;
             };
+            amountKobo: number | null;
+            testPayment: boolean;
+            /** Format: date-time */
+            paymentDueAt: string | null;
             canCancel: boolean;
             certificateCode: string | null;
             manageUrl: string;

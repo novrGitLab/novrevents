@@ -96,7 +96,7 @@ export const authRoutes: FastifyPluginAsyncZod = async (app) => {
     },
     async (request, reply) => {
       const { userId, sessionToken } = await service.authenticate(
-        request.body.email,
+        'identifier' in request.body ? request.body.identifier : request.body.email,
         request.body.password,
         clientMeta(request),
       )

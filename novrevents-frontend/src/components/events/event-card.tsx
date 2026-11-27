@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Bookmark, BookmarkCheck, Globe, MapPin } from 'lucide-react'
+import { Bookmark, BookmarkCheck, Globe, MapPin } from '@/components/ui/icons'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
@@ -177,7 +177,7 @@ export function SaveEventButton({
       onClick={(clickEvent) => {
         clickEvent.preventDefault()
         clickEvent.stopPropagation()
-        if (!isAuthenticated) router.push(`/login?next=${encodeURIComponent(`/events/${event.slug}`)}`)
+        if (!isAuthenticated) router.push(`/auth/login?next=${encodeURIComponent(`/events/${event.slug}`)}`)
         else mutation.mutate()
       }}
       disabled={mutation.isPending}

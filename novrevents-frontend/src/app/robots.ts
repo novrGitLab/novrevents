@@ -5,7 +5,7 @@ import { siteUrl } from '@/lib/site'
 export default function robots(): MetadataRoute.Robots {
   // Vercel preview deployments also build in production mode; only the production deployment is indexed.
   const production =
-    siteUrl === 'https://novrevents.com' && (process.env.VERCEL_ENV ?? 'production') === 'production'
+    siteUrl === 'https://event.cybernovr.com' && (process.env.VERCEL_ENV ?? 'production') === 'production'
   return {
     rules: production
       ? {
@@ -13,15 +13,17 @@ export default function robots(): MetadataRoute.Robots {
           allow: '/',
           disallow: [
             '/api/',
+            '/auth/',
+            '/checkout/',
             '/dashboard',
             '/admin',
-            '/login',
-            '/register',
-            '/welcome',
-            '/check-email',
-            '/verify-email',
-            '/forgot-password',
-            '/reset-password',
+            '/auth/login',
+            '/auth/register',
+            '/auth/welcome',
+            '/auth/check-email',
+            '/auth/verify-email',
+            '/auth/forgot-password',
+            '/auth/reset-password',
             '/r/',
             '/f/',
             '/u/',

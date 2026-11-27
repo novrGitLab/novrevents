@@ -1,3 +1,5 @@
+import { verifyPendingPayments } from '../modules/payments/paystack.js'
+import { expireCheckouts } from '../modules/registrations/registration.service.js'
 import { prisma } from '../lib/db.js'
 import { applyRetention } from '../modules/submissions/submission.service.js'
 
@@ -34,6 +36,8 @@ export async function cleanup(now: Date = new Date()): Promise<void> {
 }
 
 export async function runMaintenance(now: Date = new Date()): Promise<void> {
+  await verifyPendingPayments(now)
+  await expireCheckouts(now)
   await syncEventStatuses(now)
   await applyRetention(now)
   await cleanup(now)

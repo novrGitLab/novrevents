@@ -1,34 +1,16 @@
 import type { Metadata } from 'next'
-import { Closing } from '@/components/marketing/closing'
-import { Discover } from '@/components/marketing/discover'
+import { CollectionIndex } from '@/components/marketing/collection-index'
 import { Hero } from '@/components/marketing/hero'
-import { Organisers } from '@/components/marketing/organisers'
-import { Trust } from '@/components/marketing/trust'
+import { HostingSpread } from '@/components/marketing/hosting-spread'
 import { Upcoming } from '@/components/marketing/upcoming'
 
 export const metadata: Metadata = {
-  title: { absolute: 'NOVR Events — Discover events. Bring communities together.' },
-  description:
-    'Discover, organise and manage events, with a dedicated cybersecurity experience. Find conferences, workshops, webinars and meetups, and run registration, QR tickets and check-in for your own events. By Cybernovr.',
+  title: { absolute: 'NovrEvents | Discover events, workshops and conferences' },
+  description: 'Find conferences, workshops and cultural events. Explore the programme, reserve a place or bring your own gathering to life with NovrEvents.',
   alternates: { canonical: '/' },
+  openGraph: { images: ['/photography/highlife-1440.webp'] },
 }
 
-/**
- * The marketing homepage. Event discovery lives at /explore; this page explains the product.
- * Every illustration uses the product's real labels and is captioned as sample content; the
- * "Upcoming in the community" section lists real events from the API.
- */
 export default function HomePage() {
-  return (
-    <>
-      <Hero />
-      <div id="product">
-        <Discover />
-        <Upcoming />
-        <Organisers />
-      </div>
-      <Trust />
-      <Closing />
-    </>
-  )
+  return <><Hero /><Upcoming /><CollectionIndex /><HostingSpread /></>
 }

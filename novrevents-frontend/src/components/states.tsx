@@ -1,4 +1,4 @@
-import { AlertTriangle, Inbox, type LucideIcon } from 'lucide-react'
+import { AlertTriangle, Inbox, type EventIcon } from '@/components/ui/icons'
 import type * as React from 'react'
 import { errorMessage } from '@/lib/api/errors'
 import { cn } from '@/lib/utils'
@@ -32,7 +32,7 @@ export function EmptyState({
   className,
   compact = false,
 }: {
-  icon?: LucideIcon
+  icon?: EventIcon
   title: string
   description?: React.ReactNode
   action?: React.ReactNode

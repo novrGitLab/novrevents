@@ -29,7 +29,7 @@ export interface RenderedEmail {
   text: string
 }
 
-const DEFAULT_ACCENT = '#0b7285'
+const DEFAULT_ACCENT = '#632D8A'
 
 export function escapeHtml(value: string): string {
   return value
@@ -84,19 +84,19 @@ export function renderEmail(content: EmailContent): RenderedEmail {
     content.unsubscribeUrl
       ? `<a href="${escapeHtml(content.unsubscribeUrl)}" style="color:#52606d;">Unsubscribe or manage email preferences</a>`
       : null,
-    `Sent by <a href="${escapeHtml(appUrl)}" style="color:#52606d;">NOVR Events</a>, a Cybernovr platform.`,
+    `Sent by <a href="${escapeHtml(appUrl)}" style="color:#52606d;">NovrEvents</a>, a Cybernovr platform.`,
   ].filter(Boolean)
 
   const html = `<!doctype html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(content.subject)}</title></head>
-<body style="margin:0;padding:0;background:#f4f6f8;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f6f8;padding:24px 12px;">
+<body style="margin:0;padding:0;background:#f6f3f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f6f3f7;padding:24px 12px;">
 <tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:12px;border:1px solid #e4e7eb;">
-<tr><td style="padding:20px 28px;border-bottom:3px solid ${accent};font-size:14px;font-weight:700;letter-spacing:0.08em;color:#102a43;">NOVR EVENTS</td></tr>
+<tr><td style="padding:20px 28px;border-bottom:3px solid ${accent};font-size:14px;font-weight:700;letter-spacing:-0.04em;color:#261c29;font-size:23px;">NovrEvents</td></tr>
 <tr><td style="padding:28px;">
-<h1 style="margin:0 0 20px;font-size:21px;line-height:1.3;color:#102a43;">${escapeHtml(content.heading)}</h1>
+<h1 style="margin:0 0 20px;font-size:21px;line-height:1.3;color:#261c29;">${escapeHtml(content.heading)}</h1>
 ${body}
 </td></tr>
 <tr><td style="padding:18px 28px;border-top:1px solid #e4e7eb;font-size:12px;line-height:1.6;color:#52606d;">${footerLines.join('<br>')}</td></tr>
@@ -114,7 +114,7 @@ ${body}
   if (content.reason) textParts.push(content.reason)
   if (content.unsubscribeUrl)
     textParts.push(`Unsubscribe or manage email preferences: ${content.unsubscribeUrl}`)
-  textParts.push(`Sent by NOVR Events, a Cybernovr platform — ${appUrl}`)
+  textParts.push(`Sent by NovrEvents, a Cybernovr platform — ${appUrl}`)
 
   return { subject: content.subject, html, text: textParts.join('\n') }
 }

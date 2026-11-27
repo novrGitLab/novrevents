@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { FileDown, Undo2 } from 'lucide-react'
+import { FileDown, Undo2 } from '@/components/ui/icons'
 import { toast } from 'sonner'
 import { BarsChart, TrendChart } from '@/components/charts'
 import { StatCard } from '@/components/common'

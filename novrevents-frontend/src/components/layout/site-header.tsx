@@ -1,6 +1,6 @@
 'use client'
 
-import { Menu } from 'lucide-react'
+import { Menu } from '@/components/ui/icons'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import * as React from 'react'
@@ -17,9 +17,9 @@ import { NotificationBell, UserMenu } from './user-menu'
  * and back again.
  */
 const navLinks = [
-  { href: '/#product', label: 'Product', match: null },
-  { href: '/explore', label: 'Discover', match: ['/explore', '/events', '/o/'] },
-  { href: '/#organisers', label: 'For organisers', match: null },
+  { href: '/events', label: 'Discover', match: ['/events', '/o/'] },
+  { href: '/hosting', label: 'For organizers', match: ['/hosting'] },
+  { href: '/planning', label: 'Event planning', match: ['/planning'] },
 ] as const
 
 const HOST_HREF = '/dashboard/events/new'
@@ -76,7 +76,7 @@ export function SiteHeader() {
           ) : (
             <>
               <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
-                <Link href="/login">Sign in</Link>
+                <Link href="/auth/login">Sign in</Link>
               </Button>
               <Button asChild size="sm">
                 <Link href={HOST_HREF}>Host an event</Link>
@@ -117,10 +117,10 @@ export function SiteHeader() {
                       <Link href={HOST_HREF}>Host an event</Link>
                     </Button>
                     <Button asChild variant="outline" onClick={close}>
-                      <Link href="/login">Sign in</Link>
+                      <Link href="/auth/login">Sign in</Link>
                     </Button>
                     <Button asChild variant="ghost" onClick={close}>
-                      <Link href="/register">Create an account</Link>
+                      <Link href="/auth/register">Create an account</Link>
                     </Button>
                   </>
                 )}

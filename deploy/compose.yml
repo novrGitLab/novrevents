@@ -1,0 +1,56 @@
+name: novrevents
+services:
+  database:
+    image: postgres:18-bookworm
+    restart: unless-stopped
+    env_file:
+      - path: ${NOVREVENTS_CONFIG_DIR:?Set NOVREVENTS_CONFIG_DIR}/database.env
+        format: raw
+    networks: [database]
+    volumes: [events-database:/var/lib/postgresql]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+  events-api:
+    build: ../novrevents-backend
+    image: novrevents-api:${RELEASE_SHA:?Set RELEASE_SHA}
+    restart: unless-stopped
+    env_file:
+      - path: ${NOVREVENTS_CONFIG_DIR:?Set NOVREVENTS_CONFIG_DIR}/api.env
+        format: raw
+    environment:
+      NODE_ENV: production
+      APP_URL: https://event.cybernovr.com
+      CORS_ORIGINS: https://event.cybernovr.com
+      COOKIE_SECURE: "true"
+      TRUST_PROXY: "true"
+      STORAGE_DRIVER: local
+      STORAGE_LOCAL_DIR: /data/uploads
+    networks: [edge, database]
+    depends_on:
+      database: { condition: service_healthy }
+    volumes: [events-uploads:/data/uploads]
+    security_opt: [no-new-privileges:true]
+  events-web:
+    build: ../novrevents-frontend
+    image: novrevents-web:${RELEASE_SHA:?Set RELEASE_SHA}
+    restart: unless-stopped
+    networks: [edge]
+    depends_on:
+      events-api: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3100/auth/login').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+    security_opt: [no-new-privileges:true]
+networks:
+  database: { internal: true }
+  edge:
+    name: novrevents-edge
+    external: true
+volumes:
+  events-database:
+  events-uploads:

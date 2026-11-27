@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { ArrowLeft, CalendarDays, CheckCircle2, Lock, MapPin } from 'lucide-react'
+import { ArrowLeft, CalendarDays, CheckCircle2, Lock, MapPin } from '@/components/ui/icons'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import * as React from 'react'
@@ -14,7 +14,7 @@ import { keys } from '@/lib/api/keys'
 import type { FieldError, FormDefinition } from '@/lib/form-engine'
 import { formatEventRange } from '@/lib/format'
 import { uuid } from '@/lib/utils'
-import { emailDeliveryEnabled } from '@/lib/site'
+import { useAuthProviders } from '@/lib/auth-providers'
 
 type Result = Schema<'SubmissionResult'>
 
@@ -214,7 +214,7 @@ export default function PublicFormPage() {
                 <Lock className="mt-px size-3.5 shrink-0" aria-hidden />
                 <span>
                   No account needed. Your answers are shared only with the organiser of this form. See our{' '}
-                  <Link href="/privacy" className="underline">
+                  <Link href="/legal/privacy-policy" className="underline">
                     privacy policy
                   </Link>
                   .
@@ -229,6 +229,7 @@ export default function PublicFormPage() {
 }
 
 function SubmissionDone({ result, calendarHref }: { result: Result; calendarHref: string | null }) {
+  const emailDeliveryEnabled = useAuthProviders().data?.emailDelivery === true
   return (
     <div className="space-y-4 text-center" role="status">
       <CheckCircle2 className="text-success mx-auto size-12" aria-hidden />
@@ -238,13 +239,13 @@ function SubmissionDone({ result, calendarHref }: { result: Result; calendarHref
           {result.registration.status === 'CONFIRMED' && (
             <p className="text-muted-foreground text-sm">
               {emailDeliveryEnabled
-                ? 'We’ve emailed your ticket. You can also open it now.'
+                ? 'Your ticket is ready. Open it here or check your inbox.'
                 : 'Open your ticket now and keep the link: it is how you return to this registration.'}
             </p>
           )}
           <Button asChild>
             <a href={result.registration.manageUrl}>
-              {result.registration.status === 'CONFIRMED' ? 'View my ticket' : 'View registration'}
+              {result.registration.paymentDue ? 'Continue to payment' : result.registration.status === 'CONFIRMED' ? 'View ticket' : 'View registration'}
             </a>
           </Button>
           {calendarHref && result.registration.status === 'CONFIRMED' && (

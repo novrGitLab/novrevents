@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Ticket } from 'lucide-react'
+import { Ticket } from '@/components/ui/icons'
 import Link from 'next/link'
 import * as React from 'react'
 import { toast } from 'sonner'

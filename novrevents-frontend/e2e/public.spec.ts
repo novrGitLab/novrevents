@@ -5,21 +5,21 @@ test.describe('public site', () => {
   test('home and explore load real data and filters work @mobile', async ({ page }) => {
     await page.goto('/', { waitUntil: 'networkidle' })
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(
-      'Discover events. Bring communities together.',
+      /The art of\s*going out\./i,
     )
-    await page.getByRole('main').getByRole('link', { name: 'Discover events' }).first().click()
-    await expect(page).toHaveURL(/\/explore/)
-    await page.getByLabel('Search', { exact: true }).fill('summit')
-    await page.getByRole('button', { name: 'Search' }).first().click()
-    await expect(page).toHaveURL(/\/explore\?q=summit/)
-    await expect(page.getByRole('heading', { level: 1, name: 'Discover events', exact: true })).toBeVisible()
+    await page.getByRole('main').getByRole('link', { name: 'Browse all events' }).first().click()
+    await expect(page).toHaveURL(/\/events/)
+    await page.getByRole('searchbox', { name: 'Search events', exact: true }).fill('summit')
+    await page.getByRole('searchbox', {name:'Search events'}).press('Enter')
+    await expect(page).toHaveURL(/q=summit/)
+    await expect(page.getByRole('heading', { level: 1, name: /Discover events/i })).toBeVisible()
     // The result count comes from the API and is always rendered.
     await expect(page.getByText(/\d+ events?/)).toBeVisible()
   })
 
   test('legal pages are reachable from the footer', async ({ page }) => {
     await page.goto('/', { waitUntil: 'networkidle' })
-    await page.getByRole('link', { name: 'Privacy policy' }).click()
+    await page.getByRole('contentinfo').getByRole('link', { name: 'Privacy policy' }).click()
     await expect(page.getByRole('heading', { name: 'Privacy policy' })).toBeVisible()
     await page.goto('/terms')
     await expect(page.getByRole('heading', { name: 'Terms of use' })).toBeVisible()
@@ -35,7 +35,7 @@ test.describe('public site', () => {
 
 test.describe('accounts', () => {
   test('register, verify, sign out and sign back in', async ({ page }) => {
-    const { email } = await registerViaUi(page)
+    const { email, username } = await registerViaUi(page)
     await verifyViaEmail(page, email)
     await page.getByRole('button', { name: 'Skip for now' }).click()
     await expect(page).toHaveURL(/\/dashboard/)
@@ -48,8 +48,9 @@ test.describe('accounts', () => {
     await page.getByLabel('Email').fill(email)
     await page.getByLabel('Password').fill('wrong-password-123')
     await page.getByRole('button', { name: 'Sign in' }).click()
-    await expect(page.getByText('Incorrect email or password.')).toBeVisible()
+    await expect(page.getByText('Incorrect sign-in details.')).toBeVisible()
 
+    await page.getByLabel('Email or username').fill(username)
     await page.getByLabel('Password').fill(PASSWORD)
     await page.getByRole('button', { name: 'Sign in' }).click()
     await expect(page).toHaveURL(/\/dashboard/)

@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowRight, Check, ClipboardCheck, ClipboardList, QrCode, Users } from 'lucide-react'
+import { ArrowRight, Check, ClipboardCheck, ClipboardList, QrCode, Users } from '@/components/ui/icons'
 import Link from 'next/link'
 import { CopyField, StatCard } from '@/components/common'
 import { canManage, useManagedEvent } from '@/components/events/event-context'

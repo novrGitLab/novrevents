@@ -13,8 +13,8 @@ import {
   Ticket,
   UserPlus,
   Users,
-  type LucideIcon,
-} from 'lucide-react'
+  type EventIcon,
+} from '@/components/ui/icons'
 import Link from 'next/link'
 import * as React from 'react'
 import { PageHeader, Pagination } from '@/components/common'
@@ -27,7 +27,7 @@ import { cn } from '@/lib/utils'
 
 type Notification = Schema<'Notification'>
 
-const TYPE_ICON: Record<string, LucideIcon> = {
+const TYPE_ICON: Record<string, EventIcon> = {
   NEW_FOLLOWER: UserPlus,
   FOLLOWED_USER_EVENT: CalendarDays,
   REGISTRATION_CONFIRMED: Ticket,

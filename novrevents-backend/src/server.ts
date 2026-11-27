@@ -38,7 +38,7 @@ async function main(): Promise<void> {
   app.log.info({ driver: storage.name }, 'upload storage ready')
   if (env.EMAIL_DRIVER === 'log') {
     app.log.warn(
-      'EMAIL_DRIVER=log: emails are stored and logged, not delivered. Set EMAIL_DRIVER=brevo to send.',
+      'Email delivery is disabled. Configure the transactional email provider to send queued mail.',
     )
   }
   if (!env.JOBS_ENABLED)

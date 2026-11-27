@@ -44,7 +44,7 @@ export function FollowButton({
       variant={following ? 'outline' : 'primary'}
       size={size}
       loading={mutation.isPending}
-      onClick={() => (isAuthenticated ? mutation.mutate() : router.push(`/login?next=/u/${username}`))}
+      onClick={() => (isAuthenticated ? mutation.mutate() : router.push(`/auth/login?next=/u/${username}`))}
     >
       {following ? 'Following' : 'Follow'}
     </Button>

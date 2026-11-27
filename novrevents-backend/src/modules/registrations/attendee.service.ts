@@ -144,13 +144,14 @@ export async function listTicketTypes(userId: string, eventId: string) {
 export async function createTicketType(
   userId: string,
   eventId: string,
-  input: { name: string; description: string | null; capacity: number | null },
+  input: { name: string; description: string | null; capacity: number | null; priceKobo?:number },
 ) {
   await requireEventAccess(userId, eventId, 'manage')
   const last = await prisma.ticketType.aggregate({ where: { eventId }, _max: { sortOrder: true } })
   return prisma.ticketType.create({
     data: {
       eventId,
+      priceKobo: input.priceKobo ?? 0,
       name: input.name,
       description: input.description,
       capacity: input.capacity,
@@ -168,6 +169,7 @@ export async function updateTicketType(
     description?: string | null
     capacity?: number | null
     isActive?: boolean
+    priceKobo?: number
     sortOrder?: number
   },
 ) {
@@ -279,6 +281,7 @@ function toSelfService(row: SelfServiceRow) {
       event.status !== 'CANCELLED',
     certificateCode:
       row.certificate && !row.certificate.revokedAt ? row.certificate.verificationCode : null,
+    testPayment: !!row.amountKobo && row.paymentMode === 'test', amountKobo:row.amountKobo, paymentDueAt:row.paymentDueAt,
     manageUrl: manageUrlFor(row),
   }
 }

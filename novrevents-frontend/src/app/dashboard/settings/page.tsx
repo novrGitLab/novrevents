@@ -1,7 +1,8 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Monitor } from 'lucide-react'
+import { GoogleButton } from '@/components/auth/google-button'
+import { Monitor } from '@/components/ui/icons'
 import * as React from 'react'
 import { toast } from 'sonner'
 import { Field, PageHeader, useConfirm } from '@/components/common'
@@ -15,7 +16,7 @@ import { api, unwrap } from '@/lib/api/client'
 import { errorMessage } from '@/lib/api/errors'
 import { keys } from '@/lib/api/keys'
 import { formatDateTime, relativeTime } from '@/lib/format'
-import { emailDeliveryEnabled } from '@/lib/site'
+import { useAuthProviders } from '@/lib/auth-providers'
 
 const SECTIONS = [
   { id: 'email', label: 'Email address' },
@@ -74,6 +75,7 @@ export default function SettingsPage() {
       <div>
         <EmailCard />
         <PasswordCard />
+        <GoogleButton mode="link" />
         <PreferencesCard />
         <SessionsCard />
       </div>
@@ -82,6 +84,7 @@ export default function SettingsPage() {
 }
 
 function EmailCard() {
+  const emailDeliveryEnabled = useAuthProviders().data?.emailDelivery === true
   const { user } = useSession()
   const queryClient = useQueryClient()
   const [email, setEmail] = React.useState('')

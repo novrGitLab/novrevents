@@ -13,7 +13,7 @@ import {
   Ticket,
   User,
   Users,
-} from 'lucide-react'
+} from '@/components/ui/icons'
 import { AppShell, type NavGroup, type NavItem } from '@/components/layout/app-shell'
 
 const groups: NavGroup[] = [

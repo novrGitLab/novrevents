@@ -1,3 +1,4 @@
+import { claimAdminInvitation } from './admin-invitation.js'
 import { appUrl, env } from '../../config/env.js'
 import {
   fakePasswordCheck,
@@ -45,7 +46,7 @@ export interface ClientMeta {
 }
 
 export const invalidCredentials = () =>
-  new AppError(401, 'INVALID_CREDENTIALS', 'Incorrect email or password.')
+  new AppError(401, 'INVALID_CREDENTIALS', 'Incorrect sign-in details.')
 
 function assertPasswordAllowed(password: string, related: string[]): void {
   const lowered = password.toLowerCase()
@@ -186,7 +187,7 @@ async function queueVerificationEmail(
     type: 'EMAIL_VERIFICATION',
     to: { email: user.email, name },
     userId: user.id,
-    content: () => verifyEmailContent({ name, url: `${appUrl}/verify-email?token=${token}` }),
+    content: () => verifyEmailContent({ name, url: `${appUrl}/auth/verify-email?token=${token}` }),
   })
 }
 
@@ -239,12 +240,12 @@ export async function registerUser(
 }
 
 export async function authenticate(
-  email: string,
+  identifier: string,
   password: string,
   meta: ClientMeta,
 ): Promise<{ userId: string; sessionToken: string }> {
-  const user = await prisma.user.findUnique({
-    where: { email },
+  const user = await prisma.user.findFirst({
+    where: identifier.includes('@') ? { email: identifier } : { profile: { username: identifier } },
     select: { id: true, passwordHash: true, status: true },
   })
   if (!user) {
@@ -359,7 +360,7 @@ export async function requestPasswordReset(email: string): Promise<void> {
       content: () =>
         passwordResetContent({
           name: user.profile?.displayName ?? '',
-          url: `${appUrl}/reset-password?token=${token}`,
+          url: `${appUrl}/auth/reset-password?token=${token}`,
         }),
     })
   })
@@ -382,6 +383,7 @@ export async function resetPassword(token: string, password: string): Promise<st
     })
     // A reset means the old password may be compromised: end every existing session.
     await revokeAllSessions(tx, userId)
+    await claimAdminInvitation(tx, userId, user.email)
     await queueEmail(tx, {
       type: 'ACCOUNT_NOTICE',
       to: { email: user.email, name: user.profile?.displayName },

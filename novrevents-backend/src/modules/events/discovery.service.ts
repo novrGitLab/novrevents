@@ -1,3 +1,4 @@
+import { presentGuestInformation } from './guest-information.js'
 import type { z } from 'zod'
 import { appUrl } from '../../config/env.js'
 import { audit } from '../../lib/audit.js'
@@ -75,12 +76,20 @@ export function buildDiscoveryWhere(query: DiscoveryQuery, now: Date): Prisma.Ev
     filters.push({ category: { slug: { in: [...CYBERSECURITY_CATEGORY_SLUGS] } } })
   } else if (query.scope === 'general') {
     filters.push({
-      OR: [{ categoryId: null }, { category: { slug: { notIn: [...CYBERSECURITY_CATEGORY_SLUGS] } } }],
+      OR: [
+        { categoryId: null },
+        { category: { slug: { notIn: [...CYBERSECURITY_CATEGORY_SLUGS] } } },
+      ],
     })
   }
   if (query.type) filters.push({ eventType: query.type })
   if (query.mode) filters.push({ mode: query.mode })
-  if (query.price) filters.push({ isPaid: query.price === 'paid' })
+  if (query.price) {
+    const paid: Prisma.EventWhereInput = {
+      OR: [{ isPaid: true }, { ticketTypes: { some: { isActive: true, priceKobo: { gt: 0 } } } }],
+    }
+    filters.push(query.price === 'paid' ? paid : { NOT: paid })
+  }
   if (query.organizer) {
     filters.push({ owner: { profile: { username: query.organizer, visibility: 'PUBLIC' } } })
   }
@@ -205,6 +214,7 @@ export async function getEventPage(slug: string, viewerId: string | null, key: s
 
   return {
     ...toEventSummary(event, now),
+    guestInfo: presentGuestInformation(event.guestInfo, event.mode),
     description: event.description,
     address: event.address,
     visibility: event.visibility,
@@ -223,6 +233,7 @@ export async function getEventPage(slug: string, viewerId: string | null, key: s
       speakerIds: session.speakers.map((link) => link.speakerId),
     })),
     ticketTypes: ticketTypes.map((type) => ({
+      priceKobo: type.priceKobo,
       id: type.id,
       name: type.name,
       description: type.description,

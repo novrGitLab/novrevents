@@ -22,6 +22,7 @@ function loggerOptions() {
   if (isTest) return false
   return {
     level: env.LOG_LEVEL,
+    serializers: { req: (req: {method: string; routeOptions?: {url?: string}}) => ({method: req.method, route: req.routeOptions?.url}) },
     // Never write credentials or session identifiers to the log.
     redact: ['req.headers.cookie', 'req.headers.authorization', 'req.headers["x-csrf-token"]'],
     ...(isProduction

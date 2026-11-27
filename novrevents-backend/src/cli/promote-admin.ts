@@ -1,29 +1,32 @@
-// Grants the ADMIN role to an existing account: npm run admin:promote -- someone@example.com
-// There is deliberately no API for creating the first administrator.
-// In the production image: docker compose exec api node dist/cli/promote-admin.js <email>
+import { z } from 'zod'
 import { prisma } from '../lib/db.js'
+import { claimAdminInvitation } from '../modules/auth/admin-invitation.js'
 
-const email = process.argv[2]?.trim().toLowerCase()
-if (!email) {
-  console.error('Usage: npm run admin:promote -- <email>')
-  process.exit(1)
+try {
+  const email = z.email().max(254).parse(process.argv[2]?.trim().toLowerCase())
+  const result = await prisma.$transaction(async (tx) => {
+    const user = await tx.user.findUnique({ where: { email } })
+    if (user?.status === 'SUSPENDED') throw new Error('This account is suspended.')
+    if (user?.role === 'ADMIN') return 'already has administrator access'
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+    await tx.adminAccessInvitation.upsert({
+      where: { email },
+      create: { email, expiresAt },
+      update: { expiresAt },
+    })
+    if (user && (await claimAdminInvitation(tx, user.id, email))) return 'has administrator access'
+    await tx.auditLog.create({
+      data: {
+        actorRole: 'SYSTEM',
+        action: 'admin.user.invite',
+        targetType: 'admin-invitation',
+        targetId: email,
+        metadata: { expiresAt: expiresAt.toISOString() },
+      },
+    })
+    return 'can claim administrator access until ' + expiresAt.toISOString()
+  })
+  console.log(email + ' ' + result + '.')
+} finally {
+  await prisma.$disconnect()
 }
-const user = await prisma.user.findUnique({ where: { email } })
-if (!user) {
-  console.error(`No account with the email ${email}. Register it first.`)
-  process.exit(1)
-}
-await prisma.$transaction([
-  prisma.user.update({ where: { id: user.id }, data: { role: 'ADMIN' } }),
-  prisma.auditLog.create({
-    data: {
-      actorRole: 'SYSTEM',
-      action: 'admin.user.role',
-      targetType: 'user',
-      targetId: user.id,
-      metadata: { role: 'ADMIN', via: 'cli' },
-    },
-  }),
-])
-console.log(`${email} is now a platform administrator.`)
-await prisma.$disconnect()

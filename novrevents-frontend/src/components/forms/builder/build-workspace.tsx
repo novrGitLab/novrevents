@@ -14,8 +14,8 @@ import {
   Plus,
   Trash2,
   Type,
-  type LucideIcon,
-} from 'lucide-react'
+  type EventIcon,
+} from '@/components/ui/icons'
 import * as React from 'react'
 import { toast } from 'sonner'
 import { FormRenderer } from '@/components/forms/form-renderer'
@@ -33,7 +33,7 @@ import {
 } from './model'
 import { FieldCard } from './question-editor'
 
-export const FIELD_TYPE_ICONS: Record<FieldType, LucideIcon> = {
+export const FIELD_TYPE_ICONS: Record<FieldType, EventIcon> = {
   SHORT_TEXT: Type,
   PARAGRAPH: AlignLeft,
   EMAIL: AtSign,
@@ -150,7 +150,6 @@ export function BuildWorkspace({
 
   return (
     <div className="grid gap-4 lg:grid-cols-[240px_minmax(0,1fr)] xl:grid-cols-[240px_minmax(0,1fr)_340px]">
-      {/* Left: outline and question types */}
       <aside
         aria-label="Questions"
         className="bg-card flex flex-col rounded-lg border lg:sticky lg:top-20 lg:max-h-[calc(100dvh-7rem)] lg:self-start"
@@ -256,8 +255,6 @@ export function BuildWorkspace({
           </div>
         </div>
       </aside>
-
-      {/* Centre: live preview */}
       <section aria-label="Live preview" className="bg-muted/50 min-w-0 rounded-lg border">
         <div className="flex items-center justify-between border-b px-4 py-2.5">
           <h2 className="text-sm font-semibold">Live preview</h2>
@@ -286,8 +283,6 @@ export function BuildWorkspace({
           </div>
         </div>
       </section>
-
-      {/* Right: properties */}
       <aside
         aria-label="Properties"
         className="bg-card rounded-lg border lg:col-span-2 xl:sticky xl:top-20 xl:col-span-1 xl:max-h-[calc(100dvh-7rem)] xl:self-start xl:overflow-y-auto"

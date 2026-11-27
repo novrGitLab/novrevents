@@ -76,6 +76,297 @@
           "ok"
         ]
       },
+      "SessionUserInput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "email": {
+            "type": "string"
+          },
+          "emailVerified": {
+            "type": "boolean"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "USER",
+              "ADMIN"
+            ]
+          },
+          "createdAt": {},
+          "onboarded": {
+            "type": "boolean"
+          },
+          "profile": {
+            "type": "object",
+            "properties": {
+              "username": {
+                "type": "string"
+              },
+              "displayName": {
+                "type": "string"
+              },
+              "avatarUrl": {
+                "nullable": true,
+                "type": "string"
+              }
+            },
+            "required": [
+              "username",
+              "displayName",
+              "avatarUrl"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "emailVerified",
+          "role",
+          "createdAt",
+          "onboarded",
+          "profile"
+        ]
+      },
+      "SessionInput": {
+        "type": "object",
+        "properties": {
+          "authenticated": {
+            "type": "boolean"
+          },
+          "user": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SessionUserInput"
+              }
+            ]
+          },
+          "csrfToken": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "authenticated",
+          "user",
+          "csrfToken"
+        ]
+      },
+      "SocialLinksInput": {
+        "type": "object",
+        "properties": {
+          "website": {
+            "nullable": true,
+            "type": "string"
+          },
+          "linkedin": {
+            "nullable": true,
+            "type": "string"
+          },
+          "github": {
+            "nullable": true,
+            "type": "string"
+          },
+          "x": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "website",
+          "linkedin",
+          "github",
+          "x"
+        ]
+      },
+      "OwnProfileInput": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "username": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "headline": {
+            "nullable": true,
+            "type": "string"
+          },
+          "bio": {
+            "nullable": true,
+            "type": "string"
+          },
+          "avatarUrl": {
+            "nullable": true,
+            "type": "string"
+          },
+          "socialLinks": {
+            "$ref": "#/components/schemas/SocialLinksInput"
+          },
+          "visibility": {
+            "type": "string",
+            "enum": [
+              "PUBLIC",
+              "PRIVATE"
+            ]
+          },
+          "publicFields": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "avatar",
+                "headline",
+                "bio",
+                "socialLinks"
+              ]
+            }
+          },
+          "shareRegistrations": {
+            "type": "boolean"
+          },
+          "followerCount": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "followingCount": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "profileUrl": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "userId",
+          "username",
+          "displayName",
+          "headline",
+          "bio",
+          "avatarUrl",
+          "socialLinks",
+          "visibility",
+          "publicFields",
+          "shareRegistrations",
+          "followerCount",
+          "followingCount",
+          "profileUrl"
+        ]
+      },
+      "PublicProfileInput": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "avatarUrl": {
+            "nullable": true,
+            "type": "string"
+          },
+          "headline": {
+            "nullable": true,
+            "type": "string"
+          },
+          "bio": {
+            "nullable": true,
+            "type": "string"
+          },
+          "socialLinks": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SocialLinksInput"
+              }
+            ]
+          },
+          "followerCount": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "followingCount": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "organizedEventCount": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "isSelf": {
+            "type": "boolean"
+          },
+          "isFollowing": {
+            "type": "boolean"
+          },
+          "canSeeRegistrations": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "username",
+          "displayName",
+          "avatarUrl",
+          "headline",
+          "bio",
+          "socialLinks",
+          "followerCount",
+          "followingCount",
+          "organizedEventCount",
+          "isSelf",
+          "isFollowing",
+          "canSeeRegistrations"
+        ]
+      },
+      "ProfileCardInput": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "avatarUrl": {
+            "nullable": true,
+            "type": "string"
+          },
+          "headline": {
+            "nullable": true,
+            "type": "string"
+          },
+          "isFollowing": {
+            "type": "boolean"
+          },
+          "isSelf": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "username",
+          "displayName",
+          "avatarUrl",
+          "headline",
+          "isFollowing",
+          "isSelf"
+        ]
+      },
       "AdminUserInput": {
         "type": "object",
         "properties": {
@@ -1498,297 +1789,6 @@
           "unsubscribedAll"
         ]
       },
-      "SessionUserInput": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-          },
-          "email": {
-            "type": "string"
-          },
-          "emailVerified": {
-            "type": "boolean"
-          },
-          "role": {
-            "type": "string",
-            "enum": [
-              "USER",
-              "ADMIN"
-            ]
-          },
-          "createdAt": {},
-          "onboarded": {
-            "type": "boolean"
-          },
-          "profile": {
-            "type": "object",
-            "properties": {
-              "username": {
-                "type": "string"
-              },
-              "displayName": {
-                "type": "string"
-              },
-              "avatarUrl": {
-                "nullable": true,
-                "type": "string"
-              }
-            },
-            "required": [
-              "username",
-              "displayName",
-              "avatarUrl"
-            ]
-          }
-        },
-        "required": [
-          "id",
-          "email",
-          "emailVerified",
-          "role",
-          "createdAt",
-          "onboarded",
-          "profile"
-        ]
-      },
-      "SessionInput": {
-        "type": "object",
-        "properties": {
-          "authenticated": {
-            "type": "boolean"
-          },
-          "user": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/SessionUserInput"
-              }
-            ]
-          },
-          "csrfToken": {
-            "nullable": true,
-            "type": "string"
-          }
-        },
-        "required": [
-          "authenticated",
-          "user",
-          "csrfToken"
-        ]
-      },
-      "SocialLinksInput": {
-        "type": "object",
-        "properties": {
-          "website": {
-            "nullable": true,
-            "type": "string"
-          },
-          "linkedin": {
-            "nullable": true,
-            "type": "string"
-          },
-          "github": {
-            "nullable": true,
-            "type": "string"
-          },
-          "x": {
-            "nullable": true,
-            "type": "string"
-          }
-        },
-        "required": [
-          "website",
-          "linkedin",
-          "github",
-          "x"
-        ]
-      },
-      "OwnProfileInput": {
-        "type": "object",
-        "properties": {
-          "userId": {
-            "type": "string",
-            "format": "uuid",
-            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-          },
-          "username": {
-            "type": "string"
-          },
-          "displayName": {
-            "type": "string"
-          },
-          "headline": {
-            "nullable": true,
-            "type": "string"
-          },
-          "bio": {
-            "nullable": true,
-            "type": "string"
-          },
-          "avatarUrl": {
-            "nullable": true,
-            "type": "string"
-          },
-          "socialLinks": {
-            "$ref": "#/components/schemas/SocialLinksInput"
-          },
-          "visibility": {
-            "type": "string",
-            "enum": [
-              "PUBLIC",
-              "PRIVATE"
-            ]
-          },
-          "publicFields": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": [
-                "avatar",
-                "headline",
-                "bio",
-                "socialLinks"
-              ]
-            }
-          },
-          "shareRegistrations": {
-            "type": "boolean"
-          },
-          "followerCount": {
-            "type": "integer",
-            "minimum": -9007199254740991,
-            "maximum": 9007199254740991
-          },
-          "followingCount": {
-            "type": "integer",
-            "minimum": -9007199254740991,
-            "maximum": 9007199254740991
-          },
-          "profileUrl": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "userId",
-          "username",
-          "displayName",
-          "headline",
-          "bio",
-          "avatarUrl",
-          "socialLinks",
-          "visibility",
-          "publicFields",
-          "shareRegistrations",
-          "followerCount",
-          "followingCount",
-          "profileUrl"
-        ]
-      },
-      "PublicProfileInput": {
-        "type": "object",
-        "properties": {
-          "username": {
-            "type": "string"
-          },
-          "displayName": {
-            "type": "string"
-          },
-          "avatarUrl": {
-            "nullable": true,
-            "type": "string"
-          },
-          "headline": {
-            "nullable": true,
-            "type": "string"
-          },
-          "bio": {
-            "nullable": true,
-            "type": "string"
-          },
-          "socialLinks": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/SocialLinksInput"
-              }
-            ]
-          },
-          "followerCount": {
-            "type": "integer",
-            "minimum": -9007199254740991,
-            "maximum": 9007199254740991
-          },
-          "followingCount": {
-            "type": "integer",
-            "minimum": -9007199254740991,
-            "maximum": 9007199254740991
-          },
-          "organizedEventCount": {
-            "type": "integer",
-            "minimum": -9007199254740991,
-            "maximum": 9007199254740991
-          },
-          "isSelf": {
-            "type": "boolean"
-          },
-          "isFollowing": {
-            "type": "boolean"
-          },
-          "canSeeRegistrations": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "username",
-          "displayName",
-          "avatarUrl",
-          "headline",
-          "bio",
-          "socialLinks",
-          "followerCount",
-          "followingCount",
-          "organizedEventCount",
-          "isSelf",
-          "isFollowing",
-          "canSeeRegistrations"
-        ]
-      },
-      "ProfileCardInput": {
-        "type": "object",
-        "properties": {
-          "username": {
-            "type": "string"
-          },
-          "displayName": {
-            "type": "string"
-          },
-          "avatarUrl": {
-            "nullable": true,
-            "type": "string"
-          },
-          "headline": {
-            "nullable": true,
-            "type": "string"
-          },
-          "isFollowing": {
-            "type": "boolean"
-          },
-          "isSelf": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "username",
-          "displayName",
-          "avatarUrl",
-          "headline",
-          "isFollowing",
-          "isSelf"
-        ]
-      },
       "EventCategoryInput": {
         "type": "object",
         "properties": {
@@ -1893,6 +1893,10 @@
               "WEBINAR",
               "TRAINING",
               "HACKATHON",
+              "CONCERT",
+              "FESTIVAL",
+              "EXHIBITION",
+              "CELEBRATION",
               "SUMMIT",
               "PANEL",
               "OTHER"
@@ -2136,6 +2140,11 @@
       "TicketTypeInput": {
         "type": "object",
         "properties": {
+          "priceKobo": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
           "id": {
             "type": "string",
             "format": "uuid",
@@ -2169,6 +2178,7 @@
           }
         },
         "required": [
+          "priceKobo",
           "id",
           "name",
           "description",
@@ -2206,6 +2216,10 @@
               "WEBINAR",
               "TRAINING",
               "HACKATHON",
+              "CONCERT",
+              "FESTIVAL",
+              "EXHIBITION",
+              "CELEBRATION",
               "SUMMIT",
               "PANEL",
               "OTHER"
@@ -2332,6 +2346,61 @@
           "registration": {
             "$ref": "#/components/schemas/RegistrationStateInput"
           },
+          "guestInfo": {
+            "type": "object",
+            "properties": {
+              "doorsBeforeMinutes": {
+                "default": null,
+                "nullable": true,
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1440
+              },
+              "minimumAge": {
+                "default": null,
+                "nullable": true,
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "accessibility": {
+                "default": "",
+                "type": "string",
+                "maxLength": 1500
+              },
+              "parking": {
+                "default": "",
+                "type": "string",
+                "maxLength": 1000
+              },
+              "faqs": {
+                "default": [],
+                "maxItems": 12,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "question": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 160
+                    },
+                    "answer": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 1500
+                    }
+                  },
+                  "required": [
+                    "question",
+                    "answer"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "additionalProperties": false
+          },
           "description": {
             "type": "string"
           },
@@ -2385,6 +2454,11 @@
             "items": {
               "type": "object",
               "properties": {
+                "priceKobo": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
                 "id": {
                   "type": "string",
                   "format": "uuid",
@@ -2402,6 +2476,7 @@
                 }
               },
               "required": [
+                "priceKobo",
                 "id",
                 "name",
                 "description",
@@ -2464,6 +2539,7 @@
           "category",
           "organizer",
           "registration",
+          "guestInfo",
           "description",
           "address",
           "visibility",
@@ -2481,6 +2557,61 @@
       "EventManageInput": {
         "type": "object",
         "properties": {
+          "guestInfo": {
+            "type": "object",
+            "properties": {
+              "doorsBeforeMinutes": {
+                "default": null,
+                "nullable": true,
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1440
+              },
+              "minimumAge": {
+                "default": null,
+                "nullable": true,
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "accessibility": {
+                "default": "",
+                "type": "string",
+                "maxLength": 1500
+              },
+              "parking": {
+                "default": "",
+                "type": "string",
+                "maxLength": 1000
+              },
+              "faqs": {
+                "default": [],
+                "maxItems": 12,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "question": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 160
+                    },
+                    "answer": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 1500
+                    }
+                  },
+                  "required": [
+                    "question",
+                    "answer"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "additionalProperties": false
+          },
           "id": {
             "type": "string",
             "format": "uuid",
@@ -2515,6 +2646,10 @@
               "WEBINAR",
               "TRAINING",
               "HACKATHON",
+              "CONCERT",
+              "FESTIVAL",
+              "EXHIBITION",
+              "CELEBRATION",
               "SUMMIT",
               "PANEL",
               "OTHER"
@@ -2744,6 +2879,7 @@
           }
         },
         "required": [
+          "guestInfo",
           "id",
           "slug",
           "title",
@@ -2817,6 +2953,10 @@
               "WEBINAR",
               "TRAINING",
               "HACKATHON",
+              "CONCERT",
+              "FESTIVAL",
+              "EXHIBITION",
+              "CELEBRATION",
               "SUMMIT",
               "PANEL",
               "OTHER"
@@ -3807,6 +3947,11 @@
             "items": {
               "type": "object",
               "properties": {
+                "priceKobo": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
                 "id": {
                   "type": "string",
                   "format": "uuid",
@@ -3824,6 +3969,7 @@
                 }
               },
               "required": [
+                "priceKobo",
                 "id",
                 "name",
                 "description",
@@ -3964,12 +4110,16 @@
                   "CONFIRMED"
                 ]
               },
+              "paymentDue": {
+                "type": "boolean"
+              },
               "manageUrl": {
                 "type": "string"
               }
             },
             "required": [
               "status",
+              "paymentDue",
               "manageUrl"
             ]
           }
@@ -4276,6 +4426,18 @@
               "onlineUrl"
             ]
           },
+          "amountKobo": {
+            "nullable": true,
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "testPayment": {
+            "type": "boolean"
+          },
+          "paymentDueAt": {
+            "nullable": true
+          },
           "canCancel": {
             "type": "boolean"
           },
@@ -4303,6 +4465,9 @@
           "cancellationReason",
           "createdAt",
           "event",
+          "amountKobo",
+          "testPayment",
+          "paymentDueAt",
           "canCancel",
           "certificateCode",
           "manageUrl"
@@ -4990,6 +5155,307 @@
         },
         "required": [
           "ok"
+        ],
+        "additionalProperties": false
+      },
+      "SessionUser": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "email": {
+            "type": "string"
+          },
+          "emailVerified": {
+            "type": "boolean"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "USER",
+              "ADMIN"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "onboarded": {
+            "type": "boolean"
+          },
+          "profile": {
+            "type": "object",
+            "properties": {
+              "username": {
+                "type": "string"
+              },
+              "displayName": {
+                "type": "string"
+              },
+              "avatarUrl": {
+                "nullable": true,
+                "type": "string"
+              }
+            },
+            "required": [
+              "username",
+              "displayName",
+              "avatarUrl"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "emailVerified",
+          "role",
+          "createdAt",
+          "onboarded",
+          "profile"
+        ],
+        "additionalProperties": false
+      },
+      "Session": {
+        "type": "object",
+        "properties": {
+          "authenticated": {
+            "type": "boolean"
+          },
+          "user": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SessionUser"
+              }
+            ]
+          },
+          "csrfToken": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "authenticated",
+          "user",
+          "csrfToken"
+        ],
+        "additionalProperties": false
+      },
+      "SocialLinks": {
+        "type": "object",
+        "properties": {
+          "website": {
+            "nullable": true,
+            "type": "string"
+          },
+          "linkedin": {
+            "nullable": true,
+            "type": "string"
+          },
+          "github": {
+            "nullable": true,
+            "type": "string"
+          },
+          "x": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "website",
+          "linkedin",
+          "github",
+          "x"
+        ],
+        "additionalProperties": false
+      },
+      "OwnProfile": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "username": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "headline": {
+            "nullable": true,
+            "type": "string"
+          },
+          "bio": {
+            "nullable": true,
+            "type": "string"
+          },
+          "avatarUrl": {
+            "nullable": true,
+            "type": "string"
+          },
+          "socialLinks": {
+            "$ref": "#/components/schemas/SocialLinks"
+          },
+          "visibility": {
+            "type": "string",
+            "enum": [
+              "PUBLIC",
+              "PRIVATE"
+            ]
+          },
+          "publicFields": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "avatar",
+                "headline",
+                "bio",
+                "socialLinks"
+              ]
+            }
+          },
+          "shareRegistrations": {
+            "type": "boolean"
+          },
+          "followerCount": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "followingCount": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "profileUrl": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "userId",
+          "username",
+          "displayName",
+          "headline",
+          "bio",
+          "avatarUrl",
+          "socialLinks",
+          "visibility",
+          "publicFields",
+          "shareRegistrations",
+          "followerCount",
+          "followingCount",
+          "profileUrl"
+        ],
+        "additionalProperties": false
+      },
+      "PublicProfile": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "avatarUrl": {
+            "nullable": true,
+            "type": "string"
+          },
+          "headline": {
+            "nullable": true,
+            "type": "string"
+          },
+          "bio": {
+            "nullable": true,
+            "type": "string"
+          },
+          "socialLinks": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SocialLinks"
+              }
+            ]
+          },
+          "followerCount": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "followingCount": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "organizedEventCount": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "isSelf": {
+            "type": "boolean"
+          },
+          "isFollowing": {
+            "type": "boolean"
+          },
+          "canSeeRegistrations": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "username",
+          "displayName",
+          "avatarUrl",
+          "headline",
+          "bio",
+          "socialLinks",
+          "followerCount",
+          "followingCount",
+          "organizedEventCount",
+          "isSelf",
+          "isFollowing",
+          "canSeeRegistrations"
+        ],
+        "additionalProperties": false
+      },
+      "ProfileCard": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "avatarUrl": {
+            "nullable": true,
+            "type": "string"
+          },
+          "headline": {
+            "nullable": true,
+            "type": "string"
+          },
+          "isFollowing": {
+            "type": "boolean"
+          },
+          "isSelf": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "username",
+          "displayName",
+          "avatarUrl",
+          "headline",
+          "isFollowing",
+          "isSelf"
         ],
         "additionalProperties": false
       },
@@ -6528,307 +6994,6 @@
         ],
         "additionalProperties": false
       },
-      "SessionUser": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-          },
-          "email": {
-            "type": "string"
-          },
-          "emailVerified": {
-            "type": "boolean"
-          },
-          "role": {
-            "type": "string",
-            "enum": [
-              "USER",
-              "ADMIN"
-            ]
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "onboarded": {
-            "type": "boolean"
-          },
-          "profile": {
-            "type": "object",
-            "properties": {
-              "username": {
-                "type": "string"
-              },
-              "displayName": {
-                "type": "string"
-              },
-              "avatarUrl": {
-                "nullable": true,
-                "type": "string"
-              }
-            },
-            "required": [
-              "username",
-              "displayName",
-              "avatarUrl"
-            ],
-            "additionalProperties": false
-          }
-        },
-        "required": [
-          "id",
-          "email",
-          "emailVerified",
-          "role",
-          "createdAt",
-          "onboarded",
-          "profile"
-        ],
-        "additionalProperties": false
-      },
-      "Session": {
-        "type": "object",
-        "properties": {
-          "authenticated": {
-            "type": "boolean"
-          },
-          "user": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/SessionUser"
-              }
-            ]
-          },
-          "csrfToken": {
-            "nullable": true,
-            "type": "string"
-          }
-        },
-        "required": [
-          "authenticated",
-          "user",
-          "csrfToken"
-        ],
-        "additionalProperties": false
-      },
-      "SocialLinks": {
-        "type": "object",
-        "properties": {
-          "website": {
-            "nullable": true,
-            "type": "string"
-          },
-          "linkedin": {
-            "nullable": true,
-            "type": "string"
-          },
-          "github": {
-            "nullable": true,
-            "type": "string"
-          },
-          "x": {
-            "nullable": true,
-            "type": "string"
-          }
-        },
-        "required": [
-          "website",
-          "linkedin",
-          "github",
-          "x"
-        ],
-        "additionalProperties": false
-      },
-      "OwnProfile": {
-        "type": "object",
-        "properties": {
-          "userId": {
-            "type": "string",
-            "format": "uuid",
-            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-          },
-          "username": {
-            "type": "string"
-          },
-          "displayName": {
-            "type": "string"
-          },
-          "headline": {
-            "nullable": true,
-            "type": "string"
-          },
-          "bio": {
-            "nullable": true,
-            "type": "string"
-          },
-          "avatarUrl": {
-            "nullable": true,
-            "type": "string"
-          },
-          "socialLinks": {
-            "$ref": "#/components/schemas/SocialLinks"
-          },
-          "visibility": {
-            "type": "string",
-            "enum": [
-              "PUBLIC",
-              "PRIVATE"
-            ]
-          },
-          "publicFields": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": [
-                "avatar",
-                "headline",
-                "bio",
-                "socialLinks"
-              ]
-            }
-          },
-          "shareRegistrations": {
-            "type": "boolean"
-          },
-          "followerCount": {
-            "type": "integer",
-            "minimum": -9007199254740991,
-            "maximum": 9007199254740991
-          },
-          "followingCount": {
-            "type": "integer",
-            "minimum": -9007199254740991,
-            "maximum": 9007199254740991
-          },
-          "profileUrl": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "userId",
-          "username",
-          "displayName",
-          "headline",
-          "bio",
-          "avatarUrl",
-          "socialLinks",
-          "visibility",
-          "publicFields",
-          "shareRegistrations",
-          "followerCount",
-          "followingCount",
-          "profileUrl"
-        ],
-        "additionalProperties": false
-      },
-      "PublicProfile": {
-        "type": "object",
-        "properties": {
-          "username": {
-            "type": "string"
-          },
-          "displayName": {
-            "type": "string"
-          },
-          "avatarUrl": {
-            "nullable": true,
-            "type": "string"
-          },
-          "headline": {
-            "nullable": true,
-            "type": "string"
-          },
-          "bio": {
-            "nullable": true,
-            "type": "string"
-          },
-          "socialLinks": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/SocialLinks"
-              }
-            ]
-          },
-          "followerCount": {
-            "type": "integer",
-            "minimum": -9007199254740991,
-            "maximum": 9007199254740991
-          },
-          "followingCount": {
-            "type": "integer",
-            "minimum": -9007199254740991,
-            "maximum": 9007199254740991
-          },
-          "organizedEventCount": {
-            "type": "integer",
-            "minimum": -9007199254740991,
-            "maximum": 9007199254740991
-          },
-          "isSelf": {
-            "type": "boolean"
-          },
-          "isFollowing": {
-            "type": "boolean"
-          },
-          "canSeeRegistrations": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "username",
-          "displayName",
-          "avatarUrl",
-          "headline",
-          "bio",
-          "socialLinks",
-          "followerCount",
-          "followingCount",
-          "organizedEventCount",
-          "isSelf",
-          "isFollowing",
-          "canSeeRegistrations"
-        ],
-        "additionalProperties": false
-      },
-      "ProfileCard": {
-        "type": "object",
-        "properties": {
-          "username": {
-            "type": "string"
-          },
-          "displayName": {
-            "type": "string"
-          },
-          "avatarUrl": {
-            "nullable": true,
-            "type": "string"
-          },
-          "headline": {
-            "nullable": true,
-            "type": "string"
-          },
-          "isFollowing": {
-            "type": "boolean"
-          },
-          "isSelf": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "username",
-          "displayName",
-          "avatarUrl",
-          "headline",
-          "isFollowing",
-          "isSelf"
-        ],
-        "additionalProperties": false
-      },
       "EventCategory": {
         "type": "object",
         "properties": {
@@ -6935,6 +7100,10 @@
               "WEBINAR",
               "TRAINING",
               "HACKATHON",
+              "CONCERT",
+              "FESTIVAL",
+              "EXHIBITION",
+              "CELEBRATION",
               "SUMMIT",
               "PANEL",
               "OTHER"
@@ -7196,6 +7365,11 @@
       "TicketType": {
         "type": "object",
         "properties": {
+          "priceKobo": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
           "id": {
             "type": "string",
             "format": "uuid",
@@ -7229,6 +7403,7 @@
           }
         },
         "required": [
+          "priceKobo",
           "id",
           "name",
           "description",
@@ -7267,6 +7442,10 @@
               "WEBINAR",
               "TRAINING",
               "HACKATHON",
+              "CONCERT",
+              "FESTIVAL",
+              "EXHIBITION",
+              "CELEBRATION",
               "SUMMIT",
               "PANEL",
               "OTHER"
@@ -7402,6 +7581,68 @@
           "registration": {
             "$ref": "#/components/schemas/RegistrationState"
           },
+          "guestInfo": {
+            "type": "object",
+            "properties": {
+              "doorsBeforeMinutes": {
+                "default": null,
+                "nullable": true,
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1440
+              },
+              "minimumAge": {
+                "default": null,
+                "nullable": true,
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "accessibility": {
+                "default": "",
+                "type": "string",
+                "maxLength": 1500
+              },
+              "parking": {
+                "default": "",
+                "type": "string",
+                "maxLength": 1000
+              },
+              "faqs": {
+                "default": [],
+                "maxItems": 12,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "question": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 160
+                    },
+                    "answer": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 1500
+                    }
+                  },
+                  "required": [
+                    "question",
+                    "answer"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "doorsBeforeMinutes",
+              "minimumAge",
+              "accessibility",
+              "parking",
+              "faqs"
+            ],
+            "additionalProperties": false
+          },
           "description": {
             "type": "string"
           },
@@ -7457,6 +7698,11 @@
             "items": {
               "type": "object",
               "properties": {
+                "priceKobo": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
                 "id": {
                   "type": "string",
                   "format": "uuid",
@@ -7474,6 +7720,7 @@
                 }
               },
               "required": [
+                "priceKobo",
                 "id",
                 "name",
                 "description",
@@ -7538,6 +7785,7 @@
           "category",
           "organizer",
           "registration",
+          "guestInfo",
           "description",
           "address",
           "visibility",
@@ -7556,6 +7804,68 @@
       "EventManage": {
         "type": "object",
         "properties": {
+          "guestInfo": {
+            "type": "object",
+            "properties": {
+              "doorsBeforeMinutes": {
+                "default": null,
+                "nullable": true,
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1440
+              },
+              "minimumAge": {
+                "default": null,
+                "nullable": true,
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "accessibility": {
+                "default": "",
+                "type": "string",
+                "maxLength": 1500
+              },
+              "parking": {
+                "default": "",
+                "type": "string",
+                "maxLength": 1000
+              },
+              "faqs": {
+                "default": [],
+                "maxItems": 12,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "question": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 160
+                    },
+                    "answer": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 1500
+                    }
+                  },
+                  "required": [
+                    "question",
+                    "answer"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "doorsBeforeMinutes",
+              "minimumAge",
+              "accessibility",
+              "parking",
+              "faqs"
+            ],
+            "additionalProperties": false
+          },
           "id": {
             "type": "string",
             "format": "uuid",
@@ -7590,6 +7900,10 @@
               "WEBINAR",
               "TRAINING",
               "HACKATHON",
+              "CONCERT",
+              "FESTIVAL",
+              "EXHIBITION",
+              "CELEBRATION",
               "SUMMIT",
               "PANEL",
               "OTHER"
@@ -7839,6 +8153,7 @@
           }
         },
         "required": [
+          "guestInfo",
           "id",
           "slug",
           "title",
@@ -7913,6 +8228,10 @@
               "WEBINAR",
               "TRAINING",
               "HACKATHON",
+              "CONCERT",
+              "FESTIVAL",
+              "EXHIBITION",
+              "CELEBRATION",
               "SUMMIT",
               "PANEL",
               "OTHER"
@@ -8956,6 +9275,11 @@
             "items": {
               "type": "object",
               "properties": {
+                "priceKobo": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
                 "id": {
                   "type": "string",
                   "format": "uuid",
@@ -8973,6 +9297,7 @@
                 }
               },
               "required": [
+                "priceKobo",
                 "id",
                 "name",
                 "description",
@@ -9124,12 +9449,16 @@
                   "CONFIRMED"
                 ]
               },
+              "paymentDue": {
+                "type": "boolean"
+              },
               "manageUrl": {
                 "type": "string"
               }
             },
             "required": [
               "status",
+              "paymentDue",
               "manageUrl"
             ],
             "additionalProperties": false
@@ -9470,6 +9799,20 @@
             ],
             "additionalProperties": false
           },
+          "amountKobo": {
+            "nullable": true,
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "testPayment": {
+            "type": "boolean"
+          },
+          "paymentDueAt": {
+            "nullable": true,
+            "type": "string",
+            "format": "date-time"
+          },
           "canCancel": {
             "type": "boolean"
           },
@@ -9497,6 +9840,9 @@
           "cancellationReason",
           "createdAt",
           "event",
+          "amountKobo",
+          "testPayment",
+          "paymentDueAt",
           "canCancel",
           "certificateCode",
           "manageUrl"
@@ -10353,7 +10699,7 @@
                   "policyVersion": {
                     "type": "string",
                     "enum": [
-                      "2026-11-20"
+                      "2026-11-27.2"
                     ]
                   }
                 },
@@ -10414,21 +10760,52 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "email": {
-                    "type": "string",
-                    "maxLength": 254
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "identifier": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "maxLength": 254
+                          },
+                          {
+                            "type": "string",
+                            "pattern": "^[a-z0-9][a-z0-9_-]{1,28}[a-z0-9]$"
+                          }
+                        ]
+                      },
+                      "password": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 200
+                      }
+                    },
+                    "required": [
+                      "identifier",
+                      "password"
+                    ],
+                    "additionalProperties": false
                   },
-                  "password": {
-                    "type": "string",
-                    "minLength": 1,
-                    "maxLength": 200
+                  {
+                    "type": "object",
+                    "properties": {
+                      "email": {
+                        "type": "string",
+                        "maxLength": 254
+                      },
+                      "password": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 200
+                      }
+                    },
+                    "required": [
+                      "email",
+                      "password"
+                    ]
                   }
-                },
-                "required": [
-                  "email",
-                  "password"
                 ]
               }
             }
@@ -11236,6 +11613,583 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/providers": {
+      "get": {
+        "tags": [
+          "Auth"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "google": {
+                      "type": "boolean"
+                    },
+                    "emailDelivery": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "google",
+                    "emailDelivery"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/google/start": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "mode": {
+                        "type": "string",
+                        "enum": [
+                          "login"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "mode"
+                    ]
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "mode": {
+                        "type": "string",
+                        "enum": [
+                          "admin"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "mode"
+                    ]
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "mode": {
+                        "type": "string",
+                        "enum": [
+                          "link"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "mode"
+                    ]
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "mode": {
+                        "type": "string",
+                        "enum": [
+                          "register"
+                        ]
+                      },
+                      "acceptTerms": {
+                        "type": "boolean",
+                        "enum": [
+                          true
+                        ]
+                      },
+                      "policyVersion": {
+                        "type": "string",
+                        "enum": [
+                          "2026-11-27.2"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "mode",
+                      "acceptTerms",
+                      "policyVersion"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "format": "uri"
+                    }
+                  },
+                  "required": [
+                    "url"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/google/callback": {
+      "get": {
+        "tags": [
+          "Auth"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 4096
+            },
+            "in": "query",
+            "name": "code",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 512
+            },
+            "in": "query",
+            "name": "state",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "error",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/payments": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "default": 1,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            },
+            "in": "query",
+            "name": "page",
+            "required": false
+          },
+          {
+            "schema": {
+              "default": 20,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "in": "query",
+            "name": "pageSize",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "RECONCILE",
+                "PAID"
+              ]
+            },
+            "in": "query",
+            "name": "outcome",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "reference": {
+                            "type": "string"
+                          },
+                          "title": {
+                            "type": "string"
+                          },
+                          "amountKobo": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          }
+                        },
+                        "required": [
+                          "reference",
+                          "title",
+                          "amountKobo"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "page": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "pageSize": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "totalPages": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "page",
+                    "pageSize",
+                    "total",
+                    "totalPages"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/users/{id}/payout": {
+      "put": {
+        "tags": [
+          "Admin"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "pattern": "^ACCT_[A-Za-z0-9]{6,64}$"
+                  }
+                },
+                "required": [
+                  "code"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "businessName": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "businessName"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/public/registrations/{token}/checkout": {
+      "post": {
+        "tags": [
+          "Payments"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 40,
+              "maxLength": 120
+            },
+            "in": "path",
+            "name": "token",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "format": "uri"
+                    },
+                    "reference": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "url",
+                    "reference"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/payments/{reference}/verify": {
+      "post": {
+        "tags": [
+          "Payments"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^nev-[0-9a-f-]{36}$"
+            },
+            "in": "path",
+            "name": "reference",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "outcome": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "outcome"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/payments/paystack/webhook": {
+      "post": {
+        "tags": [
+          "Payments"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
           }
         }
       }
@@ -13404,6 +14358,61 @@
               "schema": {
                 "type": "object",
                 "properties": {
+                  "guestInfo": {
+                    "type": "object",
+                    "properties": {
+                      "doorsBeforeMinutes": {
+                        "default": null,
+                        "nullable": true,
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1440
+                      },
+                      "minimumAge": {
+                        "default": null,
+                        "nullable": true,
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 100
+                      },
+                      "accessibility": {
+                        "default": "",
+                        "type": "string",
+                        "maxLength": 1500
+                      },
+                      "parking": {
+                        "default": "",
+                        "type": "string",
+                        "maxLength": 1000
+                      },
+                      "faqs": {
+                        "default": [],
+                        "maxItems": 12,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "question": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 160
+                            },
+                            "answer": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 1500
+                            }
+                          },
+                          "required": [
+                            "question",
+                            "answer"
+                          ],
+                          "additionalProperties": false
+                        }
+                      }
+                    },
+                    "additionalProperties": false
+                  },
                   "title": {
                     "type": "string",
                     "minLength": 3,
@@ -13434,6 +14443,10 @@
                       "WEBINAR",
                       "TRAINING",
                       "HACKATHON",
+                      "CONCERT",
+                      "FESTIVAL",
+                      "EXHIBITION",
+                      "CELEBRATION",
                       "SUMMIT",
                       "PANEL",
                       "OTHER"
@@ -13696,6 +14709,61 @@
               "schema": {
                 "type": "object",
                 "properties": {
+                  "guestInfo": {
+                    "type": "object",
+                    "properties": {
+                      "doorsBeforeMinutes": {
+                        "default": null,
+                        "nullable": true,
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1440
+                      },
+                      "minimumAge": {
+                        "default": null,
+                        "nullable": true,
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 100
+                      },
+                      "accessibility": {
+                        "default": "",
+                        "type": "string",
+                        "maxLength": 1500
+                      },
+                      "parking": {
+                        "default": "",
+                        "type": "string",
+                        "maxLength": 1000
+                      },
+                      "faqs": {
+                        "default": [],
+                        "maxItems": 12,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "question": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 160
+                            },
+                            "answer": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 1500
+                            }
+                          },
+                          "required": [
+                            "question",
+                            "answer"
+                          ],
+                          "additionalProperties": false
+                        }
+                      }
+                    },
+                    "additionalProperties": false
+                  },
                   "title": {
                     "type": "string",
                     "minLength": 3,
@@ -13726,6 +14794,10 @@
                       "WEBINAR",
                       "TRAINING",
                       "HACKATHON",
+                      "CONCERT",
+                      "FESTIVAL",
+                      "EXHIBITION",
+                      "CELEBRATION",
                       "SUMMIT",
                       "PANEL",
                       "OTHER"
@@ -14484,6 +15556,536 @@
         }
       }
     },
+    "/api/v1/events/{id}/flyer": {
+      "get": {
+        "tags": [
+          "Events"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "style": {
+                      "type": "string",
+                      "enum": [
+                        "marquee",
+                        "programme",
+                        "invitation",
+                        "afterhours",
+                        "studio"
+                      ]
+                    },
+                    "photograph": {
+                      "default": "none",
+                      "type": "string",
+                      "enum": [
+                        "none",
+                        "opening",
+                        "culture",
+                        "workshop",
+                        "cyber",
+                        "wedding",
+                        "anniversary",
+                        "community"
+                      ]
+                    },
+                    "headline": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 110
+                    },
+                    "note": {
+                      "type": "string",
+                      "maxLength": 160
+                    },
+                    "shared": {
+                      "type": "boolean"
+                    },
+                    "qr": {
+                      "type": "string"
+                    },
+                    "destination": {
+                      "type": "string",
+                      "format": "uri"
+                    },
+                    "date": {
+                      "type": "string"
+                    },
+                    "place": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "style",
+                    "photograph",
+                    "headline",
+                    "note",
+                    "shared",
+                    "qr",
+                    "destination",
+                    "date",
+                    "place"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Events"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "style": {
+                    "type": "string",
+                    "enum": [
+                      "marquee",
+                      "programme",
+                      "invitation",
+                      "afterhours",
+                      "studio"
+                    ]
+                  },
+                  "photograph": {
+                    "default": "none",
+                    "type": "string",
+                    "enum": [
+                      "none",
+                      "opening",
+                      "culture",
+                      "workshop",
+                      "cyber",
+                      "wedding",
+                      "anniversary",
+                      "community"
+                    ]
+                  },
+                  "headline": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 110
+                  },
+                  "note": {
+                    "type": "string",
+                    "maxLength": 160
+                  },
+                  "shared": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "style",
+                  "headline",
+                  "note",
+                  "shared"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "style": {
+                      "type": "string",
+                      "enum": [
+                        "marquee",
+                        "programme",
+                        "invitation",
+                        "afterhours",
+                        "studio"
+                      ]
+                    },
+                    "photograph": {
+                      "default": "none",
+                      "type": "string",
+                      "enum": [
+                        "none",
+                        "opening",
+                        "culture",
+                        "workshop",
+                        "cyber",
+                        "wedding",
+                        "anniversary",
+                        "community"
+                      ]
+                    },
+                    "headline": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 110
+                    },
+                    "note": {
+                      "type": "string",
+                      "maxLength": 160
+                    },
+                    "shared": {
+                      "type": "boolean"
+                    },
+                    "qr": {
+                      "type": "string"
+                    },
+                    "destination": {
+                      "type": "string",
+                      "format": "uri"
+                    },
+                    "date": {
+                      "type": "string"
+                    },
+                    "place": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "style",
+                    "photograph",
+                    "headline",
+                    "note",
+                    "shared",
+                    "qr",
+                    "destination",
+                    "date",
+                    "place"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/public/events/{slug}/flyer": {
+      "get": {
+        "tags": [
+          "Discovery"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "in": "path",
+            "name": "slug",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "style": {
+                      "type": "string",
+                      "enum": [
+                        "marquee",
+                        "programme",
+                        "invitation",
+                        "afterhours",
+                        "studio"
+                      ]
+                    },
+                    "photograph": {
+                      "default": "none",
+                      "type": "string",
+                      "enum": [
+                        "none",
+                        "opening",
+                        "culture",
+                        "workshop",
+                        "cyber",
+                        "wedding",
+                        "anniversary",
+                        "community"
+                      ]
+                    },
+                    "headline": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 110
+                    },
+                    "note": {
+                      "type": "string",
+                      "maxLength": 160
+                    },
+                    "shared": {
+                      "type": "boolean"
+                    },
+                    "qr": {
+                      "type": "string"
+                    },
+                    "destination": {
+                      "type": "string",
+                      "format": "uri"
+                    },
+                    "date": {
+                      "type": "string"
+                    },
+                    "place": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "style",
+                    "photograph",
+                    "headline",
+                    "note",
+                    "shared",
+                    "qr",
+                    "destination",
+                    "date",
+                    "place"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/event-tools/writing": {
+      "get": {
+        "tags": [
+          "Events"
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "available": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "available"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Events"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "notes": {
+                    "type": "string",
+                    "minLength": 30,
+                    "maxLength": 1800
+                  }
+                },
+                "required": [
+                  "notes"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "description": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "description"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/public/events": {
       "get": {
         "summary": "Search the public event directory",
@@ -14557,6 +16159,10 @@
                 "WEBINAR",
                 "TRAINING",
                 "HACKATHON",
+                "CONCERT",
+                "FESTIVAL",
+                "EXHIBITION",
+                "CELEBRATION",
                 "SUMMIT",
                 "PANEL",
                 "OTHER"
@@ -20189,6 +21795,12 @@
               "schema": {
                 "type": "object",
                 "properties": {
+                  "priceKobo": {
+                    "default": 0,
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 2000000000
+                  },
                   "name": {
                     "type": "string",
                     "minLength": 1,
@@ -20278,6 +21890,11 @@
               "schema": {
                 "type": "object",
                 "properties": {
+                  "priceKobo": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 2000000000
+                  },
                   "name": {
                     "type": "string",
                     "minLength": 1,
@@ -20289,7 +21906,6 @@
                     "maxLength": 300
                   },
                   "capacity": {
-                    "default": null,
                     "nullable": true,
                     "type": "integer",
                     "minimum": 1,
@@ -22833,6 +24449,383 @@
         "responses": {
           "200": {
             "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/api/v1/public/planning-requests": {
+      "post": {
+        "tags": [
+          "Planning"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 100
+                  },
+                  "email": {
+                    "type": "string",
+                    "maxLength": 254
+                  },
+                  "occasion": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 100
+                  },
+                  "location": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 160
+                  },
+                  "date": {
+                    "type": "string",
+                    "format": "date",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                  },
+                  "guests": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100000
+                  },
+                  "details": {
+                    "type": "string",
+                    "minLength": 10,
+                    "maxLength": 2000
+                  }
+                },
+                "required": [
+                  "name",
+                  "email",
+                  "occasion",
+                  "location",
+                  "details"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    }
+                  },
+                  "required": [
+                    "id"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/planning-requests": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "default": 1,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            },
+            "in": "query",
+            "name": "page",
+            "required": false
+          },
+          {
+            "schema": {
+              "default": 20,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "in": "query",
+            "name": "pageSize",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "NEW",
+                "CONTACTED",
+                "CLOSED"
+              ]
+            },
+            "in": "query",
+            "name": "status",
+            "required": false
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "minLength": 2,
+                            "maxLength": 100
+                          },
+                          "email": {
+                            "type": "string",
+                            "format": "email",
+                            "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                          },
+                          "occasion": {
+                            "type": "string",
+                            "minLength": 2,
+                            "maxLength": 100
+                          },
+                          "location": {
+                            "type": "string",
+                            "minLength": 2,
+                            "maxLength": 160
+                          },
+                          "details": {
+                            "type": "string",
+                            "minLength": 10,
+                            "maxLength": 2000
+                          },
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "date": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "guests": {
+                            "nullable": true,
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "NEW",
+                              "CONTACTED",
+                              "CLOSED"
+                            ]
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          }
+                        },
+                        "required": [
+                          "name",
+                          "email",
+                          "occasion",
+                          "location",
+                          "details",
+                          "id",
+                          "date",
+                          "guests",
+                          "status",
+                          "createdAt"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "page": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "pageSize": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "totalPages": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "page",
+                    "pageSize",
+                    "total",
+                    "totalPages"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/planning-requests/{id}": {
+      "patch": {
+        "tags": [
+          "Admin"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "NEW",
+                      "CONTACTED",
+                      "CLOSED"
+                    ]
+                  }
+                },
+                "required": [
+                  "status"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "ok"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }

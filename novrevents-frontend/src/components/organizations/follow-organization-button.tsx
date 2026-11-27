@@ -40,7 +40,7 @@ export function FollowOrganizationButton({
   if (!isAuthenticated) {
     return (
       <Button asChild size="sm" variant="outline" className={className}>
-        <Link href={`/login?next=${encodeURIComponent(`/o/${slug}`)}`}>Sign in to follow</Link>
+        <Link href={`/auth/login?next=${encodeURIComponent(`/o/${slug}`)}`}>Sign in to follow</Link>
       </Button>
     )
   }

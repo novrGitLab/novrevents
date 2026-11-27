@@ -178,6 +178,7 @@ function backoffMs(attempt: number): number {
  * this concurrently without sending a message twice.
  */
 export async function flushOutbox(options: { limit?: number; now?: Date } = {}): Promise<number> {
+  if (env.NODE_ENV === 'production' && provider.name === 'log') return 0
   const now = options.now ?? new Date()
   const limit = options.limit ?? 25
 

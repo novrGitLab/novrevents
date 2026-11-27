@@ -1,3 +1,4 @@
+import nodemailer from 'nodemailer'
 import { env } from '../../config/env.js'
 
 export interface OutgoingEmail {
@@ -99,7 +100,50 @@ export class LogProvider implements EmailProvider {
   }
 }
 
+export class GmailProvider implements EmailProvider {
+  readonly name = 'gmail'
+  private readonly transport
+
+  constructor(sender: string, appPassword: string) {
+    this.transport = nodemailer.createTransport({
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true,
+      tls: { minVersion: 'TLSv1.2' },
+      auth: { user: sender, pass: appPassword },
+      connectionTimeout: 15000,
+      socketTimeout: 30000,
+      disableFileAccess: true,
+      disableUrlAccess: true,
+    })
+  }
+
+  async send(email: OutgoingEmail) {
+    try {
+      const result = await this.transport.sendMail({
+        from: { name: env.EMAIL_FROM_NAME, address: env.EMAIL_FROM_ADDRESS },
+        to: { name: email.to.name ?? '', address: email.to.email },
+        replyTo: env.EMAIL_REPLY_TO,
+        subject: email.subject,
+        html: email.html,
+        text: email.text,
+        headers: email.headers,
+        attachments: email.attachments,
+      })
+      return { providerMessageId: result.messageId }
+    } catch (cause) {
+      const { responseCode } = cause as { responseCode?: number }
+      throw new EmailSendError(
+        'Gmail delivery failed' + (responseCode ? ' (' + responseCode + ')' : '') + '.',
+        !responseCode || responseCode < 500,
+      )
+    }
+  }
+}
+
 export function createEmailProvider(): EmailProvider {
+  if (env.EMAIL_DRIVER === 'gmail' && env.GMAIL_APP_PASSWORD)
+    return new GmailProvider(env.EMAIL_FROM_ADDRESS, env.GMAIL_APP_PASSWORD)
   if (env.EMAIL_DRIVER === 'brevo' && env.BREVO_API_KEY) return new BrevoProvider(env.BREVO_API_KEY)
   return new LogProvider()
 }

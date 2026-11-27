@@ -109,7 +109,7 @@ describe('event directory', () => {
   })
 
   it('filters by discovery mode before paginating', async () => {
-    const scoped = `${marker}scope`
+    const scoped = `scope-${marker.slice(4)}`
     await createPublishedEvent(organiser, {
       title: `Founders Breakfast ${scoped}`,
       categoryId: await categoryId('business-entrepreneurship'),

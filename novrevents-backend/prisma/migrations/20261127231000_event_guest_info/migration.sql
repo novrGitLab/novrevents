@@ -1,0 +1,1 @@
+ALTER TABLE "events" ADD COLUMN "guest_info" JSONB NOT NULL DEFAULT '{}';

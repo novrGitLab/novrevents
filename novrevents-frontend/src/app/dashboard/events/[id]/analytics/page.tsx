@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { Info } from 'lucide-react'
+import { Info } from '@/components/ui/icons'
 import * as React from 'react'
 import { BarsChart, TrendChart } from '@/components/charts'
 import { useManagedEvent } from '@/components/events/event-context'
@@ -13,7 +13,7 @@ import { Disclosure } from '@/components/ui/primitives'
 import { api, unwrap } from '@/lib/api/client'
 import { keys } from '@/lib/api/keys'
 import { formatNumber, formatPercent } from '@/lib/format'
-import { emailDeliveryEnabled } from '@/lib/site'
+import { useAuthProviders } from '@/lib/auth-providers'
 
 const DEFINITION_LABELS: Record<string, string> = {
   pageViews: 'Page views',
@@ -76,6 +76,7 @@ function Panel({
 }
 
 export default function AnalyticsPage() {
+  const emailDeliveryEnabled = useAuthProviders().data?.emailDelivery === true
   const { event } = useManagedEvent()
   const [from, setFrom] = React.useState('')
   const [to, setTo] = React.useState('')

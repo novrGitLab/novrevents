@@ -1,6 +1,6 @@
 'use client'
 
-import { Building2, CalendarDays, Flag, LayoutDashboard, ScrollText, Settings, Users } from 'lucide-react'
+import { ClipboardList, Building2, CalendarDays, Flag, LayoutDashboard, ScrollText, Settings, Users } from '@/components/ui/icons'
 import { AppShell, type NavGroup, type NavItem } from '@/components/layout/app-shell'
 
 const groups: NavGroup[] = [
@@ -13,6 +13,8 @@ const groups: NavGroup[] = [
       { href: '/admin/reports', label: 'Reports', icon: Flag },
       { href: '/admin/organizations', label: 'Organizations', icon: Building2 },
       { href: '/admin/audit-logs', label: 'Audit logs', icon: ScrollText },
+      { href: '/admin/payments', label: 'Ticket payments', icon: ClipboardList },
+      { href: '/admin/planning', label: 'Planning requests', icon: ScrollText },
       { href: '/admin/settings', label: 'Configuration', icon: Settings },
     ],
   },
