@@ -34,7 +34,7 @@ interface SessionBody {
 }
 
 const signUp = (client: TestClient, body: Record<string, unknown>) =>
-  client.post<SessionBody>('/api/v1/auth/register', {
+  client.registerLegacy<SessionBody>({
     email: uniqueEmail('consent'),
     username: uniqueUsername('consent'),
     displayName: 'Consent Example',

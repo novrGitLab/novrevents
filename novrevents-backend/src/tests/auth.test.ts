@@ -40,7 +40,7 @@ describe('registration', () => {
     const client = new TestClient(app)
     const email = uniqueEmail()
     const username = uniqueUsername()
-    const response = await client.post<SessionBody>('/api/v1/auth/register', {
+    const response = await client.registerLegacy<SessionBody>({
       ...CONSENT,
       email: email.toUpperCase(),
       username,
@@ -82,7 +82,7 @@ describe('registration', () => {
     const existing = await createUser(app)
     const client = new TestClient(app)
 
-    const sameEmail = await client.post('/api/v1/auth/register', {
+    const sameEmail = await client.registerLegacy({
       ...CONSENT,
       email: existing.email,
       username: uniqueUsername(),
@@ -92,7 +92,7 @@ describe('registration', () => {
     expect(sameEmail.status).toBe(409)
     expect(errorCode(sameEmail)).toBe('EMAIL_TAKEN')
 
-    const sameUsername = await client.post('/api/v1/auth/register', {
+    const sameUsername = await client.registerLegacy({
       ...CONSENT,
       email: uniqueEmail(),
       username: existing.username,
@@ -105,7 +105,7 @@ describe('registration', () => {
 
   it('validates input on the server', async () => {
     const client = new TestClient(app)
-    const short = await client.post('/api/v1/auth/register', {
+    const short = await client.registerLegacy({
       ...CONSENT,
       email: 'not-an-email',
       username: 'ab',
@@ -119,7 +119,7 @@ describe('registration', () => {
     )
     expect(paths).toEqual(expect.arrayContaining(['body.email', 'body.username', 'body.password']))
 
-    const reserved = await client.post('/api/v1/auth/register', {
+    const reserved = await client.registerLegacy({
       ...CONSENT,
       email: uniqueEmail(),
       username: 'admin',
@@ -128,7 +128,7 @@ describe('registration', () => {
     })
     expect(reserved.status).toBe(400)
 
-    const common = await client.post('/api/v1/auth/register', {
+    const common = await client.registerLegacy({
       ...CONSENT,
       email: uniqueEmail(),
       username: uniqueUsername(),
@@ -152,14 +152,19 @@ describe('administrator enrollment', () => {
       await guest.post('/api/v1/auth/forgot-password', { email: account.email })
       const token = await latestEmailToken(account.email, 'PASSWORD_RESET')
       const result = await guest.post('/api/v1/auth/reset-password', {
-        token, password: 'a-new-private-password-42',
+        token,
+        password: 'a-new-private-password-42',
       })
       expect(result.status).toBe(200)
       const user = await prisma.user.findUniqueOrThrow({ where: { id: account.id } })
       expect(user.role).toBe(account === invited ? 'ADMIN' : 'USER')
     }
-    expect(await prisma.adminAccessInvitation.findUnique({ where: { email: invited.email } })).toBeNull()
-    expect((await invited.client.get<SessionBody>('/api/v1/auth/session')).body.authenticated).toBe(false)
+    expect(
+      await prisma.adminAccessInvitation.findUnique({ where: { email: invited.email } }),
+    ).toBeNull()
+    expect((await invited.client.get<SessionBody>('/api/v1/auth/session')).body.authenticated).toBe(
+      false,
+    )
   })
 })
 

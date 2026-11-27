@@ -34,3 +34,9 @@ The live review reached manual draft creation, ticket setup, advanced ticket con
 | Promotion | Five customizable flyer designs, QR links to registration, PDF export, a public flyer link and planner requests. | Attribution reporting across campaigns and marketing integrations. |
 
 The private draft provided organizer-side evidence. It did not establish the behavior of published settlement, refunds or a newly registered Eventbrite user. The checkout implementation is tested locally with provider fixtures. Merchant acceptance requires a separate Paystack test transaction.
+
+### Account entry and form workspace, 28 November
+
+The signed-out Eventbrite entry showed one email field, a Continue action, social sign-in and a human-check notice. Its account help describes emailed codes. NovrEvents uses a self-hosted human check and a six-digit code. First-time email entrants set a password. Returning verified members can use either a code or their password. Google can enroll a new account or sign in a returning member through the same action. Gmail sending requires its own administrator grant. [Eventbrite account help](https://support.eventbrite.com/hc/en-us/articles/37233967299858-Log-in-to-Eventbrite-troubleshooting-guide)
+
+Organizers can filter form lists by publication status and purpose. The builder groups the outline and question settings under Edit questions. Preview form presents the respondent view. Both use the same form definition and conditional rules.

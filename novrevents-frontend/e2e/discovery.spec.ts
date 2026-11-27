@@ -7,7 +7,8 @@ const PASSWORD = 'NovrDemo-2026!'
 
 async function signInAsAttendee(page: Page) {
   await page.goto('/login?next=%2Fo%2Fcybernovr', { waitUntil: 'networkidle' })
-  await page.getByLabel('Email').fill(ATTENDEE)
+  await page.getByRole('button', { name: 'Use a password instead' }).click()
+  await page.getByLabel('Email or username').fill(ATTENDEE)
   await page.getByLabel('Password').fill(PASSWORD)
   await page.getByRole('button', { name: 'Sign in' }).click()
   await expect(page).toHaveURL(/\/o\/cybernovr/)
@@ -64,9 +65,7 @@ test.describe('organisation following', () => {
 test.describe('discovery', () => {
   test('the homepage makes no featured or closing-soon claims', async ({ page }) => {
     await page.goto('/', { waitUntil: 'networkidle' })
-    await expect(
-      page.getByRole('heading', { level: 1, name: /The art of\s*going out\./i }),
-    ).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1, name: /The art of\s*going out\./i })).toBeVisible()
     await expect(page.getByText(/featured|closing soon/i)).toHaveCount(0)
   })
 

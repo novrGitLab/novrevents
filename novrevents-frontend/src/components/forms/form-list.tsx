@@ -35,15 +35,25 @@ const AVAILABILITY_TEXT = {
   FULL: 'Limit reached',
 } as const
 
-export function FormList({ eventId, standalone = false }: { eventId?: string; standalone?: boolean }) {
+export function FormList({
+  eventId,
+  standalone = false,
+  initiallyCreating = false,
+}: {
+  eventId?: string
+  standalone?: boolean
+  initiallyCreating?: boolean
+}) {
   const [page, setPage] = React.useState(1)
   const [purpose, setPurpose] = React.useState<Purpose | ''>('')
-  const [open, setOpen] = React.useState(false)
+  const [open, setOpen] = React.useState(initiallyCreating)
+  const [status, setStatus] = React.useState<keyof typeof STATUS_VARIANT | ''>('')
   const params = {
     page,
     pageSize: 20,
     eventId,
     purpose: purpose || undefined,
+    status: status || undefined,
     scope: standalone ? ('standalone' as const) : ('all' as const),
   }
   const query = useQuery({
@@ -55,6 +65,22 @@ export function FormList({ eventId, standalone = false }: { eventId?: string; st
 
   return (
     <>
+      <div className="form-statuses" role="group" aria-label="Filter forms by status">
+        {(['', 'DRAFT', 'PUBLISHED', 'UNPUBLISHED'] as const).map((value) => (
+          <Button
+            key={value}
+            size="sm"
+            variant="ghost"
+            aria-pressed={status === value}
+            onClick={() => {
+              setStatus(value)
+              setPage(1)
+            }}
+          >
+            {value === '' ? 'All forms' : value === 'DRAFT' ? 'Drafts' : enumLabel(value)}
+          </Button>
+        ))}
+      </div>
       <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
           <label htmlFor="purpose-filter" className="text-muted-foreground text-sm">
@@ -64,7 +90,10 @@ export function FormList({ eventId, standalone = false }: { eventId?: string; st
             id="purpose-filter"
             className="w-56"
             value={purpose}
-            onChange={(event) => setPurpose(event.target.value as Purpose | '')}
+            onChange={(event) => {
+              setPurpose(event.target.value as Purpose | '')
+              setPage(1)
+            }}
           >
             <option value="">All types</option>
             {Object.entries(FORM_PURPOSE_LABELS).map(([value, label]) => (
@@ -85,13 +114,30 @@ export function FormList({ eventId, standalone = false }: { eventId?: string; st
       ) : query.data.items.length === 0 ? (
         <EmptyState
           icon={ClipboardList}
-          title="No forms yet"
+          title={purpose || status ? 'No matching forms' : 'No forms yet'}
           description={
-            eventId
-              ? 'Add a registration form so people can sign up, or application forms for speakers, volunteers, judges and sponsors.'
-              : 'Build a form for registrations, applications, feedback or anything else. Anyone can respond without an account.'
+            purpose || status
+              ? 'Choose another type or status to see more forms.'
+              : eventId
+                ? 'Add a registration form so people can sign up, or application forms for speakers, volunteers, judges and sponsors.'
+                : 'Build a form for registrations, applications, feedback or anything else. Anyone can respond without an account.'
           }
-          action={<Button onClick={() => setOpen(true)}>Create a form</Button>}
+          action={
+            purpose || status ? (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setStatus('')
+                  setPurpose('')
+                  setPage(1)
+                }}
+              >
+                Clear filters
+              </Button>
+            ) : (
+              <Button onClick={() => setOpen(true)}>Create a form</Button>
+            )
+          }
         />
       ) : (
         <>
@@ -190,10 +236,7 @@ export function CreateFormDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>New form</DialogTitle>
-          <DialogDescription>
-            Every form type uses the same builder; the type only chooses the starting questions. You can
-            change everything afterwards.
-          </DialogDescription>
+          <DialogDescription>Choose a starting set of questions and give the form a title.</DialogDescription>
         </DialogHeader>
         <form
           className="space-y-4"

@@ -42,7 +42,10 @@ export function SiteHeader() {
       <div className="relative mx-auto flex h-16 max-w-[1280px] items-center gap-4 px-4 sm:px-6 lg:px-10">
         <Wordmark />
 
-        <nav aria-label="Main" className="hidden items-center gap-1 md:ml-6 md:flex lg:absolute lg:left-1/2 lg:ml-0 lg:-translate-x-1/2">
+        <nav
+          aria-label="Main"
+          className="hidden items-center gap-1 md:ml-6 md:flex lg:absolute lg:left-1/2 lg:ml-0 lg:-translate-x-1/2"
+        >
           {navLinks.map((link) => {
             const active = link.match?.some((prefix) => pathname.startsWith(prefix)) ?? false
             return (
@@ -118,9 +121,6 @@ export function SiteHeader() {
                     </Button>
                     <Button asChild variant="outline" onClick={close}>
                       <Link href="/auth/login">Sign in</Link>
-                    </Button>
-                    <Button asChild variant="ghost" onClick={close}>
-                      <Link href="/auth/register">Create an account</Link>
                     </Button>
                   </>
                 )}

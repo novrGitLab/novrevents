@@ -75,6 +75,12 @@ export function BuildWorkspace({
   hasIssues,
   settingsSummary,
 }: Props) {
+  const [view, setView] = React.useState<'questions' | 'preview'>('questions')
+  const properties = React.useRef<HTMLElement>(null)
+  const focusEditor = () => {
+    if (window.matchMedia('(max-width:760px)').matches)
+      requestAnimationFrame(() => properties.current?.focus())
+  }
   const [selection, setSelection] = React.useState<Selection>(() =>
     definition.fields[0] ? { kind: 'field', key: definition.fields[0].key } : null,
   )
@@ -98,6 +104,7 @@ export function BuildWorkspace({
     const field = newField(definition, type, targetStep)
     onChange({ ...definition, fields: [...definition.fields, field] })
     setSelection({ kind: 'field', key: field.key })
+    focusEditor()
   }
 
   const move = (key: string, direction: -1 | 1) => {
@@ -149,243 +156,256 @@ export function BuildWorkspace({
   }
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[240px_minmax(0,1fr)] xl:grid-cols-[240px_minmax(0,1fr)_340px]">
-      <aside
-        aria-label="Questions"
-        className="bg-card flex flex-col rounded-lg border lg:sticky lg:top-20 lg:max-h-[calc(100dvh-7rem)] lg:self-start"
-      >
-        <div className="flex items-center justify-between border-b px-3 py-2.5">
-          <h2 className="text-sm font-semibold">Questions</h2>
-          <span className="text-muted-foreground text-xs tabular-nums">{definition.fields.length}</span>
-        </div>
-        <div className="min-h-0 flex-1 overflow-y-auto p-2">
-          {definition.steps.map((step, stepIndex) => {
-            const fields = definition.fields.filter((field) => field.stepKey === step.key)
-            return (
-              <div key={step.key} className="mb-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setActiveStep(step.key)
-                    setSelection({ kind: 'step', key: step.key })
-                  }}
-                  className={cn(
-                    'text-muted-foreground hover:text-foreground flex w-full items-center gap-1.5 rounded-md px-2 py-1 text-left text-xs font-medium',
-                    selection?.kind === 'step' &&
-                      selection.key === step.key &&
-                      'text-brand-text bg-brand-soft',
-                  )}
-                >
-                  {definition.steps.length > 1 && <span className="tabular-nums">{stepIndex + 1}.</span>}
-                  <span className="truncate">{step.title || 'Untitled step'}</span>
-                </button>
-                <ul className="mt-0.5 space-y-px">
-                  {fields.map((field) => {
-                    const Icon = FIELD_TYPE_ICONS[field.type]
-                    const active = selection?.kind === 'field' && selection.key === field.key
-                    return (
-                      <li key={field.key}>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setActiveStep(step.key)
-                            setSelection({ kind: 'field', key: field.key })
-                          }}
-                          aria-current={active ? 'true' : undefined}
-                          className={cn(
-                            'hover:bg-brand-soft/60 flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px]',
-                            active && 'bg-brand-soft text-brand-text hover:bg-brand-soft font-medium',
-                          )}
-                        >
-                          <Icon
-                            className={cn(
-                              'size-3.5 shrink-0',
-                              active ? 'text-brand-text' : 'text-subtle-foreground',
-                            )}
-                            aria-hidden
-                          />
-                          <span className="min-w-0 flex-1 truncate">
-                            {field.label || 'Untitled question'}
-                          </span>
-                          {field.required && (
-                            <span className="text-destructive text-xs" aria-label="required">
-                              *
-                            </span>
-                          )}
-                        </button>
-                      </li>
-                    )
-                  })}
-                  {fields.length === 0 && (
-                    <li className="text-subtle-foreground px-2 py-1.5 text-xs">No questions yet</li>
-                  )}
-                </ul>
-              </div>
-            )
-          })}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-muted-foreground w-full justify-start"
-            onClick={addStep}
-          >
-            <Plus /> Add step
-          </Button>
-        </div>
-        <div className="border-t p-2">
-          <p className="text-subtle-foreground px-1 pb-1.5 text-xs font-medium">
-            Add to {definition.steps.find((step) => step.key === targetStep)?.title || 'this step'}
-          </p>
-          <div className="grid grid-cols-2 gap-1">
-            {FIELD_TYPES.map((type) => {
-              const Icon = FIELD_TYPE_ICONS[type]
+    <>
+      <div className="builder-views" role="group" aria-label="Builder view">
+        <Button variant="ghost" aria-pressed={view === 'questions'} onClick={() => setView('questions')}>
+          Edit questions
+        </Button>
+        <Button variant="ghost" aria-pressed={view === 'preview'} onClick={() => setView('preview')}>
+          Preview form
+        </Button>
+      </div>
+      <div className="form-workspace" data-view={view}>
+        <aside
+          aria-label="Questions"
+          className="bg-card flex flex-col rounded-lg border lg:sticky lg:top-20 lg:max-h-[calc(100dvh-7rem)] lg:self-start"
+        >
+          <div className="flex items-center justify-between border-b px-3 py-2.5">
+            <h2 className="text-sm font-semibold">Questions</h2>
+            <span className="text-muted-foreground text-xs tabular-nums">{definition.fields.length}</span>
+          </div>
+          <div className="min-h-0 flex-1 overflow-y-auto p-2">
+            {definition.steps.map((step, stepIndex) => {
+              const fields = definition.fields.filter((field) => field.stepKey === step.key)
               return (
-                <button
-                  key={type}
-                  type="button"
-                  onClick={() => addField(type)}
-                  className="hover:bg-brand-soft/60 hover:border-input flex items-center gap-1.5 rounded-md border border-transparent px-1.5 py-1.5 text-left text-xs"
-                  title={`Add a ${FIELD_TYPE_LABELS[type].toLowerCase()} question`}
-                >
-                  <Icon className="text-muted-foreground size-3.5 shrink-0" aria-hidden />
-                  <span className="truncate">{FIELD_TYPE_LABELS[type].replace(' (radio)', '')}</span>
-                </button>
+                <div key={step.key} className="mb-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveStep(step.key)
+                      setSelection({ kind: 'step', key: step.key })
+                    }}
+                    className={cn(
+                      'text-muted-foreground hover:text-foreground flex w-full items-center gap-1.5 rounded-md px-2 py-1 text-left text-xs font-medium',
+                      selection?.kind === 'step' &&
+                        selection.key === step.key &&
+                        'text-brand-text bg-brand-soft',
+                    )}
+                  >
+                    {definition.steps.length > 1 && <span className="tabular-nums">{stepIndex + 1}.</span>}
+                    <span className="truncate">{step.title || 'Untitled step'}</span>
+                  </button>
+                  <ul className="mt-0.5 space-y-px">
+                    {fields.map((field) => {
+                      const Icon = FIELD_TYPE_ICONS[field.type]
+                      const active = selection?.kind === 'field' && selection.key === field.key
+                      return (
+                        <li key={field.key}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setActiveStep(step.key)
+                              setSelection({ kind: 'field', key: field.key })
+                              focusEditor()
+                            }}
+                            aria-current={active ? 'true' : undefined}
+                            className={cn(
+                              'hover:bg-brand-soft/60 flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px]',
+                              active && 'bg-brand-soft text-brand-text hover:bg-brand-soft font-medium',
+                            )}
+                          >
+                            <Icon
+                              className={cn(
+                                'size-3.5 shrink-0',
+                                active ? 'text-brand-text' : 'text-subtle-foreground',
+                              )}
+                              aria-hidden
+                            />
+                            <span className="min-w-0 flex-1 truncate">
+                              {field.label || 'Untitled question'}
+                            </span>
+                            {field.required && (
+                              <span className="text-destructive text-xs" aria-label="required">
+                                *
+                              </span>
+                            )}
+                          </button>
+                        </li>
+                      )
+                    })}
+                    {fields.length === 0 && (
+                      <li className="text-subtle-foreground px-2 py-1.5 text-xs">No questions yet</li>
+                    )}
+                  </ul>
+                </div>
               )
             })}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-muted-foreground w-full justify-start"
+              onClick={addStep}
+            >
+              <Plus /> Add step
+            </Button>
           </div>
-        </div>
-      </aside>
-      <section aria-label="Live preview" className="bg-muted/50 min-w-0 rounded-lg border">
-        <div className="flex items-center justify-between border-b px-4 py-2.5">
-          <h2 className="text-sm font-semibold">Live preview</h2>
-          <span className="text-muted-foreground text-xs">
-            Rules and validation run exactly as they will live
-          </span>
-        </div>
-        <div className="p-4 sm:p-8">
-          <div className="bg-card mx-auto max-w-[560px] rounded-lg border p-6 sm:p-8">
-            <h3 className="text-headline-md">{title}</h3>
-            {description && <p className="text-muted-foreground mt-1.5 text-sm">{description}</p>}
-            <div className="mt-6">
-              {hasIssues ? (
-                <Notice tone="warning">Fix the problems listed above to preview the form.</Notice>
-              ) : definition.fields.length === 0 ? (
-                <p className="text-muted-foreground text-sm">Add a question from the panel on the left.</p>
-              ) : (
-                <FormRenderer
-                  key={JSON.stringify(definition)}
-                  definition={definition}
-                  submitLabel="Submit (preview)"
-                  onSubmit={() => toast.info('Preview only — nothing was submitted.')}
-                />
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
-      <aside
-        aria-label="Properties"
-        className="bg-card rounded-lg border lg:col-span-2 xl:sticky xl:top-20 xl:col-span-1 xl:max-h-[calc(100dvh-7rem)] xl:self-start xl:overflow-y-auto"
-      >
-        {selectedField ? (
-          <>
-            <div className="flex items-center gap-2 border-b px-4 py-2.5">
-              {React.createElement(FIELD_TYPE_ICONS[selectedField.type], {
-                className: 'text-muted-foreground size-4',
-                'aria-hidden': true,
+          <div className="border-t p-2">
+            <p className="text-subtle-foreground px-1 pb-1.5 text-xs font-medium">
+              Add to {definition.steps.find((step) => step.key === targetStep)?.title || 'this step'}
+            </p>
+            <div className="grid grid-cols-2 gap-1">
+              {FIELD_TYPES.map((type) => {
+                const Icon = FIELD_TYPE_ICONS[type]
+                return (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => addField(type)}
+                    className="hover:bg-brand-soft/60 hover:border-input flex items-center gap-1.5 rounded-md border border-transparent px-1.5 py-1.5 text-left text-xs"
+                    title={`Add a ${FIELD_TYPE_LABELS[type].toLowerCase()} question`}
+                  >
+                    <Icon className="text-muted-foreground size-3.5 shrink-0" aria-hidden />
+                    <span className="truncate">{FIELD_TYPE_LABELS[type].replace(' (radio)', '')}</span>
+                  </button>
+                )
               })}
-              <h2 className="text-sm font-semibold">Question properties</h2>
             </div>
-            <div className="p-4">
-              <FieldCard
-                key={selectedField.key}
-                field={selectedField}
-                definition={definition}
-                locked={lockedKeys.has(selectedField.key)}
-                onChange={(patch) => setField(selectedField.key, patch)}
-                onRename={(to) => {
-                  onChange(renameFieldEverywhere(definition, selectedField.key, to))
-                  setSelection({ kind: 'field', key: to })
-                }}
-                onRemove={() => {
-                  onChange(removeFieldEverywhere(definition, selectedField.key))
-                  setSelection(null)
-                }}
-                onDuplicate={() => duplicate(selectedField)}
-                onMove={(direction) => move(selectedField.key, direction)}
-              />
+          </div>
+        </aside>
+        <section aria-label="Live preview" className="bg-muted/50 min-w-0 rounded-lg border">
+          <div className="flex items-center justify-between border-b px-4 py-2.5">
+            <h2 className="text-sm font-semibold">Live preview</h2>
+            <span className="text-muted-foreground text-xs">Respondent view</span>
+          </div>
+          <div className="p-4 sm:p-8">
+            <div className="bg-card mx-auto max-w-[560px] rounded-lg border p-6 sm:p-8">
+              <h3 className="text-headline-md">{title}</h3>
+              {description && <p className="text-muted-foreground mt-1.5 text-sm">{description}</p>}
+              <div className="mt-6">
+                {hasIssues ? (
+                  <Notice tone="warning">Fix the problems listed above to preview the form.</Notice>
+                ) : definition.fields.length === 0 ? (
+                  <p className="text-muted-foreground text-sm">
+                    Choose Edit questions to add the first question.
+                  </p>
+                ) : (
+                  <FormRenderer
+                    key={JSON.stringify(definition)}
+                    definition={definition}
+                    submitLabel="Submit (preview)"
+                    onSubmit={() => toast.info('Preview only — nothing was submitted.')}
+                  />
+                )}
+              </div>
             </div>
-          </>
-        ) : selectedStep ? (
-          <>
-            <div className="border-b px-4 py-2.5">
-              <h2 className="text-sm font-semibold">Step properties</h2>
-            </div>
-            <div className="space-y-4 p-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="step-title">Title</Label>
-                <Input
-                  id="step-title"
-                  value={selectedStep.title}
-                  maxLength={120}
-                  onChange={(event) =>
-                    onChange({
-                      ...definition,
-                      steps: definition.steps.map((step) =>
-                        step.key === selectedStep.key ? { ...step, title: event.target.value } : step,
-                      ),
-                    })
-                  }
+          </div>
+        </section>
+        <aside
+          aria-label="Properties"
+          ref={properties}
+          tabIndex={-1}
+          className="bg-card scroll-mt-20 rounded-lg border"
+        >
+          {selectedField ? (
+            <>
+              <div className="flex items-center gap-2 border-b px-4 py-2.5">
+                {React.createElement(FIELD_TYPE_ICONS[selectedField.type], {
+                  className: 'text-muted-foreground size-4',
+                  'aria-hidden': true,
+                })}
+                <h2 className="text-sm font-semibold">Question properties</h2>
+              </div>
+              <div className="p-4">
+                <FieldCard
+                  key={selectedField.key}
+                  field={selectedField}
+                  definition={definition}
+                  locked={lockedKeys.has(selectedField.key)}
+                  onChange={(patch) => setField(selectedField.key, patch)}
+                  onRename={(to) => {
+                    onChange(renameFieldEverywhere(definition, selectedField.key, to))
+                    setSelection({ kind: 'field', key: to })
+                  }}
+                  onRemove={() => {
+                    onChange(removeFieldEverywhere(definition, selectedField.key))
+                    setSelection(null)
+                  }}
+                  onDuplicate={() => duplicate(selectedField)}
+                  onMove={(direction) => move(selectedField.key, direction)}
                 />
               </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="step-description">Description</Label>
-                <Textarea
-                  id="step-description"
-                  className="min-h-16"
-                  value={selectedStep.description ?? ''}
-                  maxLength={500}
-                  onChange={(event) =>
-                    onChange({
-                      ...definition,
-                      steps: definition.steps.map((step) =>
-                        step.key === selectedStep.key
-                          ? { ...step, description: event.target.value || null }
-                          : step,
-                      ),
-                    })
-                  }
-                />
+            </>
+          ) : selectedStep ? (
+            <>
+              <div className="border-b px-4 py-2.5">
+                <h2 className="text-sm font-semibold">Step properties</h2>
               </div>
-              <p className="text-muted-foreground text-xs">
-                Multi-step forms show one step at a time. Steps with no visible questions are skipped.
-              </p>
-              {definition.steps.length > 1 && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-destructive"
-                  onClick={() => removeStep(selectedStep.key)}
-                >
-                  <Trash2 /> Remove step
-                </Button>
-              )}
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="border-b px-4 py-2.5">
-              <h2 className="text-sm font-semibold">Form</h2>
-            </div>
-            <div className="p-4">
-              <p className="text-muted-foreground mb-4 text-[13px]">
-                Select a question to edit it, or add one on the left.
-              </p>
-              {settingsSummary}
-            </div>
-          </>
-        )}
-      </aside>
-    </div>
+              <div className="space-y-4 p-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="step-title">Title</Label>
+                  <Input
+                    id="step-title"
+                    value={selectedStep.title}
+                    maxLength={120}
+                    onChange={(event) =>
+                      onChange({
+                        ...definition,
+                        steps: definition.steps.map((step) =>
+                          step.key === selectedStep.key ? { ...step, title: event.target.value } : step,
+                        ),
+                      })
+                    }
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="step-description">Description</Label>
+                  <Textarea
+                    id="step-description"
+                    className="min-h-16"
+                    value={selectedStep.description ?? ''}
+                    maxLength={500}
+                    onChange={(event) =>
+                      onChange({
+                        ...definition,
+                        steps: definition.steps.map((step) =>
+                          step.key === selectedStep.key
+                            ? { ...step, description: event.target.value || null }
+                            : step,
+                        ),
+                      })
+                    }
+                  />
+                </div>
+                <p className="text-muted-foreground text-xs">
+                  Multi-step forms show one step at a time. Steps with no visible questions are skipped.
+                </p>
+                {definition.steps.length > 1 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-destructive"
+                    onClick={() => removeStep(selectedStep.key)}
+                  >
+                    <Trash2 /> Remove step
+                  </Button>
+                )}
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="border-b px-4 py-2.5">
+                <h2 className="text-sm font-semibold">Form</h2>
+              </div>
+              <div className="p-4">
+                <p className="text-muted-foreground mb-4 text-[13px]">
+                  Select a question to edit it, or add one on the left.
+                </p>
+                {settingsSummary}
+              </div>
+            </>
+          )}
+        </aside>
+      </div>
+    </>
   )
 }

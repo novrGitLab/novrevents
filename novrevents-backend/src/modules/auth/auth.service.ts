@@ -1,3 +1,4 @@
+import { consumeEntryProof } from './entry-proof.js'
 import { claimAdminInvitation } from './admin-invitation.js'
 import { appUrl, env } from '../../config/env.js'
 import {
@@ -48,7 +49,7 @@ export interface ClientMeta {
 export const invalidCredentials = () =>
   new AppError(401, 'INVALID_CREDENTIALS', 'Incorrect sign-in details.')
 
-function assertPasswordAllowed(password: string, related: string[]): void {
+export function assertPasswordAllowed(password: string, related: string[]): void {
   const lowered = password.toLowerCase()
   if (COMMON_PASSWORDS.has(lowered)) {
     throw badRequest('That password is too common. Choose a different one.', 'WEAK_PASSWORD')
@@ -197,6 +198,7 @@ export async function registerUser(
   input: {
     email: string
     password: string
+    proof: string
     displayName: string
     username: string
     /** Consent is recorded only when the caller has explicitly accepted (enforced by the schema). */
@@ -214,6 +216,7 @@ export async function registerUser(
 
   try {
     return await prisma.$transaction(async (tx) => {
+      await consumeEntryProof(tx, input.email, input.proof)
       const user = await tx.user.create({
         data: {
           email: input.email,

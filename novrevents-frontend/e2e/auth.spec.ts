@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { PASSWORD, registerViaUi, unique, verifyViaEmail } from './helpers'
+import { PASSWORD, registerViaUi, verifyViaEmail } from './helpers'
 
 test.describe('sign-up, verification and welcome', () => {
   test('a new account verifies by email, sees the welcome once, and skips it when returning', async ({
@@ -7,7 +7,7 @@ test.describe('sign-up, verification and welcome', () => {
   }) => {
     const { email } = await registerViaUi(page, 'welcome')
     await expect(page.getByRole('heading', { name: 'Check your email' })).toBeVisible()
-    await expect(page.getByText(email)).toBeVisible()
+    await expect(page.getByText('Enter the six-digit code sent to ' + email + '.')).toBeVisible()
 
     await verifyViaEmail(page, email)
     await expect(page).toHaveURL(/\/welcome/)
@@ -23,7 +23,8 @@ test.describe('sign-up, verification and welcome', () => {
     await expect(page).toHaveURL('/')
 
     await page.goto('/login', { waitUntil: 'networkidle' })
-    await page.getByLabel('Email').fill(email)
+    await page.getByRole('button', { name: 'Use a password instead' }).click()
+    await page.getByLabel('Email or username').fill(email)
     await page.getByLabel('Password').fill(PASSWORD)
     await page.getByRole('button', { name: 'Sign in' }).click()
     await expect(page).toHaveURL(/\/dashboard/)
@@ -48,33 +49,12 @@ test.describe('sign-up, verification and welcome', () => {
   })
 })
 
-test.describe('terms consent', () => {
-  test('the consent box starts unticked and sign-up refuses without it', async ({ page }) => {
-    await page.goto('/register', { waitUntil: 'networkidle' })
-    const box = page.getByLabel(/I agree to the/)
-    await expect(box).not.toBeChecked()
-
-    const username = unique('noterms').slice(0, 28)
-    await page.getByLabel('Full name').fill('No Terms')
-    await page.getByLabel('Username').fill(username)
-    await page.getByLabel('Email').fill(`${username}@example.test`)
-    await page.getByLabel('Password').fill(PASSWORD)
-    await page.getByRole('button', { name: 'Create account' }).click()
-
-    await expect(
-      page.getByText('Tick the box to agree to the Terms of use and Privacy policy.'),
-    ).toBeVisible()
-    await expect(page).toHaveURL(/\/register/)
-  })
-
-  test('the username is suggested from the name and stays editable', async ({ page }) => {
-    await page.goto('/register', { waitUntil: 'networkidle' })
-    await page.getByLabel('Full name').fill('Tunde Bakaré')
-    await expect(page.getByLabel('Username')).toHaveValue('tunde-bakare')
-    await page.getByLabel('Username').fill('my-own-name')
-    await page.getByLabel('Full name').fill('Tunde Bakaré Jr')
-    await expect(page.getByLabel('Username')).toHaveValue('my-own-name')
-  })
+test('registration links lead to the shared email and Google entry', async ({ page }) => {
+  await page.goto('/auth/register?next=%2Fdashboard%2Ftickets')
+  await expect(page).toHaveURL(/auth\/login\?next=/)
+  await expect(page.getByLabel('Email address')).toBeVisible()
+  await expect(page.getByLabel('Password')).toHaveCount(0)
+  await expect(page.getByRole('main').getByRole('link', { name: 'Terms of use' })).toBeVisible()
 })
 
 test.describe('expired verification links', () => {
@@ -88,6 +68,10 @@ test.describe('expired verification links', () => {
     await page.getByRole('button', { name: 'Send a new verification link' }).click()
     // The same reply whether or not the address has an unverified account.
     const settings = await (await page.request.get('/api/v1/auth/providers')).json()
-    await expect(page.getByRole('status').filter({ hasText: settings.emailDelivery ? 'Check your inbox' : 'Request recorded' })).toBeVisible()
+    await expect(
+      page
+        .getByRole('status')
+        .filter({ hasText: settings.emailDelivery ? 'Check your inbox' : 'Request recorded' }),
+    ).toBeVisible()
   })
 })

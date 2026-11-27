@@ -10,8 +10,12 @@ import { POLICY_VERSION } from '@/lib/policy'
 export function GoogleButton({
   mode,
   consent = false,
+  divider = false,
+  next,
 }: {
-  mode: 'login' | 'register' | 'link' | 'admin'
+  mode: 'login' | 'register' | 'link' | 'admin' | 'continue' | 'sender'
+  next?: string
+  divider?: boolean
   consent?: boolean
 }) {
   const providers = useAuthProviders()
@@ -28,7 +32,11 @@ export function GoogleButton({
     try {
       await ensureCsrfToken()
       const body =
-        mode === 'register' ? ({ mode, acceptTerms: true, policyVersion: POLICY_VERSION } as const) : { mode }
+        mode === 'continue'
+          ? ({ mode, acceptTerms: true, policyVersion: POLICY_VERSION, next } as const)
+          : mode === 'register'
+            ? ({ mode, acceptTerms: true, policyVersion: POLICY_VERSION } as const)
+            : { mode }
       const { url } = await unwrap(api.POST('/api/v1/auth/google/start', { body }))
       window.location.assign(url)
     } catch (cause) {
@@ -38,8 +46,13 @@ export function GoogleButton({
   }
   return (
     <div className="my-4">
+      {divider && <div className="entry-divider mb-4">or</div>}
       <Button type="button" className="w-full" variant="outline" loading={busy} onClick={begin}>
-        {mode === 'link' ? 'Link Google account' : 'Continue with Google'}
+        {mode === 'sender'
+          ? 'Authorize sender and send test email'
+          : mode === 'link'
+            ? 'Link Google account'
+            : 'Continue with Google'}
       </Button>
       {error && (
         <p role="alert" className="text-destructive mt-2 text-sm">

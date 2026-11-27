@@ -1,115 +1,221 @@
 'use client'
-
-import { zodResolver } from '@hookform/resolvers/zod'
-import { GoogleButton } from '@/components/auth/google-button'
 import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import * as React from 'react'
-import { useForm } from 'react-hook-form'
-import { z } from 'zod'
-import { Field, fieldAria } from '@/components/common'
-import { Notice } from '@/components/states'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card'
+import { Suspense, useState } from 'react'
+import { GoogleButton } from '@/components/auth/google-button'
+import { HumanCheck } from '@/components/auth/human-check'
+import { Field } from '@/components/common'
 import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Notice } from '@/components/states'
 import { useApplySession } from '@/hooks/use-session'
 import { api, ensureCsrfToken, unwrap } from '@/lib/api/client'
 import { errorMessage } from '@/lib/api/errors'
+import { POLICY_VERSION } from '@/lib/policy'
 import { safeNextPath } from '@/lib/utils'
-
-const schema = z.object({
-  identifier: z.string().trim().min(1, 'Enter your email or username.').max(254),
-  password: z.string().min(1, 'Enter your password.'),
-})
-type Values = z.infer<typeof schema>
-
+type Step = 'email' | 'human' | 'code' | 'create' | 'password'
 export default function LoginPage() {
   return (
-    <React.Suspense>
-      <LoginForm />
-    </React.Suspense>
+    <Suspense>
+      <AccountEntry />
+    </Suspense>
   )
 }
-
-function LoginForm() {
-  const router = useRouter()
+function AccountEntry() {
   const admin = usePathname() === '/admin/auth/login'
-  const searchParams = useSearchParams()
-  const next = safeNextPath(searchParams.get('next'))
-  const applySession = useApplySession()
-  const [error, setError] = React.useState<string | null>(null)
-  const form = useForm<Values>({ resolver: zodResolver(schema), defaultValues: { identifier: '', password: '' } })
-  const { errors, isSubmitting } = form.formState
-
-  const onSubmit = form.handleSubmit(async (values) => {
-    setError(null)
+  const router = useRouter(),
+    params = useSearchParams(),
+    apply = useApplySession()
+  const next = safeNextPath(params.get('next'))
+  const [step, setStep] = useState<Step>(admin ? 'password' : 'email')
+  const [email, setEmail] = useState(''),
+    [code, setCode] = useState(''),
+    [password, setPassword] = useState('')
+  const [challenge, setChallenge] = useState(''),
+    [proof, setProof] = useState(''),
+    [captcha, setCaptcha] = useState('')
+  const [busy, setBusy] = useState(false),
+    [error, setError] = useState(
+      params.get('google') === 'failed'
+        ? 'Google sign-in could not finish. Try again or continue with email.'
+        : '',
+    )
+  const [humanKey, setHumanKey] = useState(0)
+  function move(to: Step) {
+    setStep(to)
+    setError('')
+    setCode('')
+    setPassword('')
+    setCaptcha('')
+  }
+  async function go(event: React.FormEvent) {
+    event.preventDefault()
+    if (busy) return
+    setBusy(true)
+    setError('')
     try {
       await ensureCsrfToken()
-      const session = await unwrap(api.POST('/api/v1/auth/login', { body: values }))
-      await applySession(session)
-      // A verified account that has not yet seen the welcome goes there once; everyone else continues as before.
-      const needsWelcome = session.user?.emailVerified === true && session.user.onboarded === false
-      if (admin && session.user?.role !== 'ADMIN') {
-        setError('This account does not have administrator access.')
+      if (step === 'email') {
+        move('human')
         return
       }
-      router.replace(admin ? '/admin' : needsWelcome ? '/auth/welcome' : next)
-    } catch (caught) {
-      setError(errorMessage(caught))
+      if (step === 'human') {
+        const sent = await unwrap(api.POST('/api/v1/auth/entry', { body: { email: email.trim(), captcha } }))
+        setChallenge(sent.challengeId)
+        move('code')
+        return
+      }
+      if (step === 'code') {
+        const verified = await unwrap(
+          api.POST('/api/v1/auth/entry/verify', { body: { challengeId: challenge, code } }),
+        )
+        if (verified.step === 'password') {
+          setProof(verified.proof)
+          move('create')
+          return
+        }
+        await apply(verified.session)
+        router.replace(next)
+        return
+      }
+      if (step === 'create') {
+        const session = await unwrap(
+          api.POST('/api/v1/auth/entry/finish', {
+            body: { email: email.trim(), proof, password, acceptTerms: true, policyVersion: POLICY_VERSION },
+          }),
+        )
+        await apply(session)
+        router.replace(next === '/dashboard' ? '/auth/welcome' : next)
+        return
+      }
+      const session = await unwrap(
+        api.POST(admin ? '/api/v1/auth/admin/login' : '/api/v1/auth/login', {
+          body: { identifier: email.trim(), password },
+        }),
+      )
+      await apply(session)
+      router.replace(admin ? (next.startsWith('/admin/') ? next : '/admin') : next)
+    } catch (cause) {
+      setError(errorMessage(cause))
+      if (step === 'human') {
+        setCaptcha('')
+        setHumanKey((k) => k + 1)
+      }
+    } finally {
+      setBusy(false)
     }
-  })
-
+  }
+  const title = admin
+    ? 'Administrator sign in'
+    : {
+        email: 'Continue to NovrEvents',
+        human: 'One quick check',
+        code: 'Check your email',
+        create: 'Set your password',
+        password: 'Use your password',
+      }[step]
   return (
-    <Card className="border-0 bg-transparent shadow-none">
-      <CardHeader className="px-0 pt-0 pb-6">
-        <h1 className="text-headline-lg">{admin ? 'Administrator sign in' : 'Sign in'}</h1>
-        <CardDescription className="text-body-lg mt-2">Access your NovrEvents account.</CardDescription>
-      </CardHeader>
-      <CardContent className="px-0">
-        {searchParams.get('google') === 'failed' && (
-          <Notice tone="error">
-            Google sign-in could not be completed. Existing members can sign in with their password and link
-            Google in Settings.
-          </Notice>
-        )}
-        <GoogleButton mode={admin ? 'admin' : 'login'} />
-        <form onSubmit={onSubmit} noValidate className="space-y-4">
-          {error && <Notice tone="error">{error}</Notice>}
-          <Field label="Email or username" htmlFor="identifier" error={errors.identifier?.message}>
+    <div className="identity-flow">
+      <h1>{title}</h1>
+      <p className="entry-intro">
+        {admin
+          ? 'Use your administrator account.'
+          : step === 'email'
+            ? 'Enter your email to sign in or create an account.'
+            : step === 'human'
+              ? 'Complete the human check to receive your code.'
+              : step === 'code'
+                ? 'Enter the six-digit code sent to ' + email + '.'
+                : step === 'create'
+                  ? 'Your email is verified. Choose a password of at least 10 characters.'
+                  : 'Enter your email or username and password.'}
+      </p>
+      <form onSubmit={go} className="entry-fields">
+        {error && <Notice tone="error">{error}</Notice>}
+        {(step === 'email' || step === 'password') && (
+          <Field label={step === 'email' ? 'Email address' : 'Email or username'} htmlFor="entry-email">
             <Input
-              {...fieldAria('identifier', errors.identifier?.message)}
-              type="text"
+              id="entry-email"
+              type={step === 'email' ? 'email' : 'text'}
+              required
+              maxLength={254}
               autoComplete="username"
-              {...form.register('identifier')}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
           </Field>
-          <Field label="Password" htmlFor="password" error={errors.password?.message}>
+        )}
+        {step === 'human' && <HumanCheck key={humanKey} onChange={setCaptcha} />}
+        {step === 'code' && (
+          <Field htmlFor="entry-code" label="Verification code">
             <Input
-              {...fieldAria('password', errors.password?.message)}
-              type="password"
-              autoComplete="current-password"
-              {...form.register('password')}
+              id="entry-code"
+              autoFocus
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              pattern="[0-9]{6}"
+              maxLength={6}
+              required
+              value={code}
+              onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
             />
           </Field>
-          <div className="text-right text-sm">
-            <Link href="/auth/forgot-password" className="text-brand-text font-medium hover:underline">
-              Forgot your password?
-            </Link>
-          </div>
-          <Button type="submit" className="w-full" loading={isSubmitting}>
-            Sign in
+        )}
+        {(step === 'password' || step === 'create') && (
+          <Field htmlFor="entry-password" label={step === 'create' ? 'New password' : 'Password'}>
+            <Input
+              id="entry-password"
+              type="password"
+              autoComplete={step === 'create' ? 'new-password' : 'current-password'}
+              minLength={step === 'create' ? 10 : 1}
+              maxLength={200}
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </Field>
+        )}
+        {(step === 'email' || step === 'create') && (
+          <p className="entry-legal">
+            By continuing, you agree to the <Link href="/legal/terms-of-use">Terms of use</Link> and
+            acknowledge the <Link href="/legal/privacy-policy">Privacy policy</Link>.
+          </p>
+        )}
+        <Button type="submit" size="lg" loading={busy} disabled={step === 'human' && !captcha}>
+          {step === 'human'
+            ? 'Send code'
+            : step === 'code'
+              ? 'Verify code'
+              : step === 'create'
+                ? 'Save password and continue'
+                : step === 'password'
+                  ? 'Sign in'
+                  : 'Continue'}
+        </Button>
+      </form>
+      {(step === 'email' || admin) && (
+        <>
+          <GoogleButton divider mode={admin ? 'admin' : 'continue'} consent next={next} />
+        </>
+      )}
+      <div className="entry-options">
+        {step === 'code' && (
+          <Button variant="link" onClick={() => move('human')}>
+            Request another code
           </Button>
-        </form>
-        <p className="text-muted-foreground mt-6 text-center text-sm">
-          New here?{' '}
-          <Link
-            href={`/auth/register${next !== '/dashboard' ? `?next=${encodeURIComponent(next)}` : ''}`}
-            className="text-brand-text font-medium hover:underline"
-          >
-            Create an account
-          </Link>
-        </p>
-      </CardContent>
-    </Card>
+        )}
+        {step === 'password' && <Link href="/auth/forgot-password">Forgot your password?</Link>}
+        {!admin && step !== 'password' && (
+          <Button variant="link" onClick={() => move('password')}>
+            Use a password instead
+          </Button>
+        )}
+        {!admin && step !== 'email' && (
+          <Button variant="link" onClick={() => move('email')}>
+            Change email
+          </Button>
+        )}
+      </div>
+    </div>
   )
 }

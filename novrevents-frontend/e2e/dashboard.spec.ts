@@ -7,7 +7,8 @@ const SUMMIT_TITLE = 'Cybernovr Security Summit 2026'
 
 async function signInAsAttendee(page: Page) {
   await page.goto('/login?next=%2Fdashboard', { waitUntil: 'networkidle' })
-  await page.getByLabel('Email').fill(ATTENDEE)
+  await page.getByRole('button', { name: 'Use a password instead' }).click()
+  await page.getByLabel('Email or username').fill(ATTENDEE)
   await page.getByLabel('Password').fill(PASSWORD)
   await page.getByRole('button', { name: 'Sign in' }).click()
   await expect(page).toHaveURL(/\/dashboard/)

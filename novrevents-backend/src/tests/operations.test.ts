@@ -734,7 +734,7 @@ describe('administration', () => {
     })
     expect(update.body.allowSignups).toBe(false)
     try {
-      const blocked = await new TestClient(app).post('/api/v1/auth/register', {
+      const blocked = await new TestClient(app).registerLegacy({
         ...CONSENT,
         email: `blocked-${Date.now()}@example.test`,
         username: `blocked${Date.now().toString(36)}`,

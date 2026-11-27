@@ -27,7 +27,10 @@ const message = await prisma.message.findFirst({
   orderBy: { createdAt: 'desc' },
   select: { bodyText: true },
 })
-const link = message?.bodyText.match(/https?:\/\/\S*token=[A-Za-z0-9_.-]+/)?.[0]
+const link =
+  process.argv[4] === 'code'
+    ? message?.bodyText.match(/(?:^|\n)\s*(\d{6})\s*(?:\n|$)/)?.[1]
+    : message?.bodyText.match(/https?:\/\/\S*token=[A-Za-z0-9_.-]+/)?.[0]
 await prisma.$disconnect()
 if (!link) {
   console.error(`No ${type} link found for ${email}`)
