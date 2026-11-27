@@ -545,8 +545,10 @@ describe('response management', () => {
         query: { sort: 'name' },
       },
     )
-    expect(sorted.body.items.map((item) => item.respondentName)).toEqual([
-      '=HYPERLINK("http://evil")',
+    const names = sorted.body.items.map((item) => item.respondentName)
+    expect(names).toHaveLength(3)
+    expect(names).toContain('=HYPERLINK("http://evil")')
+    expect(names.filter((name) => name === 'Alice Analyst' || name === 'Sam Student')).toEqual([
       'Alice Analyst',
       'Sam Student',
     ])

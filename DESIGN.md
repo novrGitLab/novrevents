@@ -14,3 +14,5 @@ Use up to 1280px for inner content and edge-to-edge campaign photography. A wide
 
 ## References
 Eventbrite separates page creation, tickets and publication. Luma places local calendars near discovery. The typographic variation in Form Festival's identity informed the change in scale between event posters and operational text. [Eventbrite](https://www.eventbrite.com/organizations/home) · [Luma](https://luma.com/discover) · [Form Festival](https://www.behance.net/gallery/254283547/Form-Festival-Branding)
+
+The Bole Festival identity uses local food culture and expressive lettering across its programme. Lagos Slush’D gives ticket sales, speakers and updates distinct navigation. NovrEvents translates those priorities into original crowd photography and poster-led discovery, with quieter typography in checkout. [Bole Festival](https://www.behance.net/gallery/242239945/Bole-Festival) · [Lagos Slush’D](https://dribbble.com/shots/25194201-Website-Logo-and-Brand-design-for-LAGOS-SLUSH-D-Coming-Soon)
