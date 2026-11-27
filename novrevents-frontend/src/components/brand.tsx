@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils'
 /**
  * Brand assets live in /public/brand. The Cybernovr logo is the official artwork from the
  * cybernovr.com source (transparent PNG, trimmed only — proportions and colours unchanged,
- * 972 × 98 px). NOVR Events itself has no logo mark; the product name is set in type.
+ * 972 × 98 px). The NovrEvents signature pairs its ticket mark with the product name.
  */
 export const CYBERNOVR_LOGO = { src: '/brand/cybernovr-logo.png', width: 972, height: 98 } as const
 

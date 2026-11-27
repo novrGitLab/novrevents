@@ -369,3 +369,5 @@
     padding-inline: 0.65rem;
   }
 }
+
+.workspace-shell > aside .sidebar-endorsement img {filter:brightness(0) invert(1);}

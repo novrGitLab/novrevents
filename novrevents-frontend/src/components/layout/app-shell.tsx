@@ -94,7 +94,7 @@ function SidebarBrand({ admin }: { admin: boolean }) {
         <span className="sr-only">NovrEvents{admin ? ', administration' : ', dashboard'}</span>
       </Link>
       <span className="text-subtle-foreground inline-flex items-center gap-1.5 text-[11px] leading-none">
-        {admin ? 'Administration · by' : 'by'} <CybernovrLogo height={9} />
+        {admin ? 'Administration · by' : 'by'} <CybernovrLogo height={9} className="sidebar-endorsement" />
       </span>
     </div>
   )
