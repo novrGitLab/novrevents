@@ -1253,3 +1253,30 @@ model PlanningRequest {
   @@index([status, createdAt])
   @@map("planning_requests")
 }
+
+model MailSender {
+  address String @id
+  credential String
+  authorizedAt DateTime @default(now()) @map("authorized_at") @db.Timestamptz(3)
+  needsConsent Boolean @default(false) @map("needs_consent")
+  @@map("mail_senders")
+}
+
+model EmailEntry {
+  email String @id
+  challengeId String @unique @map("challenge_id") @db.Uuid
+  codeHash String @map("code_hash")
+  attempts Int @default(0)
+  sentAt DateTime @map("sent_at") @db.Timestamptz(3)
+  expiresAt DateTime @map("expires_at") @db.Timestamptz(3)
+  proofHash String? @map("proof_hash")
+  @@index([expiresAt])
+  @@map("email_entries")
+}
+
+model HumanChallenge {
+  id String @id
+  expiresAt DateTime @map("expires_at") @db.Timestamptz(3)
+  @@index([expiresAt])
+  @@map("human_challenges")
+}

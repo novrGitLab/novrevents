@@ -7,7 +7,8 @@ const SUMMIT_SLUG = 'cybernovr-security-summit-2026'
 
 async function signIn(page: Page) {
   await page.goto('/login?next=%2Fdashboard', { waitUntil: 'networkidle' })
-  await page.getByLabel('Email').fill(ORGANIZER)
+  await page.getByRole('button', { name: 'Use a password instead' }).click()
+  await page.getByLabel('Email or username').fill(ORGANIZER)
   await page.getByLabel('Password').fill(PASSWORD)
   await page.getByRole('button', { name: 'Sign in' }).click()
   await expect(page).toHaveURL(/\/dashboard/)
@@ -62,7 +63,10 @@ test.describe('organiser attendee drawer', () => {
   })
 })
 
-test('publishes a flyer from five layouts with a printable page and ticket destination', async ({ page, browser }) => {
+test('publishes a flyer from five layouts with a printable page and ticket destination', async ({
+  page,
+  browser,
+}) => {
   await signIn(page)
   const event = await page.request.get(`/api/v1/public/events/${SUMMIT_SLUG}`)
   test.skip(!event.ok(), 'The seeded summit is required for the flyer walkthrough.')
@@ -72,7 +76,11 @@ test('publishes a flyer from five layouts with a printable page and ticket desti
   const template = page.getByLabel('Template', { exact: true })
   const photography = page.getByLabel('Photography')
   const shared = page.getByLabel('Enable public flyer link')
-  const original = { template: await template.inputValue(), photo: await photography.inputValue(), shared: await shared.isChecked() }
+  const original = {
+    template: await template.inputValue(),
+    photo: await photography.inputValue(),
+    shared: await shared.isChecked(),
+  }
   const flyer = page.getByRole('article', { name: 'Event flyer' })
   const guest = await browser.newContext()
   try {
@@ -88,7 +96,9 @@ test('publishes a flyer from five layouts with a printable page and ticket desti
     await poster.goto(`/events/${SUMMIT_SLUG}/flyer`, { waitUntil: 'networkidle' })
     const publicFlyer = poster.getByRole('article', { name: 'Event flyer' })
     await expect(publicFlyer).toHaveClass(/flyer-studio/)
-    await expect(publicFlyer.getByRole('img', { name: 'QR code linking to event registration' })).toHaveJSProperty('complete', true)
+    await expect(
+      publicFlyer.getByRole('img', { name: 'QR code linking to event registration' }),
+    ).toHaveJSProperty('complete', true)
     const pdf = await poster.pdf({ printBackground: true, preferCSSPageSize: true })
     expect(pdf.toString('ascii', 0, 5)).toBe('%PDF-')
     expect(pdf.toString('latin1').match(/\/Type\s*\/Page\b/g)).toHaveLength(1)

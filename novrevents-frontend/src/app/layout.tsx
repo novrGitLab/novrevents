@@ -6,9 +6,10 @@ import { CookieNotice } from '@/components/layout/cookie-notice'
 import './globals.css'
 import './editorial.css'
 import './home.css'
+import './workspace.css'
+import { ScrollActivity } from '@/components/layout/scroll-activity'
 import { siteUrl } from '@/lib/site'
 import { Providers } from './providers'
-
 
 const description =
   'Find live music, workshops, conferences and celebrations. Discover events, reserve tickets or host a gathering with NovrEvents by Cybernovr.'
@@ -49,7 +50,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         >
           Skip to content
         </a>
-        <Providers>{children}<CookieNotice /></Providers>
+        <ScrollActivity />
+        <Providers>
+          {children}
+          <CookieNotice />
+        </Providers>
       </body>
     </html>
   )

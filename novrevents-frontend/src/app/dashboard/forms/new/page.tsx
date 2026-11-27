@@ -1,20 +1,10 @@
-'use client'
-
-import { useRouter } from 'next/navigation'
 import { PageHeader } from '@/components/common'
-import { CreateFormDialog } from '@/components/forms/form-list'
-
-/** Direct link to the "new form" dialog (used from the dashboard). */
+import { FormList } from '@/components/forms/form-list'
 export default function NewFormPage() {
-  const router = useRouter()
   return (
     <>
-      <PageHeader title="New form" />
-      <CreateFormDialog
-        open
-        onOpenChange={(open) => !open && router.push('/dashboard/forms')}
-        allowRegistration={false}
-      />
+      <PageHeader title="Forms" description="Manage event registrations, applications and feedback." />
+      <FormList initiallyCreating />
     </>
   )
 }

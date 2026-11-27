@@ -4,13 +4,11 @@ import { PASSWORD, registerViaUi, verifyViaEmail } from './helpers'
 test.describe('public site', () => {
   test('home and explore load real data and filters work @mobile', async ({ page }) => {
     await page.goto('/', { waitUntil: 'networkidle' })
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText(
-      /The art of\s*going out\./i,
-    )
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(/The art of\s*going out\./i)
     await page.getByRole('main').getByRole('link', { name: 'Browse all events' }).first().click()
     await expect(page).toHaveURL(/\/events/)
     await page.getByRole('searchbox', { name: 'Search events', exact: true }).fill('summit')
-    await page.getByRole('searchbox', {name:'Search events'}).press('Enter')
+    await page.getByRole('searchbox', { name: 'Search events' }).press('Enter')
     await expect(page).toHaveURL(/q=summit/)
     await expect(page.getByRole('heading', { level: 1, name: /Discover events/i })).toBeVisible()
     // The result count comes from the API and is always rendered.
@@ -35,7 +33,7 @@ test.describe('public site', () => {
 
 test.describe('accounts', () => {
   test('register, verify, sign out and sign back in', async ({ page }) => {
-    const { email, username } = await registerViaUi(page)
+    const { email } = await registerViaUi(page)
     await verifyViaEmail(page, email)
     await page.getByRole('button', { name: 'Skip for now' }).click()
     await expect(page).toHaveURL(/\/dashboard/)
@@ -45,12 +43,13 @@ test.describe('accounts', () => {
     await expect(page).toHaveURL('/')
 
     await page.goto('/login', { waitUntil: 'networkidle' })
-    await page.getByLabel('Email').fill(email)
+    await page.getByRole('button', { name: 'Use a password instead' }).click()
+    await page.getByLabel('Email or username').fill(email)
     await page.getByLabel('Password').fill('wrong-password-123')
     await page.getByRole('button', { name: 'Sign in' }).click()
     await expect(page.getByText('Incorrect sign-in details.')).toBeVisible()
 
-    await page.getByLabel('Email or username').fill(username)
+    await page.getByLabel('Email or username').fill(email)
     await page.getByLabel('Password').fill(PASSWORD)
     await page.getByRole('button', { name: 'Sign in' }).click()
     await expect(page).toHaveURL(/\/dashboard/)
@@ -64,7 +63,9 @@ test.describe('accounts', () => {
 
 test.describe('organiser flow', () => {
   test('create a draft event and a guest-accessible form', async ({ page, browser }) => {
-    await registerViaUi(page, 'org')
+    const { email } = await registerViaUi(page, 'org')
+    await verifyViaEmail(page, email)
+    await expect(page).toHaveURL(/welcome/)
 
     await page.goto('/dashboard/events/new', { waitUntil: 'networkidle' })
     await page.getByLabel('Title').fill('E2E Detection Engineering Day')
@@ -81,7 +82,9 @@ test.describe('organiser flow', () => {
     await page.getByRole('button', { name: 'Create and open builder' }).click()
     await expect(page.getByRole('heading', { level: 1, name: 'E2E Feedback' })).toBeVisible()
     // The builder opens on the three-panel Build view with a live preview.
+    await page.getByRole('button', { name: 'Preview form' }).click()
     await expect(page.getByRole('heading', { name: 'Live preview' })).toBeVisible()
+    await page.getByRole('button', { name: 'Edit questions' }).click()
     await expect(page.getByRole('heading', { name: 'Question properties' })).toBeVisible()
     await page.getByRole('tab', { name: /Limits/ }).click()
     await expect(page.getByLabel('Response limit')).toBeVisible()

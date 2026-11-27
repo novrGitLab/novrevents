@@ -57,6 +57,7 @@ export const passwordField = z
   .max(200, 'Use at most 200 characters.')
 
 export const registerBody = z.object({
+  proof: z.string().min(40).max(100),
   email: emailField,
   password: passwordField,
   displayName: requiredText(2, 80),

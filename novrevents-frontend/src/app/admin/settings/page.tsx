@@ -1,6 +1,7 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { MailSender } from '@/components/admin/mail-sender'
 import { Plus } from '@/components/ui/icons'
 import * as React from 'react'
 import { toast } from 'sonner'
@@ -34,6 +35,7 @@ export default function AdminSettingsPage() {
         title="Configuration"
         description="Platform-wide settings. Changes apply within seconds and are recorded in the audit log."
       />
+      <MailSender />
       <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
         {query.isPending ? (
           <LoadingState rows={4} />
@@ -91,70 +93,70 @@ function SettingsForm({ settings }: { settings: Settings }) {
           }}
         >
           <div className="space-y-5 p-5">
-          <h3 className="eyebrow">Access</h3>
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <label htmlFor="allowSignups" className="text-sm font-medium">
-                Allow new accounts
-              </label>
-              <p className="text-muted-foreground text-xs">
-                Guests can still submit forms and register for events when this is off.
-              </p>
+            <h3 className="eyebrow">Access</h3>
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <label htmlFor="allowSignups" className="text-sm font-medium">
+                  Allow new accounts
+                </label>
+                <p className="text-muted-foreground text-xs">
+                  Guests can still submit forms and register for events when this is off.
+                </p>
+              </div>
+              <Switch
+                id="allowSignups"
+                checked={values.allowSignups}
+                onCheckedChange={(checked) => set('allowSignups', checked)}
+              />
             </div>
-            <Switch
-              id="allowSignups"
-              checked={values.allowSignups}
-              onCheckedChange={(checked) => set('allowSignups', checked)}
-            />
-          </div>
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <label htmlFor="requireVerified" className="text-sm font-medium">
-                Require a verified email to publish
-              </label>
-              <p className="text-muted-foreground text-xs">
-                Applies to events and forms. Recommended as an abuse safeguard.
-              </p>
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <label htmlFor="requireVerified" className="text-sm font-medium">
+                  Require a verified email to publish
+                </label>
+                <p className="text-muted-foreground text-xs">
+                  Applies to events and forms. Recommended as an abuse safeguard.
+                </p>
+              </div>
+              <Switch
+                id="requireVerified"
+                checked={values.requireVerifiedEmailToPublish}
+                onCheckedChange={(checked) => set('requireVerifiedEmailToPublish', checked)}
+              />
             </div>
-            <Switch
-              id="requireVerified"
-              checked={values.requireVerifiedEmailToPublish}
-              onCheckedChange={(checked) => set('requireVerifiedEmailToPublish', checked)}
-            />
-          </div>
           </div>
           <div className="space-y-5 border-t p-5">
-          <h3 className="eyebrow">Limits</h3>
-          {number(
-            'reportFlagThreshold',
-            'Reports before an event is flagged',
-            'Open reports from different reporters.',
-          )}
-          {number(
-            'maxEventsPublishedPerDay',
-            'Events one account can publish per day',
-            'Limits spam bursts.',
-          )}
-          {number(
-            'maxInvitationsPerEventPerDay',
-            'Invitation emails per event per day',
-            'Speaker and volunteer invitations.',
-          )}
+            <h3 className="eyebrow">Limits</h3>
+            {number(
+              'reportFlagThreshold',
+              'Reports before an event is flagged',
+              'Open reports from different reporters.',
+            )}
+            {number(
+              'maxEventsPublishedPerDay',
+              'Events one account can publish per day',
+              'Limits spam bursts.',
+            )}
+            {number(
+              'maxInvitationsPerEventPerDay',
+              'Invitation emails per event per day',
+              'Speaker and volunteer invitations.',
+            )}
           </div>
           <div className="space-y-5 border-t p-5">
-          <h3 className="eyebrow">Support</h3>
-          <Field
-            label="Support email"
-            htmlFor="supportEmail"
-            description="Shown to users for help and abuse reports. Leave empty to hide."
-          >
-            <Input
-              id="supportEmail"
-              type="email"
-              value={values.supportEmail}
-              onChange={(event) => set('supportEmail', event.target.value)}
-            />
-          </Field>
+            <h3 className="eyebrow">Support</h3>
+            <Field
+              label="Support email"
+              htmlFor="supportEmail"
+              description="Shown to users for help and abuse reports. Leave empty to hide."
+            >
+              <Input
+                id="supportEmail"
+                type="email"
+                value={values.supportEmail}
+                onChange={(event) => set('supportEmail', event.target.value)}
+              />
+            </Field>
           </div>
           <div className="flex justify-end border-t px-5 py-4">
             <Button type="submit" loading={save.isPending}>
@@ -191,7 +193,9 @@ function Categories() {
         <CardTitle>
           Event categories{' '}
           {query.data && (
-            <span className="text-muted-foreground text-sm font-normal tabular-nums">({query.data.items.length})</span>
+            <span className="text-muted-foreground text-sm font-normal tabular-nums">
+              ({query.data.items.length})
+            </span>
           )}
         </CardTitle>
         <CardDescription>

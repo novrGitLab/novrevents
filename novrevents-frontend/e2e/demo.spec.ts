@@ -16,7 +16,8 @@ async function signIn(browser: Browser, email: string) {
   const page = await context.newPage()
   await page.goto('/login', { waitUntil: 'networkidle' })
   await page.getByRole('button', { name: 'Essential only' }).click()
-  await page.getByLabel('Email').fill(email)
+  await page.getByRole('button', { name: 'Use a password instead' }).click()
+  await page.getByLabel('Email or username').fill(email)
   await page.getByLabel('Password').fill(PASSWORD)
   await page.getByRole('button', { name: 'Sign in' }).click()
   await expect(page).toHaveURL(/\/dashboard/)
@@ -129,7 +130,9 @@ test.describe('demo walkthrough', () => {
     await page.getByLabel('Form type').selectOption('VOLUNTEER')
     await page.getByLabel('Title').fill('Volunteer with us')
     await page.getByRole('button', { name: 'Create and open builder' }).click()
+    await page.getByRole('button', { name: 'Preview form' }).click()
     await expect(page.getByRole('heading', { name: 'Live preview' })).toBeVisible()
+    await page.getByRole('button', { name: 'Edit questions' }).click()
 
     // Add "Are you 18 or older?" (single choice Yes / No) from the question palette.
     await page.getByRole('button', { name: 'Single choice', exact: true }).click()

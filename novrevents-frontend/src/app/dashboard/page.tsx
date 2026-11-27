@@ -3,6 +3,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { ArrowRight, CalendarDays, Compass, Download, MapPin, Plus, QrCode } from '@/components/ui/icons'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { PageHeader } from '@/components/common'
 import { EventCard, EventRow, useSavedEventIds } from '@/components/events/event-card'
 import { REGISTRATION_STATUS_VARIANT } from '@/components/events/labels'
@@ -86,7 +87,10 @@ function NextUpCard({ registration }: { registration: MyRegistration }) {
   const ticketBase = `/api/v1/me/registrations/${registration.id}/ticket`
   const showTicket = registration.status === 'CONFIRMED' && ticket?.status === 'VALID'
   return (
-    <section aria-labelledby="next-up-heading" className="bg-card overflow-hidden rounded-xl border shadow-xs">
+    <section
+      aria-labelledby="next-up-heading"
+      className="bg-card overflow-hidden rounded-xl border shadow-xs"
+    >
       <div className="grid lg:grid-cols-[minmax(0,1fr)_300px]">
         <div className="min-w-0 p-5 sm:p-7">
           <div className="flex flex-wrap items-center gap-2">
@@ -104,7 +108,7 @@ function NextUpCard({ registration }: { registration: MyRegistration }) {
           <p className="text-muted-foreground mt-1 text-sm">By {event.organizerName}</p>
           <dl className="mt-6 grid gap-4 border-t pt-5 sm:grid-cols-2">
             <div className="flex items-center gap-3">
-              <span className="bg-brand-soft text-primary flex size-9 shrink-0 items-center justify-center rounded-sm">
+              <span className="text-primary flex size-6 shrink-0 items-center justify-center rounded-sm">
                 <CalendarDays className="size-4" aria-hidden />
               </span>
               <div className="min-w-0">
@@ -113,7 +117,7 @@ function NextUpCard({ registration }: { registration: MyRegistration }) {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <span className="bg-brand-soft text-primary flex size-9 shrink-0 items-center justify-center rounded-sm">
+              <span className="text-primary flex size-6 shrink-0 items-center justify-center rounded-sm">
                 <MapPin className="size-4" aria-hidden />
               </span>
               <div className="min-w-0">
@@ -263,7 +267,12 @@ function ProfilePanel() {
 function FollowingPanel({ username }: { username: string }) {
   return (
     <section aria-labelledby="following-heading" className="min-w-0">
-      <SectionHeading id="following-heading" title="Following" href="/dashboard/following" linkLabel="Manage" />
+      <SectionHeading
+        id="following-heading"
+        title="Following"
+        href="/dashboard/following"
+        linkLabel="Manage"
+      />
       <div className="space-y-5">
         <div>
           <h3 className="eyebrow mb-2">Organisations</h3>
@@ -282,11 +291,14 @@ function FollowingPanel({ username }: { username: string }) {
 
 export default function DashboardPage() {
   const { user } = useSession()
+  const hosting = useSearchParams().get('view') === 'organizing'
   const overview = useQuery({
+    enabled: hosting,
     queryKey: keys.overview,
     queryFn: () => unwrap(api.GET('/api/v1/me/organizer-overview')),
   })
   const tickets = useQuery({
+    enabled: !hosting,
     queryKey: keys.myRegistrations({ scope: 'upcoming', page: 1, size: 4 }),
     queryFn: () =>
       unwrap(
@@ -296,6 +308,7 @@ export default function DashboardPage() {
       ),
   })
   const feed = useQuery({
+    enabled: !hosting,
     queryKey: keys.feed({ page: 1, size: 3 }),
     queryFn: () => unwrap(api.GET('/api/v1/me/feed', { params: { query: { page: 1, pageSize: 3 } } })),
   })
@@ -306,7 +319,6 @@ export default function DashboardPage() {
   const totalEvents = data ? Object.values(data.events).reduce((sum, count) => sum + count, 0) : 0
   const organizes = totalEvents > 0 || (data?.forms ?? 0) > 0
   const [next, ...rest] = tickets.data?.items ?? []
-  const firstName = user?.profile.displayName.split(' ')[0]
 
   const stats = data
     ? [
@@ -330,214 +342,245 @@ export default function DashboardPage() {
   return (
     <>
       <PageHeader
-        title="Your events"
-        description={`${firstName ? `Welcome back, ${firstName}. ` : ''}Your tickets, the events you run, and new events from organisers you follow.`}
+        title={hosting ? 'Organizer workspace' : 'Your events'}
         actions={
-          <>
-            <Button asChild variant="outline">
+          <Button asChild>
+            {hosting ? (
               <Link href="/dashboard/events/new">
                 <Plus /> Create event
               </Link>
-            </Button>
-            <Button asChild>
+            ) : (
               <Link href="/dashboard/discover">
                 <Compass /> Discover events
               </Link>
-            </Button>
-          </>
+            )}
+          </Button>
         }
       />
-
-      {tickets.isPending ? (
-        <Skeleton className="h-72 w-full rounded-xl" />
-      ) : tickets.isError ? (
-        <ErrorState error={tickets.error} retry={() => void tickets.refetch()} />
-      ) : next ? (
-        <NextUpCard registration={next} />
-      ) : (
-        <EmptyState
-          icon={QrCode}
-          title="No upcoming tickets"
-          description="Register for an event and your next ticket appears here, ready to show at the door."
-          action={
-            <Button asChild size="sm">
-              <Link href="/dashboard/discover">Discover events</Link>
-            </Button>
-          }
-        />
-      )}
-
-      <div className="mt-10 grid min-w-0 grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_360px]">
-        <section aria-labelledby="tickets-heading" className="min-w-0">
-          <SectionHeading
-            id="tickets-heading"
-            title="My registrations and tickets"
-            href="/dashboard/registrations"
-            linkLabel="View all"
-          />
+      <nav className="desk-switch" aria-label="Workspace view">
+        <Link href="/dashboard" aria-current={!hosting ? 'page' : undefined} scroll={false}>
+          Attending
+        </Link>
+        <Link href="/dashboard?view=organizing" aria-current={hosting ? 'page' : undefined} scroll={false}>
+          Organizing
+        </Link>
+      </nav>
+      {!hosting && (
+        <>
           {tickets.isPending ? (
-            <LoadingState rows={2} />
-          ) : rest.length === 0 ? (
-            <p className="text-muted-foreground rounded-lg border border-dashed px-4 py-6 text-center text-[13px]">
-              {next ? 'No other upcoming registrations.' : 'Your registrations will be listed here.'}
-            </p>
+            <Skeleton className="h-72 w-full rounded-xl" />
+          ) : tickets.isError ? (
+            <ErrorState error={tickets.error} retry={() => void tickets.refetch()} />
+          ) : next ? (
+            <NextUpCard registration={next} />
           ) : (
-            <ul className="bg-card divide-y rounded-lg border">
-              {rest.map((registration) => (
-                <li
-                  key={registration.id}
-                  className="hover:bg-brand-soft/50 relative flex items-center gap-4 px-4 py-3.5"
-                >
-                  <DateTile startsAt={registration.event.startsAt} timezone={registration.event.timezone} />
-                  <div className="min-w-0 flex-1">
-                    <Badge variant={REGISTRATION_STATUS_VARIANT[registration.status]}>
-                      {STATUS_TEXT[registration.status]}
-                    </Badge>
-                    <Link
-                      href={registration.status === 'CONFIRMED' ? '/dashboard/tickets' : '/dashboard/registrations'}
-                      className="mt-1 block truncate text-sm font-medium after:absolute after:inset-0"
-                    >
-                      {registration.event.title}
-                    </Link>
-                    <p className="text-muted-foreground truncate text-[13px]">{registration.event.whereText}</p>
-                  </div>
-                  {registration.status === 'CONFIRMED' && (
-                    <QrCode className="text-primary size-5 shrink-0" aria-label="Ticket available" />
-                  )}
-                </li>
-              ))}
-            </ul>
+            <EmptyState
+              icon={QrCode}
+              title="No upcoming tickets"
+              description="Register for an event and your next ticket appears here, ready to show at the door."
+              action={
+                <Button asChild size="sm">
+                  <Link href="/dashboard/discover">Discover events</Link>
+                </Button>
+              }
+            />
           )}
-        </section>
-        <SavedPanel />
-      </div>
 
-      <section aria-labelledby="organizing-heading" className="mt-12">
-        <SectionHeading
-          id="organizing-heading"
-          title="Events you organise"
-          href="/dashboard/events"
-          linkLabel="All events"
-        />
-        {overview.isError ? (
-          <ErrorState error={overview.error} retry={() => void overview.refetch()} />
-        ) : overview.isPending ? (
-          <Skeleton className="h-40 w-full" />
-        ) : !organizes || !data ? (
-          <EmptyState
-            icon={CalendarDays}
-            title="You aren’t organising anything yet"
-            description="Create an event to get a registration form, QR tickets and check-in."
-            action={
-              <Button asChild size="sm">
-                <Link href="/dashboard/events/new">Create an event</Link>
-              </Button>
-            }
+          <div className="mt-10 grid min-w-0 grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_360px]">
+            <section aria-labelledby="tickets-heading" className="min-w-0">
+              <SectionHeading
+                id="tickets-heading"
+                title="My registrations and tickets"
+                href="/dashboard/registrations"
+                linkLabel="View all"
+              />
+              {tickets.isPending ? (
+                <LoadingState rows={2} />
+              ) : rest.length === 0 ? (
+                <p className="text-muted-foreground rounded-lg border border-dashed px-4 py-6 text-center text-[13px]">
+                  {next ? 'No other upcoming registrations.' : 'Your registrations will be listed here.'}
+                </p>
+              ) : (
+                <ul className="bg-card divide-y rounded-lg border">
+                  {rest.map((registration) => (
+                    <li
+                      key={registration.id}
+                      className="hover:bg-brand-soft/50 relative flex items-center gap-4 px-4 py-3.5"
+                    >
+                      <DateTile
+                        startsAt={registration.event.startsAt}
+                        timezone={registration.event.timezone}
+                      />
+                      <div className="min-w-0 flex-1">
+                        <Badge variant={REGISTRATION_STATUS_VARIANT[registration.status]}>
+                          {STATUS_TEXT[registration.status]}
+                        </Badge>
+                        <Link
+                          href={
+                            registration.status === 'CONFIRMED'
+                              ? '/dashboard/tickets'
+                              : '/dashboard/registrations'
+                          }
+                          className="mt-1 block truncate text-sm font-medium after:absolute after:inset-0"
+                        >
+                          {registration.event.title}
+                        </Link>
+                        <p className="text-muted-foreground truncate text-[13px]">
+                          {registration.event.whereText}
+                        </p>
+                      </div>
+                      {registration.status === 'CONFIRMED' && (
+                        <QrCode className="text-primary size-5 shrink-0" aria-label="Ticket available" />
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+            <SavedPanel />
+          </div>
+        </>
+      )}
+      {hosting && (
+        <section aria-labelledby="organizing-heading">
+          <SectionHeading
+            id="organizing-heading"
+            title="Events you organise"
+            href="/dashboard/events"
+            linkLabel="All events"
           />
-        ) : (
-          <div className="bg-card overflow-hidden rounded-lg border shadow-xs">
-            <dl className="grid grid-cols-2 border-b lg:grid-cols-4">
-              {stats.map((stat, index) => (
-                <div
-                  key={stat.label}
-                  className={cn(
-                    'px-5 py-4',
-                    index % 2 === 1 && 'border-l',
-                    index >= 2 && 'max-lg:border-t',
-                    index === 2 && 'lg:border-l',
-                  )}
-                >
-                  <dt className="eyebrow">{stat.label}</dt>
-                  <dd className={cn('text-headline-md mt-1.5 tabular-nums', stat.alert && 'text-warning')}>
-                    {formatNumber(stat.value)}
-                  </dd>
-                  <dd className="text-muted-foreground text-xs">{stat.hint}</dd>
-                </div>
-              ))}
-            </dl>
-            {data.upcoming.length === 0 ? (
-              <p className="text-muted-foreground px-5 py-6 text-[13px]">
-                No upcoming events. Published and draft events with a future date appear here.
-              </p>
-            ) : (
-              <ul className="divide-y">
-                {data.upcoming.map((event) => {
-                  const share = event.capacity ? Math.min(1, event.registeredCount / event.capacity) : null
-                  return (
-                    <li key={event.id} className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center">
-                      <div className="flex min-w-0 flex-1 items-center gap-4">
-                        <DateTile startsAt={event.startsAt} timezone={event.timezone} solid />
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-semibold">{event.title}</p>
-                          <p className="text-muted-foreground truncate text-[13px]">
-                            {formatEventRange(event.startsAt, event.endsAt, event.timezone)}
-                          </p>
-                          <div className="mt-1.5 flex items-center gap-3">
-                            <p className="text-muted-foreground text-[13px] tabular-nums">
-                              {formatNumber(event.registeredCount)}
-                              {event.capacity ? ` / ${formatNumber(event.capacity)}` : ''} registered
+          {overview.isError ? (
+            <ErrorState error={overview.error} retry={() => void overview.refetch()} />
+          ) : overview.isPending ? (
+            <Skeleton className="h-40 w-full" />
+          ) : !organizes || !data ? (
+            <EmptyState
+              icon={CalendarDays}
+              title="You aren’t organising anything yet"
+              description="Create an event to get a registration form, QR tickets and check-in."
+              action={
+                <Button asChild size="sm">
+                  <Link href="/dashboard/events/new">Create an event</Link>
+                </Button>
+              }
+            />
+          ) : (
+            <div className="bg-card overflow-hidden rounded-lg border shadow-xs">
+              <dl className="grid grid-cols-2 border-b lg:grid-cols-4">
+                {stats.map((stat, index) => (
+                  <div
+                    key={stat.label}
+                    className={cn(
+                      'px-5 py-4',
+                      index % 2 === 1 && 'border-l',
+                      index >= 2 && 'max-lg:border-t',
+                      index === 2 && 'lg:border-l',
+                    )}
+                  >
+                    <dt className="eyebrow">{stat.label}</dt>
+                    <dd className={cn('text-headline-md mt-1.5 tabular-nums', stat.alert && 'text-warning')}>
+                      {formatNumber(stat.value)}
+                    </dd>
+                    <dd className="text-muted-foreground text-xs">{stat.hint}</dd>
+                  </div>
+                ))}
+              </dl>
+              {data.upcoming.length === 0 ? (
+                <p className="text-muted-foreground px-5 py-6 text-[13px]">
+                  No upcoming events. Published and draft events with a future date appear here.
+                </p>
+              ) : (
+                <ul className="divide-y">
+                  {data.upcoming.map((event) => {
+                    const share = event.capacity ? Math.min(1, event.registeredCount / event.capacity) : null
+                    return (
+                      <li
+                        key={event.id}
+                        className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center"
+                      >
+                        <div className="flex min-w-0 flex-1 items-center gap-4">
+                          <DateTile startsAt={event.startsAt} timezone={event.timezone} solid />
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-semibold">{event.title}</p>
+                            <p className="text-muted-foreground truncate text-[13px]">
+                              {formatEventRange(event.startsAt, event.endsAt, event.timezone)}
                             </p>
-                            {share !== null && (
-                              <div className="bg-muted h-1 w-24 rounded-full" aria-hidden>
-                                <div
-                                  className={cn('h-1 rounded-full', share > 0.9 ? 'bg-warning' : 'bg-primary')}
-                                  style={{ width: `${Math.max(2, share * 100)}%` }}
-                                />
-                              </div>
-                            )}
+                            <div className="mt-1.5 flex items-center gap-3">
+                              <p className="text-muted-foreground text-[13px] tabular-nums">
+                                {formatNumber(event.registeredCount)}
+                                {event.capacity ? ` / ${formatNumber(event.capacity)}` : ''} registered
+                              </p>
+                              {share !== null && (
+                                <div className="bg-muted h-1 w-24 rounded-full" aria-hidden>
+                                  <div
+                                    className={cn(
+                                      'h-1 rounded-full',
+                                      share > 0.9 ? 'bg-warning' : 'bg-primary',
+                                    )}
+                                    style={{ width: `${Math.max(2, share * 100)}%` }}
+                                  />
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      <div className="flex shrink-0 gap-2 sm:pl-0">
-                        <Button asChild size="sm" variant="outline">
-                          <Link href={`/dashboard/events/${event.id}/registrations`}>Registrations</Link>
-                        </Button>
-                        <Button asChild size="sm">
-                          <Link href={`/dashboard/events/${event.id}`}>
-                            Manage <ArrowRight />
-                          </Link>
-                        </Button>
-                      </div>
-                    </li>
-                  )
-                })}
-              </ul>
-            )}
+                        <div className="flex shrink-0 gap-2 sm:pl-0">
+                          <Button asChild size="sm" variant="outline">
+                            <Link href={`/dashboard/events/${event.id}/registrations`}>Registrations</Link>
+                          </Button>
+                          <Button asChild size="sm">
+                            <Link href={`/dashboard/events/${event.id}`}>
+                              Manage <ArrowRight />
+                            </Link>
+                          </Button>
+                        </div>
+                      </li>
+                    )
+                  })}
+                </ul>
+              )}
+            </div>
+          )}
+        </section>
+      )}
+      {!hosting && (
+        <>
+          <div className="mt-12 grid min-w-0 grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_360px]">
+            <FollowingPanel username={user?.profile.username ?? ''} />
+            <ProfilePanel />
           </div>
-        )}
-      </section>
 
-      <div className="mt-12 grid min-w-0 grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_360px]">
-        <FollowingPanel username={user?.profile.username ?? ''} />
-        <ProfilePanel />
-      </div>
-
-      <section className="mt-12" aria-labelledby="feed-heading">
-        <SectionHeading
-          id="feed-heading"
-          title="New from organisers you follow"
-          href="/dashboard/discover"
-          linkLabel="Browse all events"
-        />
-        {feed.isPending ? (
-          <Skeleton className="h-56 w-full" />
-        ) : feed.isError ? (
-          <ErrorState error={feed.error} />
-        ) : feed.data.items.length === 0 ? (
-          <EmptyState title="Nothing here yet" description="Follow organisers to see their new events here." />
-        ) : (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {feed.data.items.map((event) => (
-              <EventCard
-                key={event.id}
-                event={event}
-                saved={saved.has(event.id)}
-                href={`/dashboard/discover/events/${event.slug}`}
+          <section className="mt-12" aria-labelledby="feed-heading">
+            <SectionHeading
+              id="feed-heading"
+              title="New from organisers you follow"
+              href="/dashboard/discover"
+              linkLabel="Browse all events"
+            />
+            {feed.isPending ? (
+              <Skeleton className="h-56 w-full" />
+            ) : feed.isError ? (
+              <ErrorState error={feed.error} />
+            ) : feed.data.items.length === 0 ? (
+              <EmptyState
+                title="Nothing here yet"
+                description="Follow organisers to see their new events here."
               />
-            ))}
-          </div>
-        )}
-      </section>
+            ) : (
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {feed.data.items.map((event) => (
+                  <EventCard
+                    key={event.id}
+                    event={event}
+                    saved={saved.has(event.id)}
+                    href={`/dashboard/discover/events/${event.slug}`}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
+        </>
+      )}
     </>
   )
 }

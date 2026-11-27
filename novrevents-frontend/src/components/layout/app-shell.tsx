@@ -1,4 +1,5 @@
 'use client'
+import { TicketMascot } from '@/components/marketing/ticket-mascot'
 
 import { ChevronRight, Menu, MoreHorizontal, type EventIcon } from '@/components/ui/icons'
 import Link from 'next/link'
@@ -93,7 +94,7 @@ function SidebarBrand({ admin }: { admin: boolean }) {
         <span className="sr-only">NovrEvents{admin ? ', administration' : ', dashboard'}</span>
       </Link>
       <span className="text-subtle-foreground inline-flex items-center gap-1.5 text-[11px] leading-none">
-        {admin ? 'Administration · by' : 'by'} <CybernovrLogo height={9} />
+        {admin ? 'Administration · by' : 'by'} <CybernovrLogo height={9} className="sidebar-endorsement" />
       </span>
     </div>
   )
@@ -198,7 +199,10 @@ export function AppShell({
 
   React.useEffect(() => {
     if (isLoading) return
-    if (!isAuthenticated) router.replace(`${requireAdmin ? '/admin/auth/login' : '/auth/login'}?next=${encodeURIComponent(pathname)}`)
+    if (!isAuthenticated)
+      router.replace(
+        `${requireAdmin ? '/admin/auth/login' : '/auth/login'}?next=${encodeURIComponent(pathname)}`,
+      )
     else if (requireAdmin && user?.role !== 'ADMIN') router.replace('/dashboard')
   }, [isLoading, isAuthenticated, requireAdmin, user, router, pathname])
 
@@ -237,7 +241,12 @@ export function AppShell({
                 </div>
               ) : (
                 <DialogTrigger asChild>
-                  <Button variant="ghost" size="icon" className="-ml-2 lg:hidden" aria-label="Open navigation">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="-ml-2 lg:hidden"
+                    aria-label="Open navigation"
+                  >
                     <Menu />
                   </Button>
                 </DialogTrigger>
@@ -274,6 +283,9 @@ export function AppShell({
               </ol>
             </nav>
             <div className="flex items-center gap-1">
+              {['/dashboard', '/dashboard/forms', '/dashboard/tickets', '/admin'].includes(pathname) && (
+                <TicketMascot small className="workspace-character" />
+              )}
               <NotificationBell />
               <div className="lg:hidden">
                 <UserMenu />
@@ -288,7 +300,9 @@ export function AppShell({
         >
           <div className={cn('mx-auto', wide ? 'max-w-[1440px]' : 'max-w-[1200px]')}>{children}</div>
         </main>
-        {mobileTabs && <BottomTabs tabs={mobileTabs.slice(0, 4)} groups={groups} onMore={() => setOpen(true)} />}
+        {mobileTabs && (
+          <BottomTabs tabs={mobileTabs.slice(0, 4)} groups={groups} onMore={() => setOpen(true)} />
+        )}
       </div>
     </div>
   )

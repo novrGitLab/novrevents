@@ -115,9 +115,9 @@ describe('QR check-in', () => {
       organiser.client.post<Outcome>(`/api/v1/events/${event.id}/check-in/scan`, { payload })
 
     expect((await scan('hello world')).body.result).toBe('INVALID')
-    expect((await scan(ticketQrPayload(ticket.code).replace(/.$/, 'x'))).body.result).toBe(
-      'INVALID',
-    )
+    const original = ticketQrPayload(ticket.code)
+    const changed = original.slice(0, -1) + (original.endsWith('x') ? 'y' : 'x')
+    expect((await scan(changed)).body.result).toBe('INVALID')
     // A correctly signed code that does not exist (signature checked first, then the database).
     expect((await scan(ticketQrPayload('ZZZZ-ZZZZ-ZZZZ'))).body.result).toBe('INVALID')
 
@@ -734,7 +734,7 @@ describe('administration', () => {
     })
     expect(update.body.allowSignups).toBe(false)
     try {
-      const blocked = await new TestClient(app).post('/api/v1/auth/register', {
+      const blocked = await new TestClient(app).registerLegacy({
         ...CONSENT,
         email: `blocked-${Date.now()}@example.test`,
         username: `blocked${Date.now().toString(36)}`,

@@ -1,3 +1,4 @@
+import { sha256 } from '../lib/crypto.js'
 import { randomBytes } from 'node:crypto'
 import type { FastifyInstance } from 'fastify'
 import { buildApp } from '../app.js'
@@ -136,6 +137,19 @@ export class TestClient {
   get<T = unknown>(url: string, options?: RequestOptions) {
     return this.request<T>('GET', url, options)
   }
+  async registerLegacy<T = unknown>(body: Record<string, unknown>) {
+    const email = String(body.email).trim().toLowerCase()
+    const proof = randomBytes(32).toString('hex')
+    const data = {
+      challengeId: crypto.randomUUID(),
+      expiresAt: new Date(Date.now() + 60000),
+      sentAt: new Date(),
+      codeHash: 'fixture',
+      proofHash: sha256(proof),
+    }
+    await prisma.emailEntry.upsert({ where: { email }, create: { email, ...data }, update: data })
+    return this.post<T>('/api/v1/auth/register', { ...body, proof })
+  }
   post<T = unknown>(url: string, body?: unknown, options?: RequestOptions) {
     return this.request<T>('POST', url, { ...options, body })
   }
@@ -168,7 +182,7 @@ export async function createUser(
   const email = uniqueEmail(options.prefix)
   const username = uniqueUsername(options.prefix)
   const displayName = options.displayName ?? `Test ${username}`
-  const response = await client.post<{ user: { id: string } }>('/api/v1/auth/register', {
+  const response = await client.registerLegacy<{ user: { id: string } }>({
     email,
     username,
     displayName,

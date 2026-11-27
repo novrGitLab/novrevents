@@ -22,6 +22,10 @@ import {
   sessionResponse,
   tokenBody,
 } from './auth.schemas.js'
+import { humanChallenge, requestEntry, checkEntry, finishEntry } from './email-entry.js'
+import { emailField } from '../../lib/http.js'
+import { passwordField } from './auth.schemas.js'
+import { POLICY_VERSION } from '../../config/policy.js'
 import * as service from './auth.service.js'
 
 const cookieOptions = {
@@ -62,6 +66,79 @@ async function sessionPayloadForToken(userId: string, sessionToken: string) {
 }
 
 export const authRoutes: FastifyPluginAsyncZod = async (app) => {
+  app.get(
+    '/auth/human-challenge',
+    { config: { rateLimit: limits.auth }, schema: { tags: ['Auth'] } },
+    async (_req, reply) => {
+      reply.header('Cache-Control', 'no-store')
+      return humanChallenge()
+    },
+  )
+  app.post(
+    '/auth/entry',
+    {
+      config: { rateLimit: limits.email },
+      schema: {
+        tags: ['Auth'],
+        body: z.object({ email: emailField, captcha: z.string().min(10).max(8192) }),
+        response: responses({ 200: z.object({ challengeId: z.uuid() }) }),
+      },
+    },
+    (req) => requestEntry(req.body.email, req.body.captcha),
+  )
+  app.post(
+    '/auth/entry/verify',
+    {
+      config: { rateLimit: limits.auth },
+      schema: {
+        tags: ['Auth'],
+        body: z.object({ challengeId: z.uuid(), code: z.string().regex(/^\d{6}$/) }),
+        response: responses({
+          200: z.union([
+            z.object({ step: z.literal('password'), proof: z.string() }),
+            z.object({ step: z.literal('signed-in'), session: sessionResponse }),
+          ]),
+        }),
+      },
+    },
+    async (req, reply) => {
+      reply.header('Cache-Control', 'no-store')
+      const result = await checkEntry(req.body.challengeId, req.body.code, clientMeta(req))
+      if (result.proof) return { step: 'password' as const, proof: result.proof }
+      setSessionCookie(reply, result.sessionToken!)
+      return {
+        step: 'signed-in' as const,
+        session: await sessionPayloadForToken(result.userId!, result.sessionToken!),
+      }
+    },
+  )
+  app.post(
+    '/auth/entry/finish',
+    {
+      config: { rateLimit: limits.auth },
+      schema: {
+        tags: ['Auth'],
+        body: z.object({
+          email: emailField,
+          proof: z.string().min(40).max(100),
+          password: passwordField,
+          acceptTerms: z.literal(true),
+          policyVersion: z.literal(POLICY_VERSION),
+        }),
+        response: responses({ 200: sessionResponse }),
+      },
+    },
+    async (req, reply) => {
+      const result = await finishEntry(
+        req.body.email,
+        req.body.proof,
+        req.body.password,
+        clientMeta(req),
+      )
+      setSessionCookie(reply, result.sessionToken)
+      return sessionPayloadForToken(result.userId, result.sessionToken)
+    },
+  )
   app.post(
     '/auth/register',
     {
@@ -106,6 +183,28 @@ export const authRoutes: FastifyPluginAsyncZod = async (app) => {
     },
   )
 
+  app.post(
+    '/auth/admin/login',
+    {
+      schema: { tags: ['Auth'], body: loginBody, response: responses({ 200: sessionResponse }) },
+      config: { rateLimit: limits.auth },
+    },
+    async (request, reply) => {
+      const body = request.body
+      const { userId, sessionToken } = await service.authenticate(
+        'identifier' in body ? body.identifier : body.email,
+        body.password,
+        clientMeta(request),
+      )
+      const session = await sessionPayloadForToken(userId, sessionToken)
+      if (session.user?.role !== 'ADMIN') {
+        await prisma.session.deleteMany({ where: { tokenHash: sha256(sessionToken) } })
+        throw service.invalidCredentials()
+      }
+      setSessionCookie(reply, sessionToken)
+      return session
+    },
+  )
   app.post(
     '/auth/logout',
     {

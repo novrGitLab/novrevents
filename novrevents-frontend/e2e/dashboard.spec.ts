@@ -7,7 +7,8 @@ const SUMMIT_TITLE = 'Cybernovr Security Summit 2026'
 
 async function signInAsAttendee(page: Page) {
   await page.goto('/login?next=%2Fdashboard', { waitUntil: 'networkidle' })
-  await page.getByLabel('Email').fill(ATTENDEE)
+  await page.getByRole('button', { name: 'Use a password instead' }).click()
+  await page.getByLabel('Email or username').fill(ATTENDEE)
   await page.getByLabel('Password').fill(PASSWORD)
   await page.getByRole('button', { name: 'Sign in' }).click()
   await expect(page).toHaveURL(/\/dashboard/)
@@ -29,6 +30,17 @@ test.describe('personal dashboard', () => {
       '/dashboard/profile',
     )
     await expect(page.getByRole('link', { name: 'Preview public profile' })).toBeVisible()
+  })
+
+  test('attending and organizing open distinct workspaces', async ({page})=>{
+    await signInAsAttendee(page)
+    const switcher=page.getByRole('navigation',{name:'Workspace view'})
+    await switcher.getByRole('link',{name:'Organizing'}).click()
+    await expect(page.getByRole('heading',{name:'Organizer workspace'})).toBeVisible()
+    await expect(page.getByRole('heading',{name:'Events you organise'})).toBeVisible()
+    await expect(page.getByRole('heading',{name:'Saved events'})).toHaveCount(0)
+    await switcher.getByRole('link',{name:'Attending'}).click()
+    await expect(page.getByRole('heading',{name:'Saved events'})).toBeVisible()
   })
 
   test('save and unsave round-trip through the saved events page', async ({ page }) => {

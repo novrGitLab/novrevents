@@ -54,11 +54,14 @@ function CheckEmail() {
         <h1 className="text-headline-lg">Check your email</h1>
         <CardDescription className="text-body-lg mt-2">
           {!emailDeliveryEnabled ? (
-            <>{email && <span className="block font-medium">{email}</span>}Your account is ready. Verification is required to publish events and forms.</>
+            <>
+              {email && <span className="block font-medium">{email}</span>}Your account is ready. Verification
+              is required to publish events and forms.
+            </>
           ) : email ? (
             <>
-              A verification link was requested for <span className="text-foreground font-medium">{email}</span>.
-              Open it to activate your account.
+              A verification link was requested for{' '}
+              <span className="text-foreground font-medium">{email}</span>. Open it to activate your account.
             </>
           ) : (
             'Open the verification link in your inbox to activate your account.'
@@ -83,7 +86,7 @@ function CheckEmail() {
         </Button>
         <p className="text-muted-foreground text-center text-sm">
           Wrong address?{' '}
-          <Link href="/auth/register" className="text-brand-text font-medium hover:underline">
+          <Link href="/auth/login" className="text-brand-text font-medium hover:underline">
             Use a different email address
           </Link>
         </p>

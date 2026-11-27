@@ -1,4 +1,5 @@
 import type { FastifyBaseLogger } from 'fastify'
+import { gmailApiProvider, senderStatus } from '../../lib/email/google-sender.js'
 import { appUrl, env } from '../../config/env.js'
 import { signValue, verifySignedValue } from '../../lib/crypto.js'
 import { Prisma, prisma, type Db } from '../../lib/db.js'
@@ -178,7 +179,9 @@ function backoffMs(attempt: number): number {
  * this concurrently without sending a message twice.
  */
 export async function flushOutbox(options: { limit?: number; now?: Date } = {}): Promise<number> {
-  if (env.NODE_ENV === 'production' && provider.name === 'log') return 0
+  const activeProvider =
+    provider.name === 'log' && (await senderStatus()).connected ? gmailApiProvider : provider
+  if (env.NODE_ENV === 'production' && activeProvider.name === 'log') return 0
   const now = options.now ?? new Date()
   const limit = options.limit ?? 25
 
@@ -204,9 +207,27 @@ export async function flushOutbox(options: { limit?: number; now?: Date } = {}):
   for (const { id } of claimed) {
     const message = await prisma.message.findUnique({ where: { id } })
     if (!message) continue
+    const credentialTtl =
+      message.type === 'PASSWORD_RESET'
+        ? 3600000
+        : message.type === 'EMAIL_VERIFICATION'
+          ? message.subject === 'Your NovrEvents sign-in code'
+            ? 600000
+            : 86400000
+          : undefined
+    if (credentialTtl && now.getTime() - message.createdAt.getTime() >= credentialTtl) {
+      await prisma.message.update({
+        where: { id },
+        data: {
+          status: 'CANCELLED',
+          errorMessage: 'The sign-in credential expired before delivery.',
+        },
+      })
+      continue
+    }
     try {
       const unsubscribeUrl = (message.data as { unsubscribeUrl?: string } | null)?.unsubscribeUrl
-      const result = await provider.send({
+      const result = await activeProvider.send({
         to: { email: message.toEmail, name: message.toName },
         subject: message.subject,
         html: message.bodyHtml,
@@ -220,13 +241,13 @@ export async function flushOutbox(options: { limit?: number; now?: Date } = {}):
         data: {
           status: 'SENT',
           sentAt: new Date(),
-          provider: provider.name,
+          provider: activeProvider.name,
           providerMessageId: result.providerMessageId,
           errorMessage: null,
         },
       })
       sent += 1
-      if (provider.name === 'log' && env.NODE_ENV === 'development') {
+      if (activeProvider.name === 'log' && env.NODE_ENV === 'development') {
         logger?.info(
           { to: message.toEmail, subject: message.subject },
           `email (log driver, not sent)\n${message.bodyText}`,

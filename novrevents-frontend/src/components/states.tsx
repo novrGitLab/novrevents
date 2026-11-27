@@ -56,7 +56,7 @@ export function EmptyState({
         className,
       )}
     >
-      <span className="bg-brand-soft text-primary mb-3 flex size-10 items-center justify-center rounded-lg">
+      <span className="text-primary mb-3 flex size-10 items-center justify-center rounded-lg">
         <Icon className="size-5" aria-hidden />
       </span>
       <p className="text-headline-sm">{title}</p>

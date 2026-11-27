@@ -128,7 +128,7 @@ describe('username uniqueness under concurrency', () => {
   it('lets exactly one of two simultaneous sign-ups claim the same username', async () => {
     const username = uniqueUsername('race')
     const attempt = () =>
-      new TestClient(app).post('/api/v1/auth/register', {
+      new TestClient(app).registerLegacy({
         ...CONSENT,
         email: uniqueEmail('race'),
         username,

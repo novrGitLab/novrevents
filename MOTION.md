@@ -9,3 +9,7 @@ The cover changes only when a visitor turns the deck. A short tilt brings the ne
 | Event link | Hover or keyboard focus | Arrow advances 4px over 160ms | Persistent underline or focus ring |
 
 CSS owns transitions. No timers, canvas, smooth-scroll controller or continuous animation are needed. Reduced-motion rules remove transforms and animations. All actions remain available on touch and in short viewports.
+
+## Account entry and workspace
+
+The paper ticket gives a single short wave when its poster is hovered. Reduced-motion users see the resting pose. Scrolling reveals a narrow cobalt thumb on the active surface for 850 ms after the last scroll event. High-contrast settings keep native scrollbar colors.

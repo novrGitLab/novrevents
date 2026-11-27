@@ -1,3 +1,10 @@
+import {
+  authorizeSender,
+  sendScope,
+  senderAddress,
+  senderStatus,
+} from '../../lib/email/google-sender.js'
+import { requireAdmin } from '../../middleware/auth.js'
 import { randomBytes } from 'node:crypto'
 import * as oidc from 'openid-client'
 import { claimAdminInvitation } from './admin-invitation.js'
@@ -46,7 +53,8 @@ const flowSchema = z.object({
   nonce: z.string(),
   verifier: z.string(),
   expires: z.number(),
-  mode: z.enum(['login', 'register', 'link', 'admin']),
+  mode: z.enum(['login', 'register', 'link', 'admin', 'sender', 'continue']),
+  next: z.string().optional(),
   session: z.string().nullable(),
   policy: z.string().nullable(),
 })
@@ -55,6 +63,13 @@ const random = () => randomBytes(32).toString('base64url')
 const start = z.discriminatedUnion('mode', [
   z.object({ mode: z.literal('login') }),
   z.object({ mode: z.literal('admin') }),
+  z.object({ mode: z.literal('sender') }),
+  z.object({
+    mode: z.literal('continue'),
+    next: z.string().max(2048).optional(),
+    acceptTerms: z.literal(true),
+    policyVersion: z.literal(POLICY_VERSION),
+  }),
   z.object({ mode: z.literal('link') }),
   z.object({
     mode: z.literal('register'),
@@ -67,8 +82,15 @@ const claims = z.object({
   email: z.email().max(254),
   email_verified: z.literal(true),
   nonce: z.string(),
+  hd: z.string().optional(),
   name: z.string().optional(),
 })
+
+function returnPath(value?:string) {
+ if(!value || !value.startsWith('/') || value.startsWith('//') || value.includes(String.fromCharCode(92)) || Array.from(value).some(c=>c.charCodeAt(0)<32))return undefined
+ const url=new URL(value,appUrl)
+ return url.origin===new URL(appUrl).origin?url.pathname+url.search+url.hash:undefined
+}
 
 async function signIn(
   profile: z.infer<typeof claims>,
@@ -77,9 +99,8 @@ async function signIn(
 ) {
   const email = profile.email.trim().toLowerCase()
   const meta = { ip: request.ip, userAgent: request.headers['user-agent'] ?? null }
-  if (flow.mode === 'register' && !(await getSettings()).allowSignups)
-    throw forbidden('Registration is closed.')
-  const passwordHash = flow.mode === 'register' ? await hashPassword(random()) : null
+  const enrollment = flow.mode === 'register' || flow.mode === 'continue'
+  const passwordHash = enrollment ? await hashPassword(random()) : null
   return prisma.$transaction(async (tx) => {
     let user = await tx.user.findUnique({
       where: { googleSubject: profile.sub },
@@ -107,10 +128,32 @@ async function signIn(
       if (!updated.count) throw forbidden('Could not link this account.')
       return null
     }
-    if (!user && flow.mode === 'register' && passwordHash && flow.policy === POLICY_VERSION) {
+    if (!user && flow.mode === 'continue') {
+      const existing = await tx.user.findUnique({
+        where: { email },
+        select: { id: true, emailVerifiedAt: true, googleSubject: true, status: true, role: true },
+      })
+      // Google is authoritative for verified Gmail and hosted Workspace addresses.
+      if (
+        existing?.status === 'ACTIVE' &&
+        existing.emailVerifiedAt &&
+        !existing.googleSubject &&
+        (email.endsWith('@gmail.com') ||
+          email.endsWith('@googlemail.com') ||
+          profile.hd?.toLowerCase() === email.split('@')[1])
+      ) {
+        const link = await tx.user.updateMany({
+          where: { id: existing.id, email, googleSubject: null, emailVerifiedAt: { not: null } },
+          data: { googleSubject: profile.sub },
+        })
+        if (link.count) user = existing
+      }
+    }
+    if (!user && enrollment && passwordHash && flow.policy === POLICY_VERSION) {
+      if (!(await getSettings()).allowSignups) throw forbidden('Registration is closed.')
       if (await tx.user.findUnique({ where: { email }, select: { id: true } }))
         throw forbidden('Sign in with your password and link Google in account settings.')
-      const name = profile.name?.trim().slice(0, 80) || email.split('@')[0]!.slice(0, 80)
+      const name = profile.name?.trim().slice(0, 80) || 'Event guest'
       user = await tx.user.create({
         data: {
           email,
@@ -137,6 +180,26 @@ async function signIn(
 
 export const googleRoutes: FastifyPluginAsyncZod = async (app) => {
   app.get(
+    '/admin/mail-sender',
+    {
+      schema: {
+        tags: ['Admin'],
+        response: responses({
+          200: z.object({
+            address: z.email(),
+            connected: z.boolean(),
+            authorizedAt: z.date().nullable(),
+            needsConsent: z.boolean(),
+          }),
+        }),
+      },
+    },
+    async (req) => {
+      requireAdmin(req)
+      return senderStatus()
+    },
+  )
+  app.get(
     '/auth/providers',
     {
       schema: {
@@ -146,7 +209,8 @@ export const googleRoutes: FastifyPluginAsyncZod = async (app) => {
     },
     async () => ({
       google: enabled(),
-      emailDelivery: env.EMAIL_DRIVER !== 'log' && env.JOBS_ENABLED,
+      emailDelivery:
+        env.JOBS_ENABLED && (env.EMAIL_DRIVER !== 'log' || (await senderStatus()).connected),
     }),
   )
   app.post(
@@ -163,14 +227,19 @@ export const googleRoutes: FastifyPluginAsyncZod = async (app) => {
       if (!enabled()) throw badRequest('Google sign-in is unavailable.')
       if (request.body.mode === 'link' && !request.auth?.emailVerified)
         throw forbidden('Verify your email to link Google.')
+      if (request.body.mode === 'sender') requireAdmin(request)
       const flow = {
+        next:request.body.mode==='continue'?returnPath(request.body.next):undefined,
         state: oidc.randomState(),
         nonce: oidc.randomNonce(),
         verifier: oidc.randomPKCECodeVerifier(),
         expires: Date.now() + 600000,
         mode: request.body.mode,
         session: request.auth?.sessionId ?? null,
-        policy: request.body.mode === 'register' ? request.body.policyVersion : null,
+        policy:
+          request.body.mode === 'register' || request.body.mode === 'continue'
+            ? request.body.policyVersion
+            : null,
       }
       reply.setCookie(
         flowCookie,
@@ -180,12 +249,14 @@ export const googleRoutes: FastifyPluginAsyncZod = async (app) => {
       const url = oidc.buildAuthorizationUrl(await googleClient(), {
         redirect_uri: callback,
         response_type: 'code',
-        scope: 'openid email profile',
+        scope: flow.mode === 'sender' ? 'openid email ' + sendScope : 'openid email profile',
         state: flow.state,
         nonce: flow.nonce,
         code_challenge: await oidc.calculatePKCECodeChallenge(flow.verifier),
         code_challenge_method: 'S256',
-        prompt: 'select_account',
+        ...(flow.mode === 'sender'
+          ? { prompt: 'consent', access_type: 'offline', login_hint: senderAddress }
+          : { prompt: 'select_account' }),
       })
       return { url: url.href }
     },
@@ -209,7 +280,7 @@ export const googleRoutes: FastifyPluginAsyncZod = async (app) => {
       let failurePath = '/auth/login?google=failed'
       try {
         const raw = verifySignedValue('google-flow', request.cookies[flowCookie] ?? '')
-        if (!enabled() || !raw || !request.query.code) throw new Error('incomplete')
+        if (!enabled() || !raw) throw new Error('incomplete')
         const flow = flowSchema.parse(JSON.parse(Buffer.from(raw, 'base64url').toString()))
         if (
           flow.expires < Date.now() ||
@@ -218,6 +289,11 @@ export const googleRoutes: FastifyPluginAsyncZod = async (app) => {
         )
           throw new Error('state')
         if (flow.mode === 'admin') failurePath = '/admin/auth/login?google=failed'
+        if (flow.mode === 'sender') {
+          requireAdmin(request)
+          failurePath = '/admin/settings?sender=failed'
+        }
+        if (!request.query.code) throw new Error('Google authorization did not complete.')
         const currentUrl = new URL(callback)
         currentUrl.search = new URL(request.raw.url!, appUrl).search
         const tokens = await oidc.authorizationCodeGrant(await googleClient(), currentUrl, {
@@ -227,6 +303,16 @@ export const googleRoutes: FastifyPluginAsyncZod = async (app) => {
           idTokenExpected: true,
         })
         const profile = claims.parse(tokens.claims())
+        if (flow.mode === 'sender') {
+          if (
+            profile.email.toLowerCase() !== senderAddress ||
+            !tokens.refresh_token ||
+            !tokens.scope?.split(' ').includes(sendScope)
+          )
+            throw forbidden('Sender identity or permission does not match.')
+          await authorizeSender(tokens.access_token, tokens.refresh_token)
+          return reply.redirect(appUrl + '/admin/settings?sender=connected')
+        }
         const session = await signIn(profile, flow, request)
         if (session)
           reply.setCookie(env.SESSION_COOKIE_NAME, session, {
@@ -245,7 +331,7 @@ export const googleRoutes: FastifyPluginAsyncZod = async (app) => {
                 ? '/auth/welcome'
                 : flow.mode === 'admin'
                   ? '/admin'
-                  : '/dashboard'),
+                  : (flow.next ?? '/dashboard')),
         )
       } catch {
         return reply.redirect(appUrl + failurePath)

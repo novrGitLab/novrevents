@@ -81,17 +81,18 @@ afterAll(async () => {
   await app.close()
 })
 
-async function begin(mode: 'register' | 'admin') {
+async function begin(mode: 'register' | 'admin' | 'continue') {
   const res = await app.inject({
     method: 'POST',
     url: '/api/v1/auth/google/start',
     headers: { origin: ORIGIN },
-    payload: mode === 'register' ? { mode, ...CONSENT } : { mode },
+    payload: mode === 'admin' ? {mode} : { mode, ...CONSENT, ...(mode==='continue'?{next:'/dashboard/tickets'}:{}) },
   })
   expect(res.statusCode).toBe(200)
   authorization = new URL(res.json().url)
   expect(authorization.searchParams.get('client_id')).toBe(clientId)
   expect(authorization.searchParams.get('code_challenge_method')).toBe('S256')
+  expect(authorization.searchParams.get('scope')?.split(' ')).toEqual(['openid','email','profile'])
   const cookie = res.cookies.find((entry) => entry.name === 'novr_google_flow')!
   return { [cookie.name]: cookie.value }
 }
@@ -100,7 +101,7 @@ it('registers a verified invited Google identity and signs it into the admin por
   await prisma.adminAccessInvitation.create({
     data: { email, expiresAt: new Date(Date.now() + 60000) },
   })
-  for (const mode of ['register', 'admin'] as const) {
+  for (const mode of ['continue', 'continue', 'register', 'admin'] as const) {
     const cookies = await begin(mode)
     const callback = await app.inject({
       method: 'GET',
@@ -108,12 +109,13 @@ it('registers a verified invited Google identity and signs it into the admin por
       query: { state: authorization.searchParams.get('state')!, code: 'local-code-' + mode },
       cookies,
     })
-    expect(callback.headers.location).toBe(ORIGIN + (mode === 'admin' ? '/admin' : '/auth/welcome'))
+    expect(callback.headers.location).toBe(ORIGIN + (mode === 'admin' ? '/admin' : mode==='continue'?'/dashboard/tickets':'/auth/welcome'))
     expect(callback.cookies.some((c) => c.name === env.SESSION_COOKIE_NAME && c.httpOnly)).toBe(
       true,
     )
   }
-  expect(exchanges).toBe(2)
+  expect(exchanges).toBe(4)
+  expect(await prisma.user.count({where:{email}})).toBe(1)
   expect(await prisma.user.findUnique({ where: { email } })).toMatchObject({
     role: 'ADMIN',
     termsVersion: CONSENT.policyVersion,
