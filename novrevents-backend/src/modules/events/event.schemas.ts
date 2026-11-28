@@ -330,6 +330,7 @@ export const eventManageSchema = z
     organizationId: z.uuid().nullable(),
     organization: z.object({ id: z.uuid(), slug: z.string(), name: z.string() }).nullable(),
     registrationFormId: z.uuid().nullable(),
+    publicationIssues: z.array(z.object({ path: z.string(), message: z.string() })),
     registration: registrationStateSchema,
     /** Share link for PRIVATE events. Null for check-in staff. */
     privateLink: z.string().nullable(),

@@ -75,6 +75,7 @@ export async function toManagedEvent(event: EventWithCard, role: EventRole) {
       ? { id: event.organization.id, slug: event.organization.slug, name: event.organization.name }
       : null,
     registration: registrationState(event),
+    publicationIssues: event.status === 'DRAFT' ? publishProblems(event, new Date()) : [],
     // Check-in staff do not need the private share link.
     privateLink: role === 'STAFF' ? null : `${eventUrl(event.slug)}?key=${event.accessKey}`,
     publicUrl: eventUrl(event.slug),

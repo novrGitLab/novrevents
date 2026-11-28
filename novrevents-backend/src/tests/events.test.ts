@@ -145,6 +145,8 @@ describe('event publishing', () => {
     const paths = (
       response.body as { error: { details: Array<{ path: string }> } }
     ).error.details.map((d) => d.path)
+    const draft = await user.client.get<{ publicationIssues: { path: string }[] }>('/api/v1/events/' + event.id)
+    expect(draft.body.publicationIssues.map(issue => issue.path)).toEqual(paths)
     expect(paths).toEqual(
       expect.arrayContaining(['description', 'categoryId', 'city', 'venueName']),
     )

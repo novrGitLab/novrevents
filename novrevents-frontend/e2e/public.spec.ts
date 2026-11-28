@@ -74,6 +74,12 @@ test.describe('organiser flow', () => {
     await page.getByRole('button', { name: 'Create draft' }).click()
     await expect(page.getByRole('heading', { name: 'E2E Detection Engineering Day' })).toBeVisible()
     await expect(page.getByText('Draft', { exact: true })).toBeVisible()
+    const setup = page.getByRole('region', { name: 'Before you publish' })
+    await expect(setup.getByRole('link', { name: 'Choose a category.' })).toHaveAttribute(
+      'href',
+      /\/edit#categoryId$/,
+    )
+    await expect(setup.getByRole('link', { name: 'Add optional cover artwork' })).toBeVisible()
 
     // A standalone general form: build, then try to publish (needs a verified email).
     await page.goto('/dashboard/forms', { waitUntil: 'networkidle' })

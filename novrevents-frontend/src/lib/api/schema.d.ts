@@ -12039,6 +12039,10 @@ export interface components {
             } | null;
             /** Format: uuid */
             registrationFormId: string | null;
+            publicationIssues: {
+                path: string;
+                message: string;
+            }[];
             registration: components["schemas"]["RegistrationStateInput"];
             privateLink: string | null;
             publicUrl: string;
@@ -13239,6 +13243,10 @@ export interface components {
             } | null;
             /** Format: uuid */
             registrationFormId: string | null;
+            publicationIssues: {
+                path: string;
+                message: string;
+            }[];
             registration: components["schemas"]["RegistrationState"];
             privateLink: string | null;
             publicUrl: string;

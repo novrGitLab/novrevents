@@ -37,7 +37,7 @@ export default function EditEventPage() {
         }}
       />
       <div className="space-y-6">
-        <Card>
+        <Card id="event-artwork" className="scroll-mt-20">
           <CardHeader>
             <CardTitle>Branding</CardTitle>
             <CardDescription>Shown on the event page, registration form and tickets.</CardDescription>
