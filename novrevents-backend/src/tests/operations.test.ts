@@ -546,6 +546,17 @@ describe('email scheduling and delivery', () => {
         provider: 'test',
       })
 
+      const unavailable = await prisma.message.create({
+        data: {
+          type: 'TICKET_DELIVERY', toEmail: 'missing-ticket@example.test', subject: 'Ticket copy',
+          bodyHtml: '<p>Ticket attached.</p>', bodyText: 'Ticket attached.',
+          data: { attachments: [{ kind: 'ticket', id: '00000000-0000-4000-8000-000000000000' }] },
+        },
+      })
+      await flushOutbox()
+      expect(await prisma.message.findUniqueOrThrow({ where: { id: unavailable.id } })).toMatchObject({ status: 'FAILED' })
+      expect(attempts.some(email => email.to.email === unavailable.toEmail)).toBe(false)
+
       const other = await createUser(app, { verified: false })
       mode = 'permanent'
       await flushOutbox({ now: new Date() })

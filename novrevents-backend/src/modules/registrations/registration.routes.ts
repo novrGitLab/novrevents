@@ -1,6 +1,7 @@
 import type { FastifyReply } from 'fastify'
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod'
 import { z } from 'zod'
+import { MessageStatus } from '../../generated/prisma/client.js'
 import { audit } from '../../lib/audit.js'
 import { prisma } from '../../lib/db.js'
 import { conflict, notFound } from '../../lib/errors.js'
@@ -198,6 +199,77 @@ export const registrationRoutes: FastifyPluginAsyncZod = async (app) => {
         request.params.id,
         request.params.registrationId,
       ),
+  )
+
+  app.get(
+    '/events/:id/registrations/:registrationId/ticket-delivery',
+    {
+      schema: {
+        tags: ['Tickets'],
+        summary: 'Get the five most recent ticket emails',
+        ...secured,
+        params: registrationParams,
+        response: responses({
+          200: z.object({
+            retryAfterMs: z.number().int().nonnegative(),
+            items: z.array(
+              z.object({
+                id: z.uuid(),
+                resend: z.boolean(),
+                loggedOnly: z.boolean(),
+                status: z.enum(MessageStatus),
+                createdAt: z.date(),
+                updatedAt: z.date(),
+              }),
+            ),
+          }),
+        }),
+      },
+    },
+    async (request, reply) => {
+      const { id, registrationId } = request.params
+      await attendees.requireRegistrationOfEvent(requireAuth(request).userId, id, registrationId)
+      reply.header('cache-control', 'private, no-store')
+      const items = await service.ticketDeliveryHistory(id, registrationId)
+      const retryAfterMs = items[0]
+        ? Math.max(0, items[0].createdAt.getTime() + service.ticketEmailCooldownMs - Date.now())
+        : 0
+      return {
+        retryAfterMs,
+        items: items.map(({ type, provider, ...message }) => ({
+          ...message,
+          resend: type === 'TICKET_DELIVERY',
+          loggedOnly: provider === 'log',
+        })),
+      }
+    },
+  )
+
+  app.post(
+    '/events/:id/registrations/:registrationId/resend-ticket',
+    {
+      config: { rateLimit: limits.email },
+      schema: {
+        tags: ['Tickets'],
+        summary: 'Resend the issued ticket to its registered attendee',
+        ...secured,
+        params: registrationParams,
+        response: responses({ 202: okSchema }),
+      },
+    },
+    async (request, reply) => {
+      const { id, registrationId } = request.params
+      await attendees.requireRegistrationOfEvent(requireAuth(request).userId, id, registrationId)
+      const message = await service.resendTicket(id, registrationId)
+      await audit(request, {
+        action: 'ticket.resend',
+        eventId: id,
+        targetType: 'registration',
+        targetId: registrationId,
+        metadata: { messageId: message.id },
+      })
+      return reply.code(202).send(OK)
+    },
   )
 
   for (const action of ['approve', 'decline'] as const) {

@@ -163,7 +163,8 @@ async function resolveAttachments(
   const files: Array<{ filename: string; content: Buffer }> = []
   for (const ref of refs) {
     const file = await attachmentResolvers.get(ref.kind)?.(ref.id)
-    if (file) files.push(file)
+    if (!file) throw new EmailSendError('The requested email attachment is unavailable.', false)
+    files.push(file)
   }
   return files
 }

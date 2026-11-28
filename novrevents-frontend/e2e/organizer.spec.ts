@@ -43,6 +43,18 @@ test.describe('organiser attendee drawer', () => {
     await expect(drawer).toHaveCount(0)
   })
 
+  test('a confirmed attendee has ticket email history @mobile', async ({ page }) => {
+    await signIn(page)
+    await openRegistrations(page)
+    await page.getByRole('combobox', { name: 'Status', exact: true }).selectOption('CONFIRMED')
+    const attendee = page.getByRole('row').filter({ has: page.getByText('Confirmed', { exact: true }) }).first()
+    await attendee.getByRole('button').first().click()
+    const drawer = page.getByRole('dialog')
+    await expect(drawer.getByRole('heading', { name: 'Ticket emails' })).toBeVisible()
+    await expect(drawer.getByRole('list', { name: 'Five most recent ticket emails' }).or(drawer.getByText('No ticket email has been recorded.'))).toBeVisible()
+    await expect(drawer.getByRole('button', { name: 'Resend ticket' })).toBeVisible()
+  })
+
   test.describe('on a phone', () => {
     test.use({ viewport: { width: 390, height: 844 } })
 

@@ -16,7 +16,7 @@ export async function renderTicketPdf(
     where: { id: ticketId },
     include: { registration: true, ticketType: true, event: true },
   })
-  if (!ticket) return null
+  if (!ticket || ticket.status !== 'VALID') return null
   const { event, registration } = ticket
   const accent = accentOf(event.accentColor)
   const contentWidth = PAGE.width - MARGIN * 2

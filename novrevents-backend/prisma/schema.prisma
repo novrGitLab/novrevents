@@ -986,6 +986,7 @@ model Message {
 
   @@index([status, scheduledFor])
   @@index([eventId, type, createdAt])
+  @@index([registrationId, createdAt])
   @@index([campaignId])
   @@index([providerMessageId])
   @@index([toEmail])

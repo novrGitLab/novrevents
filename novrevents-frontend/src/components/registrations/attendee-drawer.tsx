@@ -3,6 +3,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { Check, X } from '@/components/ui/icons'
 import * as React from 'react'
+import { TicketDelivery } from './ticket-delivery'
 import { LoadingState, ErrorState } from '@/components/states'
 import { REGISTRATION_STATUS_VARIANT } from '@/components/events/labels'
 import { Badge } from '@/components/ui/badge'
@@ -152,6 +153,13 @@ function DrawerBody({
           </>
         )}
       </dl>
+
+      {manage && registration.ticket && (
+        <TicketDelivery
+          registrationId={registrationId}
+          valid={registration.status === 'CONFIRMED' && registration.ticket.status === 'VALID'}
+        />
+      )}
 
       {manage && registration.submissionId && registrationFormId && (
         <AnswersSection formId={registrationFormId} submissionId={registration.submissionId} />

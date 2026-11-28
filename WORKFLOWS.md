@@ -39,6 +39,8 @@ The private draft provided organizer-side evidence. It did not establish the beh
 
 The signed-out Eventbrite entry showed one email field, a Continue action, social sign-in and a human-check notice. Its account help describes emailed codes. NovrEvents uses a self-hosted human check and a six-digit code. First-time email entrants set a password. Returning verified members can use either a code or their password. Google can enroll a new account or sign in a returning member through the same action. Gmail sending requires its own administrator grant. [Eventbrite account help](https://support.eventbrite.com/hc/en-us/articles/37233967299858-Log-in-to-Eventbrite-troubleshooting-guide)
 
+On an attendee’s registration, event managers can inspect the five most recent ticket emails and resend the existing PDF to the registered address. A queued message or a request in the past minute prevents a duplicate copy. Resending keeps the original ticket and seat. Check-in staff retain attendee lookup access.
+
 Organizers can filter form lists by publication status and purpose. The builder groups the outline and question settings under Edit questions. Preview form presents the respondent view. Both use the same form definition and conditional rules.
 
 ### Coverage of the production brief

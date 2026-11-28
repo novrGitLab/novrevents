@@ -8,6 +8,7 @@ import type {
   Ticket,
   TicketType,
 } from '../../generated/prisma/client.js'
+import { emailAvailability } from '../../lib/email/google-sender.js'
 import { queueEmail } from '../communications/outbox.js'
 import {
   registrationCancelledContent,
@@ -83,15 +84,16 @@ async function issueTicket(
   })
 }
 
-async function queueConfirmation(
+async function queueTicketEmail(
   tx: Tx,
   event: Event,
   registration: Registration,
   ticket: Ticket,
   ticketTypeName: string,
-): Promise<void> {
-  await queueEmail(tx, {
-    type: 'REGISTRATION_CONFIRMATION',
+  type: 'REGISTRATION_CONFIRMATION' | 'TICKET_DELIVERY',
+) {
+  return queueEmail(tx, {
+    type,
     to: { email: registration.attendeeEmail, name: registration.attendeeName },
     userId: registration.userId,
     eventId: event.id,
@@ -107,6 +109,16 @@ async function queueConfirmation(
         onlineUrl: event.onlineUrl,
       }),
   })
+}
+
+async function queueConfirmation(
+  tx: Tx,
+  event: Event,
+  registration: Registration,
+  ticket: Ticket,
+  ticketTypeName: string,
+) {
+  await queueTicketEmail(tx, event, registration, ticket, ticketTypeName, 'REGISTRATION_CONFIRMATION')
   if (registration.userId) {
     await notify(tx, {
       userId: registration.userId,
@@ -218,6 +230,69 @@ async function loadForChange(tx: Tx, registrationId: string) {
   })
   await lockTicketType(tx, registration.ticketTypeId)
   return { event, registration }
+}
+
+export const ticketEmailCooldownMs = 60_000
+const ticketMailTypes = [
+  'REGISTRATION_CONFIRMATION',
+  'TICKET_DELIVERY',
+] satisfies Prisma.EnumMessageTypeFilter['in']
+
+export async function ticketDeliveryHistory(eventId: string, registrationId: string) {
+  return prisma.message.findMany({
+    where: { eventId, registrationId, type: { in: ticketMailTypes } },
+    select: {
+      id: true,
+      type: true,
+      provider: true,
+      status: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+    orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+    take: 5,
+  })
+}
+
+export async function resendTicket(eventId: string, registrationId: string) {
+  if (!(await emailAvailability()).accountEmail)
+    throw new AppError(503, 'EMAIL_UNAVAILABLE', 'Ticket emails are temporarily unavailable.')
+  return prisma.$transaction(async (tx) => {
+    const { event, registration } = await loadForChange(tx, registrationId)
+    if (event.id !== eventId) throw notFound('Registration')
+    if (
+      !['PUBLISHED', 'ONGOING'].includes(event.status) ||
+      event.endsAt <= new Date() ||
+      registration.status !== 'CONFIRMED' ||
+      registration.ticket?.status !== 'VALID'
+    )
+      throw conflict('Only a valid ticket for an active event can be resent.', 'TICKET_UNAVAILABLE')
+    const recent = await tx.message.findFirst({
+      where: {
+        eventId,
+        registrationId,
+        type: { in: ticketMailTypes },
+        OR: [
+          { status: { in: ['QUEUED', 'SENDING'] } },
+          { createdAt: { gt: new Date(Date.now() - ticketEmailCooldownMs) } },
+        ],
+      },
+      select: { id: true },
+    })
+    if (recent)
+      throw conflict(
+        'A ticket email is pending or was just requested. Check its status before trying again.',
+        'TICKET_EMAIL_PENDING',
+      )
+    return queueTicketEmail(
+      tx,
+      event,
+      registration,
+      registration.ticket,
+      registration.ticketType.name,
+      'TICKET_DELIVERY',
+    )
+  }, LOCKING_TX)
 }
 
 async function releaseSeat(
@@ -348,6 +423,10 @@ export async function cancelRegistration(
     })
     await releaseSeat(tx, registration)
     if (registration.ticket) {
+      await tx.message.updateMany({
+        where: { registrationId, type: { in: ticketMailTypes }, status: 'QUEUED' },
+        data: { status: 'CANCELLED' },
+      })
       await tx.ticket.update({
         where: { id: registration.ticket.id },
         data: { status: 'VOID', voidedAt: new Date() },
