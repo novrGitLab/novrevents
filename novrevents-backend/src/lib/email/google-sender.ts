@@ -5,7 +5,7 @@ import { env } from '../../config/env.js'
 import { prisma } from '../db.js'
 import { EmailSendError, type OutgoingEmail } from './provider.js'
 
-export const senderAddress = 'dev.sheriff.fe@gmail.com'
+export const senderAddress = 'cybernovr@gmail.com'
 export const sendScope = 'https://www.googleapis.com/auth/gmail.send'
 const composer = nodemailer.createTransport({
   streamTransport: true,
