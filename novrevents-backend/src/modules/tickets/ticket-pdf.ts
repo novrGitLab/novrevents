@@ -11,12 +11,13 @@ const MARGIN = 36
 /** Renders the downloadable ticket: event details, attendee, and the QR credential. */
 export async function renderTicketPdf(
   ticketId: string,
+  options: { validOnly?: boolean } = {},
 ): Promise<{ filename: string; content: Buffer } | null> {
   const ticket = await prisma.ticket.findUnique({
-    where: { id: ticketId },
+    where: { id: ticketId, ...(options.validOnly && { status: 'VALID' as const }) },
     include: { registration: true, ticketType: true, event: true },
   })
-  if (!ticket || ticket.status !== 'VALID') return null
+  if (!ticket) return null
   const { event, registration } = ticket
   const accent = accentOf(event.accentColor)
   const contentWidth = PAGE.width - MARGIN * 2
@@ -113,4 +114,4 @@ export async function renderTicketPdf(
 }
 
 // Ticket emails attach the PDF through the outbox; registering here keeps the outbox generic.
-registerEmailAttachment('ticket', renderTicketPdf)
+registerEmailAttachment('ticket', (id) => renderTicketPdf(id, { validOnly: true }))
