@@ -283,6 +283,29 @@
   background: var(--brand);
   color: var(--primary-foreground);
 }
+@media (max-width: 760px), (max-height: 610px) {
+  body:has(> .entry-shell):has(> .cookie-notice) {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    overflow: hidden;
+    background: var(--paper);
+  }
+  body:has(> .cookie-notice) > .entry-shell {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-y: auto;
+  }
+  body:has(> .entry-shell) > .cookie-notice {
+    position: static;
+    align-self: center;
+    flex: none;
+    max-height: 40dvh;
+    overflow-y: auto;
+    margin: 0.5rem 1rem max(0.5rem, env(safe-area-inset-bottom));
+  }
+}
+
 @media (max-width: 760px) {
   .entry-spread {
     display: block;

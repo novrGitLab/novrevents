@@ -1,9 +1,10 @@
 'use client'
 
-import { ArrowRight, Check, ClipboardCheck, ClipboardList, QrCode, Users } from '@/components/ui/icons'
+import { ArrowRight, ClipboardList, QrCode, Users } from '@/components/ui/icons'
 import Link from 'next/link'
 import { CopyField, StatCard } from '@/components/common'
 import { canManage, useManagedEvent } from '@/components/events/event-context'
+import { EventSetup } from '@/components/events/event-setup'
 import { CLOSED_REASON_TEXT } from '@/components/events/labels'
 import { Notice } from '@/components/states'
 import { Button } from '@/components/ui/button'
@@ -33,17 +34,6 @@ export default function EventOverviewPage() {
   const base = `/dashboard/events/${event.id}`
   const capacityShare = event.capacity ? Math.min(1, event.counts.confirmed / event.capacity) : null
 
-  const steps = [
-    {
-      done: event.description.trim().length >= 20 && Boolean(event.categoryId),
-      label: 'Describe the event',
-      href: `${base}/edit`,
-    },
-    { done: Boolean(event.bannerUrl), label: 'Add cover artwork', href: `${base}/edit` },
-    { done: Boolean(event.registrationFormId), label: 'Create a registration form', href: `${base}/forms` },
-    { done: event.status !== 'DRAFT', label: 'Publish', href: null },
-  ]
-
   return (
     <div className="space-y-6">
       {event.moderationStatus === 'REMOVED' && (
@@ -52,58 +42,7 @@ export default function EventOverviewPage() {
         </Notice>
       )}
 
-      {event.status === 'DRAFT' && manage && (
-        <section
-          aria-labelledby="readiness-heading"
-          className="bg-brand-soft/60 border-brand-soft flex flex-col gap-4 rounded-lg border p-5 lg:flex-row lg:items-center"
-        >
-          <div className="flex min-w-0 flex-1 items-start gap-3">
-            <span className="bg-card text-primary flex size-10 shrink-0 items-center justify-center rounded-sm border">
-              <ClipboardCheck className="size-5" aria-hidden />
-            </span>
-            <div className="min-w-0">
-              <h2 id="readiness-heading" className="text-headline-sm flex flex-wrap items-center gap-2">
-                Ready to publish?
-                <span className="bg-card text-brand-text rounded-sm border px-2 py-0.5 text-xs font-medium">
-                  {steps.filter((step) => step.done).length} of {steps.length} done
-                </span>
-              </h2>
-              <p className="text-muted-foreground mt-0.5 text-[13px]">
-                Finish these steps, then publish with the button above.
-              </p>
-            </div>
-          </div>
-          <ol className="flex flex-wrap gap-2">
-            {steps.map((step) => (
-              <li key={step.label}>
-                {step.href && !step.done ? (
-                  <Link
-                    href={step.href}
-                    className="bg-card hover:border-primary hover:text-brand-text inline-flex h-8 items-center gap-1.5 rounded-sm border px-2.5 text-[13px] font-medium"
-                  >
-                    <span aria-hidden className="border-subtle-foreground size-3.5 rounded-full border" />
-                    {step.label}
-                  </Link>
-                ) : (
-                  <span
-                    className={cn(
-                      'bg-card inline-flex h-8 items-center gap-1.5 rounded-sm border px-2.5 text-[13px]',
-                      step.done ? 'text-muted-foreground' : 'font-medium',
-                    )}
-                  >
-                    {step.done ? (
-                      <Check className="text-success size-3.5" aria-label="Done" />
-                    ) : (
-                      <span aria-hidden className="border-subtle-foreground size-3.5 rounded-full border" />
-                    )}
-                    {step.label}
-                  </span>
-                )}
-              </li>
-            ))}
-          </ol>
-        </section>
-      )}
+      {event.status === 'DRAFT' && manage && <EventSetup event={event} />}
 
       <section aria-label="Event summary" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard
