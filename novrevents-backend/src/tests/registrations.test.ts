@@ -130,6 +130,60 @@ describe('event registration', () => {
     expect((await guest.get(`/api/v1/public/registrations/${tampered}`)).status).toBe(404)
   })
 
+  it('lets event managers resend the same ticket once, to the registered address', async () => {
+    const { event, form } = await createEventWithRegistration(organiser)
+    const person = attendee('delivery')
+    await submit(app, form.slug, person)
+    const registration = await prisma.registration.findFirstOrThrow({
+      where: { eventId: event.id },
+      include: { ticket: true },
+    })
+    const base = '/api/v1/events/' + event.id + '/registrations/' + registration.id
+    const resend = base + '/resend-ticket'
+    const history = base + '/ticket-delivery'
+    const stranger = await createUser(app)
+    expect((await stranger.client.get(history)).status).toBe(404)
+    expect((await stranger.client.post(resend)).status).toBe(404)
+    await prisma.eventTeamMember.create({
+      data: { eventId: event.id, userId: stranger.id, role: 'STAFF' },
+    })
+    expect((await stranger.client.get(history)).status).toBe(403)
+    expect((await stranger.client.post(resend)).status).toBe(403)
+    expect(errorCode(await organiser.client.post(resend))).toBe('TICKET_EMAIL_PENDING')
+    await prisma.message.updateMany({
+      where: { registrationId: registration.id, type: 'REGISTRATION_CONFIRMATION' },
+      data: { createdAt: new Date(Date.now() - 120_000), status: 'SENT', provider: 'gmail-api' },
+    })
+    const requests = await Promise.all([
+      organiser.client.post(resend),
+      organiser.client.post(resend),
+    ])
+    expect(requests.map((result) => result.status).sort()).toEqual([202, 409])
+    const copy = await prisma.message.findFirstOrThrow({
+      where: { registrationId: registration.id, type: 'TICKET_DELIVERY' },
+    })
+    expect(copy.toEmail).toBe(person.email)
+    expect(copy.data).toMatchObject({
+      attachments: [{ kind: 'ticket', id: registration.ticket!.id }],
+    })
+    expect(await prisma.ticket.count({ where: { registrationId: registration.id } })).toBe(1)
+    const activity = await organiser.client.get<{ items: { resend: boolean; status: string }[] }>(
+      history,
+    )
+    expect(activity.body.items).toMatchObject([
+      { resend: true, status: 'QUEUED' },
+      { resend: false, status: 'SENT' },
+    ])
+    const cancelled = await organiser.client.post(base + '/cancel', {
+      reason: 'Delivery check complete',
+    })
+    expect(cancelled.status).toBe(200)
+    expect((await prisma.message.findUniqueOrThrow({ where: { id: copy.id } })).status).toBe(
+      'CANCELLED',
+    )
+    expect(errorCode(await organiser.client.post(resend))).toBe('TICKET_UNAVAILABLE')
+  })
+
   it('registers a signed-in user and lists the registration under their account', async () => {
     const user = await createUser(app)
     const { form } = await createEventWithRegistration(organiser)
