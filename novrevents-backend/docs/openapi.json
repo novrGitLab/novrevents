@@ -12074,11 +12074,15 @@
                     },
                     "emailDelivery": {
                       "type": "boolean"
+                    },
+                    "accountEmail": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
                     "google",
-                    "emailDelivery"
+                    "emailDelivery",
+                    "accountEmail"
                   ],
                   "additionalProperties": false
                 }

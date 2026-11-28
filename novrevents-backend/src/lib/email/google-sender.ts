@@ -43,6 +43,11 @@ export async function senderStatus() {
     needsConsent: row?.needsConsent ?? false,
   }
 }
+export async function emailAvailability() {
+  const emailDelivery = env.JOBS_ENABLED && (env.EMAIL_DRIVER !== 'log' || (await senderStatus()).connected)
+  return { emailDelivery, accountEmail: env.NODE_ENV !== 'production' || emailDelivery }
+}
+
 async function deliver(token: string, email: OutgoingEmail) {
   const message = await composer.sendMail({
     from: { name: 'NovrEvents', address: senderAddress },

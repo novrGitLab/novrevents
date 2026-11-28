@@ -1460,6 +1460,7 @@ export interface paths {
                         "application/json": {
                             google: boolean;
                             emailDelivery: boolean;
+                            accountEmail: boolean;
                         };
                     };
                 };
