@@ -80,6 +80,12 @@ export default function PrivacyPage() {
         <section>
           <h2>Email</h2>
           <p>
+            NovrEvents uses the Gmail API to send account and event emails from a designated Cybernovr
+            mailbox. These include verification codes, password reset links and tickets with PDF attachments.
+            Only an administrator can connect the sender. The mailbox owner grants send permission and can
+            withdraw it in Google Account settings. NovrEvents encrypts the credential used for delivery.
+          </p>
+          <p>
             Ticket and account security emails are transactional. Reminders, announcements and invitations can
             be switched off from the link in any of those emails or in your account settings.
           </p>

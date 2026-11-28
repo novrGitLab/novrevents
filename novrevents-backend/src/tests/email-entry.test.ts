@@ -136,6 +136,7 @@ describe('Gmail sender', () => {
       expect(messages[1]).toContain('application/pdf')
       expect(messages[1]).toContain('ticket.pdf')
       expect(messages[1]).toContain('To: guest@example.test')
+      expect(messages[1]).toContain('From: NovrEvents <cybernovr@gmail.com>')
       revoked = true
       await expect(gmailApiProvider.send(mail)).rejects.toThrow('authorization')
       expect((await senderStatus()).connected).toBe(false)
