@@ -3,13 +3,12 @@ import { randomInt, randomUUID } from 'node:crypto'
 import { createChallenge, verifySolution } from 'altcha-lib'
 import { deriveKey } from 'altcha-lib/algorithms/pbkdf2'
 import { z } from 'zod'
-import { env } from '../../config/env.js'
 import { POLICY_VERSION } from '../../config/policy.js'
 import { hashPassword, hmac, randomToken, safeEqual, sha256 } from '../../lib/crypto.js'
 import { prisma } from '../../lib/db.js'
 import { AppError, badRequest, forbidden } from '../../lib/errors.js'
 import { queueEmail } from '../communications/outbox.js'
-import { senderStatus } from '../../lib/email/google-sender.js'
+import { emailAvailability } from '../../lib/email/google-sender.js'
 import { getSettings } from '../admin/settings.service.js'
 import { claimAdminInvitation } from './admin-invitation.js'
 import { assertPasswordAllowed, createSession, type ClientMeta } from './auth.service.js'
@@ -71,10 +70,7 @@ async function validateHuman(payload: string) {
   }
 }
 export async function requestEntry(email: string, payload: string) {
-  if (
-    env.NODE_ENV === 'production' &&
-    (!env.JOBS_ENABLED || (env.EMAIL_DRIVER === 'log' && !(await senderStatus()).connected))
-  )
+  if (!(await emailAvailability()).accountEmail)
     throw new AppError(
       503,
       'EMAIL_UNAVAILABLE',

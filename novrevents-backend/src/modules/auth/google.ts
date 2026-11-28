@@ -1,5 +1,6 @@
 import {
   authorizeSender,
+  emailAvailability,
   sendScope,
   senderAddress,
   senderStatus,
@@ -204,14 +205,10 @@ export const googleRoutes: FastifyPluginAsyncZod = async (app) => {
     {
       schema: {
         tags: ['Auth'],
-        response: responses({ 200: z.object({ google: z.boolean(), emailDelivery: z.boolean() }) }),
+        response: responses({ 200: z.object({ google: z.boolean(), emailDelivery: z.boolean(), accountEmail: z.boolean() }) }),
       },
     },
-    async () => ({
-      google: enabled(),
-      emailDelivery:
-        env.JOBS_ENABLED && (env.EMAIL_DRIVER !== 'log' || (await senderStatus()).connected),
-    }),
+    async () => ({ google: enabled(), ...(await emailAvailability()) }),
   )
   app.post(
     '/auth/google/start',
@@ -291,9 +288,13 @@ export const googleRoutes: FastifyPluginAsyncZod = async (app) => {
         if (flow.mode === 'admin') failurePath = '/admin/auth/login?google=failed'
         if (flow.mode === 'sender') {
           requireAdmin(request)
-          failurePath = '/admin/settings?sender=failed'
+          failurePath = '/admin/settings?sender=failed#email-sender'
         }
-        if (!request.query.code) throw new Error('Google authorization did not complete.')
+        if (!request.query.code) {
+          if (flow.mode === 'sender' && request.query.error === 'access_denied')
+            return reply.redirect(appUrl + '/admin/settings?sender=declined#email-sender')
+          throw new Error('Google authorization did not complete.')
+        }
         const currentUrl = new URL(callback)
         currentUrl.search = new URL(request.raw.url!, appUrl).search
         const tokens = await oidc.authorizationCodeGrant(await googleClient(), currentUrl, {
@@ -304,14 +305,14 @@ export const googleRoutes: FastifyPluginAsyncZod = async (app) => {
         })
         const profile = claims.parse(tokens.claims())
         if (flow.mode === 'sender') {
-          if (
-            profile.email.toLowerCase() !== senderAddress ||
-            !tokens.refresh_token ||
-            !tokens.scope?.split(' ').includes(sendScope)
-          )
-            throw forbidden('Sender identity or permission does not match.')
+          if (profile.email.toLowerCase() !== senderAddress)
+            return reply.redirect(appUrl + '/admin/settings?sender=wrong-account#email-sender')
+          if (!tokens.scope?.split(' ').includes(sendScope))
+            return reply.redirect(appUrl + '/admin/settings?sender=missing-permission#email-sender')
+          if (!tokens.refresh_token)
+            return reply.redirect(appUrl + '/admin/settings?sender=missing-offline-access#email-sender')
           await authorizeSender(tokens.access_token, tokens.refresh_token)
-          return reply.redirect(appUrl + '/admin/settings?sender=connected')
+          return reply.redirect(appUrl + '/admin/settings?sender=connected#email-sender')
         }
         const session = await signIn(profile, flow, request)
         if (session)

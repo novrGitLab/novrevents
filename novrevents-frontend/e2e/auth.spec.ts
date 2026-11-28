@@ -75,3 +75,19 @@ test.describe('expired verification links', () => {
     ).toBeVisible()
   })
 })
+
+test('a mail outage offers Google and password sign-in and pauses recovery @mobile', async ({ page }) => {
+  await page.route('**/api/v1/auth/providers', (route) =>
+    route.fulfill({ json: { google: true, emailDelivery: false, accountEmail: false } }),
+  )
+  await page.goto('/auth/login')
+  await expect(page.getByLabel('Email or username')).toBeVisible()
+  await expect(page.getByLabel('Password', { exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Continue with Google' })).toBeVisible()
+  await expect(page.getByText('Email codes are temporarily unavailable.')).toBeVisible()
+  await page.getByRole('link', { name: 'Forgot your password?' }).click()
+  await expect(page.getByText('Password reset emails are temporarily unavailable')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Send reset link' })).toHaveCount(0)
+  await page.getByRole('link', { name: 'Back to sign in' }).click()
+  await expect(page.getByLabel('Email or username')).toBeVisible()
+})

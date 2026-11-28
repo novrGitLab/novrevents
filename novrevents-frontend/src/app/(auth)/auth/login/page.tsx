@@ -10,7 +10,8 @@ import { Button } from '@/components/ui/button'
 import { Notice } from '@/components/states'
 import { useApplySession } from '@/hooks/use-session'
 import { api, ensureCsrfToken, unwrap } from '@/lib/api/client'
-import { errorMessage } from '@/lib/api/errors'
+import { useAuthProviders } from '@/lib/auth-providers'
+import { errorMessage, hasCode } from '@/lib/api/errors'
 import { POLICY_VERSION } from '@/lib/policy'
 import { safeNextPath } from '@/lib/utils'
 type Step = 'email' | 'human' | 'code' | 'create' | 'password'
@@ -27,7 +28,11 @@ function AccountEntry() {
     params = useSearchParams(),
     apply = useApplySession()
   const next = safeNextPath(params.get('next'))
-  const [step, setStep] = useState<Step>(admin ? 'password' : 'email')
+  const providers = useAuthProviders()
+  const emailPaused = providers.data?.accountEmail === false
+  const [requestedStep, setStep] = useState<Step>(admin ? 'password' : 'email')
+  const step =
+    emailPaused && (requestedStep === 'email' || requestedStep === 'human') ? 'password' : requestedStep
   const [email, setEmail] = useState(''),
     [code, setCode] = useState(''),
     [password, setPassword] = useState('')
@@ -97,7 +102,10 @@ function AccountEntry() {
       router.replace(admin ? (next.startsWith('/admin/') ? next : '/admin') : next)
     } catch (cause) {
       setError(errorMessage(cause))
-      if (step === 'human') {
+      if (hasCode(cause, 'EMAIL_UNAVAILABLE')) {
+        setStep('password')
+        void providers.refetch()
+      } else if (step === 'human') {
         setCaptcha('')
         setHumanKey((k) => k + 1)
       }
@@ -130,6 +138,9 @@ function AccountEntry() {
                   ? 'Your email is verified. Choose a password of at least 10 characters.'
                   : 'Enter your email or username and password.'}
       </p>
+      {!admin && emailPaused && step === 'password' && (
+        <Notice tone="info">Email codes are temporarily unavailable.</Notice>
+      )}
       <form onSubmit={go} className="entry-fields">
         {error && <Notice tone="error">{error}</Notice>}
         {(step === 'email' || step === 'password') && (
@@ -175,13 +186,20 @@ function AccountEntry() {
             />
           </Field>
         )}
-        {(step === 'email' || step === 'create') && (
+        {(step === 'email' ||
+          step === 'create' ||
+          (!admin && emailPaused && step === 'password' && providers.data?.google)) && (
           <p className="entry-legal">
             By continuing, you agree to the <Link href="/legal/terms-of-use">Terms of use</Link> and
             acknowledge the <Link href="/legal/privacy-policy">Privacy policy</Link>.
           </p>
         )}
-        <Button type="submit" size="lg" loading={busy} disabled={step === 'human' && !captcha}>
+        <Button
+          type="submit"
+          size="lg"
+          loading={busy}
+          disabled={(step === 'email' && providers.isPending) || (step === 'human' && !captcha)}
+        >
           {step === 'human'
             ? 'Send code'
             : step === 'code'
@@ -193,10 +211,8 @@ function AccountEntry() {
                   : 'Continue'}
         </Button>
       </form>
-      {(step === 'email' || admin) && (
-        <>
-          <GoogleButton divider mode={admin ? 'admin' : 'continue'} consent next={next} />
-        </>
+      {(step === 'email' || admin || (emailPaused && step === 'password')) && (
+        <GoogleButton divider mode={admin ? 'admin' : 'continue'} consent next={next} />
       )}
       <div className="entry-options">
         {step === 'code' && (
@@ -210,7 +226,7 @@ function AccountEntry() {
             Use a password instead
           </Button>
         )}
-        {!admin && step !== 'email' && (
+        {!admin && !emailPaused && step !== 'email' && (
           <Button variant="link" onClick={() => move('email')}>
             Change email
           </Button>

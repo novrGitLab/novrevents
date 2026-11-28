@@ -11,6 +11,7 @@ import {
 } from '../../lib/crypto.js'
 import { isUniqueViolation, prisma, type Db } from '../../lib/db.js'
 import { AppError, badRequest, conflict, forbidden } from '../../lib/errors.js'
+import { emailAvailability } from '../../lib/email/google-sender.js'
 import { publicFileUrl } from '../../lib/storage/index.js'
 import type { AuthTokenType } from '../../generated/prisma/client.js'
 import { getSettings } from '../admin/settings.service.js'
@@ -349,6 +350,8 @@ export async function verifyEmail(token: string): Promise<string> {
 
 /** Always resolves, whether or not the address is registered, so it cannot be used to probe accounts. */
 export async function requestPasswordReset(email: string): Promise<void> {
+  if (!(await emailAvailability()).accountEmail)
+    throw new AppError(503, 'EMAIL_UNAVAILABLE', 'Password reset emails are temporarily unavailable.')
   const user = await prisma.user.findUnique({
     where: { email },
     select: { id: true, email: true, status: true, profile: { select: { displayName: true } } },

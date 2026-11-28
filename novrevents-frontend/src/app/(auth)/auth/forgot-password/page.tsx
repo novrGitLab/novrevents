@@ -3,16 +3,16 @@
 import Link from 'next/link'
 import * as React from 'react'
 import { Field } from '@/components/common'
-import { Notice } from '@/components/states'
+import { ErrorState, LoadingState, Notice } from '@/components/states'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { api, unwrap } from '@/lib/api/client'
+import { api, ensureCsrfToken, unwrap } from '@/lib/api/client'
 import { errorMessage } from '@/lib/api/errors'
 import { useAuthProviders } from '@/lib/auth-providers'
 
 export default function ForgotPasswordPage() {
-  const emailDeliveryEnabled = useAuthProviders().data?.emailDelivery === true
+  const providers = useAuthProviders()
   const [email, setEmail] = React.useState('')
   const [sent, setSent] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
@@ -27,21 +27,18 @@ export default function ForgotPasswordPage() {
         </CardDescription>
       </CardHeader>
       <CardContent className="px-0">
-        {!emailDeliveryEnabled && (
-          <Notice tone="warning" title="Password recovery is unavailable" className="mb-4">
-            Password recovery requires access to your registered inbox. Return to sign-in if you still have your password.
-          </Notice>
-        )}
         {sent ? (
-          emailDeliveryEnabled ? (
-            <Notice tone="success" title="Check your inbox">
-              If an account exists for {email}, a reset link is on its way. The link expires in one hour.
-            </Notice>
-          ) : (
-            <Notice tone="info" title="Request recorded">
-              Password recovery is currently unavailable.
-            </Notice>
-          )
+          <Notice tone="success" title="Check your inbox">
+            If an account exists for {email}, a reset link is on its way. The link expires in one hour.
+          </Notice>
+        ) : providers.isPending ? (
+          <LoadingState rows={1} label="Checking email availability" />
+        ) : providers.isError ? (
+          <ErrorState error={providers.error} retry={() => void providers.refetch()} />
+        ) : !providers.data.accountEmail ? (
+          <Notice tone="info" title="Password reset emails are temporarily unavailable">
+            Try again later or return to sign in.
+          </Notice>
         ) : (
           <form
             className="space-y-4"
@@ -50,6 +47,7 @@ export default function ForgotPasswordPage() {
               setError(null)
               setLoading(true)
               try {
+                await ensureCsrfToken()
                 await unwrap(api.POST('/api/v1/auth/forgot-password', { body: { email } }))
                 setSent(true)
               } catch (caught) {

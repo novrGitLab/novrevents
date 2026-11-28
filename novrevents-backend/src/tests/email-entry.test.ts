@@ -89,6 +89,21 @@ describe('email account entry', () => {
   })
 })
 describe('Gmail sender', () => {
+  it('preserves the working sender if a replacement fails its delivery check', async () => {
+    await prisma.mailSender.deleteMany({ where: { address: senderAddress } })
+    const gmail = vi.fn()
+    vi.stubGlobal('fetch', gmail)
+    try {
+      gmail.mockResolvedValueOnce(Response.json({ id: 'accepted-test-message' }))
+      await authorizeSender('first-access', 'first-refresh')
+      const previous = await prisma.mailSender.findUniqueOrThrow({ where: { address: senderAddress } })
+      gmail.mockResolvedValueOnce(new Response(null, { status: 403 }))
+      await expect(authorizeSender('other-access', 'other-refresh')).rejects.toThrow('403')
+      expect(await prisma.mailSender.findUniqueOrThrow({ where: { address: senderAddress } })).toEqual(previous)
+    } finally {
+      await prisma.mailSender.deleteMany({ where: { address: senderAddress } })
+    }
+  })
   it('encrypts the refresh grant, preserves the PDF attachment and marks a revoked grant for reconnection', async () => {
     await prisma.mailSender.deleteMany({ where: { address: senderAddress } })
     const messages: string[] = []
